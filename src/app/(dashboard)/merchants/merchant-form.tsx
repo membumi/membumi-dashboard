@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Merchant } from "@prisma/client";
+import type { Merchant } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";

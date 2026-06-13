@@ -9,80 +9,54 @@ import {
   Store,
   AlertTriangle,
 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { apiGet } from "@/lib/api-client";
+import type { Overview } from "@/lib/types";
 import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import { RevenueChart } from "./revenue-chart";
 
-export default async function OverviewPage() {
-  const [
-    userCount,
-    hotelCount,
-    tripCount,
-    productCount,
-    restaurantCount,
-    driverCount,
-    bookingAgg,
-    martAgg,
-    foodAgg,
-    tripRegAgg,
-    rideAgg,
-    pendingMerchants,
-    pendingDrivers,
-    lowStock,
-    recentBookings,
-    recentFood,
-    recentMart,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.hotel.count(),
-    prisma.trip.count(),
-    prisma.product.count(),
-    prisma.restaurant.count(),
-    prisma.driver.count(),
-    prisma.booking.aggregate({ _sum: { total: true }, where: { status: "CONFIRMED" } }),
-    prisma.martOrder.aggregate({ _sum: { total: true } }),
-    prisma.foodOrder.aggregate({ _sum: { total: true } }),
-    prisma.tripRegistration.aggregate({ _sum: { total: true } }),
-    prisma.ride.aggregate({ _sum: { fareAmount: true }, where: { status: "COMPLETED" } }),
-    prisma.merchant.count({ where: { verificationStatus: "PENDING" } }),
-    prisma.driver.count({ where: { verificationStatus: "PENDING" } }),
-    prisma.product.count({ where: { stock: { lt: 5 } } }),
-    prisma.booking.findMany({ take: 5, orderBy: { createdAt: "desc" }, include: { hotel: true } }),
-    prisma.foodOrder.findMany({ take: 5, orderBy: { createdAt: "desc" }, include: { restaurant: true } }),
-    prisma.martOrder.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
-  ]);
+// Empty overview used when the backend stats endpoint isn't available yet
+// (see docs/dashboard-admin-gaps.md · Gap 4).
+const EMPTY: Overview = {
+  counts: { users: 0, hotels: 0, trips: 0, products: 0, restaurants: 0, drivers: 0 },
+  pending: { merchants: 0, drivers: 0 },
+  lowStock: 0,
+  gmvByService: { hotel: 0, trip: 0, mart: 0, food: 0, ride: 0 },
+  gmvTotal: 0,
+  recent: [],
+};
 
-  const gmv =
-    (bookingAgg._sum.total ?? 0) +
-    (martAgg._sum.total ?? 0) +
-    (foodAgg._sum.total ?? 0) +
-    (tripRegAgg._sum.total ?? 0) +
-    (rideAgg._sum.fareAmount ?? 0);
+export default async function OverviewPage() {
+  let ov: Overview;
+  try {
+    ov = await apiGet<Overview>("/admin/stats/overview");
+  } catch {
+    ov = EMPTY;
+  }
 
   const revenueByService = [
-    { name: "Penginapan", value: bookingAgg._sum.total ?? 0 },
-    { name: "Open Trip", value: tripRegAgg._sum.total ?? 0 },
-    { name: "Mart", value: martAgg._sum.total ?? 0 },
-    { name: "Food", value: foodAgg._sum.total ?? 0 },
-    { name: "Ride", value: rideAgg._sum.fareAmount ?? 0 },
+    { name: "Penginapan", value: ov.gmvByService.hotel },
+    { name: "Open Trip", value: ov.gmvByService.trip },
+    { name: "Mart", value: ov.gmvByService.mart },
+    { name: "Food", value: ov.gmvByService.food },
+    { name: "Ride", value: ov.gmvByService.ride },
   ];
 
   const metrics = [
-    { label: "Total GMV", value: formatRupiah(gmv), icon: ShoppingBasket, href: "/orders" },
-    { label: "Pengguna", value: userCount, icon: Users, href: "/users" },
-    { label: "Hotel", value: hotelCount, icon: BedDouble, href: "/penginapan" },
-    { label: "Open Trip", value: tripCount, icon: Map, href: "/open-trip" },
-    { label: "Produk Mart", value: productCount, icon: ShoppingBasket, href: "/mart" },
-    { label: "Restoran", value: restaurantCount, icon: UtensilsCrossed, href: "/food" },
-    { label: "Driver", value: driverCount, icon: Bike, href: "/ride" },
+    { label: "Total GMV", value: formatRupiah(ov.gmvTotal), icon: ShoppingBasket, href: "/orders" },
+    { label: "Pengguna", value: ov.counts.users, icon: Users, href: "/users" },
+    { label: "Hotel", value: ov.counts.hotels, icon: BedDouble, href: "/penginapan" },
+    { label: "Open Trip", value: ov.counts.trips, icon: Map, href: "/open-trip" },
+    { label: "Produk Mart", value: ov.counts.products, icon: ShoppingBasket, href: "/mart" },
+    { label: "Restoran", value: ov.counts.restaurants, icon: UtensilsCrossed, href: "/food" },
+    { label: "Driver", value: ov.counts.drivers, icon: Bike, href: "/ride" },
   ];
 
   const actions = [
-    { label: "Merchant menunggu verifikasi", count: pendingMerchants, href: "/merchants", icon: Store },
-    { label: "Driver menunggu verifikasi", count: pendingDrivers, href: "/ride", icon: Bike },
-    { label: "Produk stok menipis (< 5)", count: lowStock, href: "/mart", icon: AlertTriangle },
+    { label: "Merchant menunggu verifikasi", count: ov.pending.merchants, href: "/merchants", icon: Store },
+    { label: "Driver menunggu verifikasi", count: ov.pending.drivers, href: "/ride", icon: Bike },
+    { label: "Produk stok menipis (< 5)", count: ov.lowStock, href: "/mart", icon: AlertTriangle },
   ].filter((a) => a.count > 0);
 
   return (
@@ -145,20 +119,38 @@ export default async function OverviewPage() {
             <CardTitle>Aktivitas Terbaru</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recentBookings.map((b) => (
-              <Row key={b.id} title={`Booking • ${b.hotel.name}`} sub={formatDateTime(b.createdAt)} amount={b.total} status={b.status} />
-            ))}
-            {recentFood.map((o) => (
-              <Row key={o.id} title={`Food • ${o.restaurant.name}`} sub={formatDateTime(o.createdAt)} amount={o.total} status={o.status} />
-            ))}
-            {recentMart.map((o) => (
-              <Row key={o.id} title="Mart Order" sub={formatDateTime(o.createdAt)} amount={o.total} status={o.shipmentStatus} />
+            {ov.recent.length === 0 && (
+              <p className="text-sm text-slate-400">Belum ada aktivitas.</p>
+            )}
+            {ov.recent.map((r, i) => (
+              <Row
+                key={i}
+                title={`${labelForKind(r.kind)} • ${r.title}`}
+                sub={formatDateTime(r.createdAt)}
+                amount={r.amount}
+                status={r.status}
+              />
             ))}
           </CardContent>
         </Card>
       </div>
     </div>
   );
+}
+
+function labelForKind(kind: string): string {
+  switch (kind) {
+    case "booking":
+      return "Booking";
+    case "food":
+      return "Food";
+    case "mart":
+      return "Mart";
+    case "trip":
+      return "Trip";
+    default:
+      return kind;
+  }
 }
 
 function Row({ title, sub, amount, status }: { title: string; sub: string; amount: number; status: string }) {

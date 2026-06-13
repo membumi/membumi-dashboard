@@ -15,19 +15,17 @@ import {
 } from "@/lib/validations";
 
 describe("Penginapan — hotelSchema (UC-01)", () => {
-  const base = { name: "Hotel A", city: "Jakarta", address: "Jl. 1", starRating: 4, pricePerNight: 500000 };
+  const base = { name: "Hotel A", city: "Jakarta", address: "Jl. 1", starRating: 4 };
   it("accepts valid input", () => {
     expect(hotelSchema.safeParse(base).success).toBe(true);
-  });
-  it("rejects price <= 0", () => {
-    expect(hotelSchema.safeParse({ ...base, pricePerNight: 0 }).success).toBe(false);
   });
   it("rejects starRating out of 1..5", () => {
     expect(hotelSchema.safeParse({ ...base, starRating: 6 }).success).toBe(false);
   });
-  it("coerces numeric strings from form data", () => {
-    const r = hotelSchema.safeParse({ ...base, pricePerNight: "500000", starRating: "4" });
-    expect(r.success && r.data.pricePerNight).toBe(500000);
+  it("coerces lat/lng numeric strings, leaves blank undefined", () => {
+    const r = hotelSchema.safeParse({ ...base, lat: "-6.2", lng: "" });
+    expect(r.success && r.data.lat).toBe(-6.2);
+    expect(r.success && r.data.lng).toBeUndefined();
   });
 });
 
@@ -90,13 +88,14 @@ describe("Food — restaurant & menu schemas (UC-01/UC-02)", () => {
 });
 
 describe("Ride — driver & fareConfig (UC-01/UC-02)", () => {
-  it("driver requires plate & vehicle", () => {
-    expect(driverSchema.safeParse({ name: "Joko", vehiclePlate: "B1", vehicleName: "Vario" }).success).toBe(true);
+  it("driver requires plate & vehicle, defaults type to motor", () => {
+    const r = driverSchema.safeParse({ name: "Joko", vehiclePlate: "B1", vehicleName: "Vario" });
+    expect(r.success && r.data.type).toBe("motor");
     expect(driverSchema.safeParse({ name: "Joko", vehiclePlate: "", vehicleName: "Vario" }).success).toBe(false);
   });
-  it("fareConfig type must be MOTOR|MOBIL", () => {
-    expect(fareConfigSchema.safeParse({ type: "MOTOR", baseFare: 5000, perKm: 2500, perMinute: 200 }).success).toBe(true);
-    expect(fareConfigSchema.safeParse({ type: "TRUK", baseFare: 0, perKm: 0, perMinute: 0 }).success).toBe(false);
+  it("fareConfig type must be motor|mobil and uses minFare", () => {
+    expect(fareConfigSchema.safeParse({ type: "motor", baseFare: 5000, perKm: 2500, minFare: 8000 }).success).toBe(true);
+    expect(fareConfigSchema.safeParse({ type: "truk", baseFare: 0, perKm: 0, minFare: 0 }).success).toBe(false);
   });
 });
 
@@ -114,11 +113,11 @@ describe("Promo — promoSchema (UC-01)", () => {
 
 describe("Auth — adminUserSchema (Users UC-02)", () => {
   it("requires valid email and role", () => {
-    expect(adminUserSchema.safeParse({ email: "a@b.com", name: "Adm", role: "ADMIN", password: "secret1" }).success).toBe(true);
+    expect(adminUserSchema.safeParse({ email: "a@b.com", name: "Adm", role: "ADMIN", password: "secret12" }).success).toBe(true);
     expect(adminUserSchema.safeParse({ email: "nope", name: "Adm", role: "ADMIN" }).success).toBe(false);
     expect(adminUserSchema.safeParse({ email: "a@b.com", name: "Adm", role: "ROOT" }).success).toBe(false);
   });
-  it("rejects short password", () => {
+  it("rejects short password (< 8)", () => {
     expect(adminUserSchema.safeParse({ email: "a@b.com", name: "Adm", role: "ADMIN", password: "123" }).success).toBe(false);
   });
 });

@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { formatRupiah, formatDateTime, toStringArray } from "@/lib/utils";
+import { apiGet, apiGetPaged, ApiError } from "@/lib/api-client";
+import type { Trip, Registration } from "@/lib/types";
+import { guideOptions, merchantOptions } from "@/server/queries";
+import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
@@ -10,15 +12,21 @@ import { updateTrip, deleteTrip } from "@/server/actions/trips";
 
 export default async function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [trip, guides, merchants] = await Promise.all([
-    prisma.trip.findUnique({
-      where: { id },
-      include: { itinerary: { orderBy: { day: "asc" } }, registrations: { orderBy: { createdAt: "desc" } } },
-    }),
-    prisma.guide.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
-    prisma.merchant.findMany({ where: { verificationStatus: "VERIFIED" }, select: { id: true, businessName: true } }),
+  let trip: Trip;
+  try {
+    trip = await apiGet<Trip>(`/trips/${id}`);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) notFound();
+    throw e;
+  }
+  const [{ items: registrations }, guides, merchants] = await Promise.all([
+    apiGetPaged<Registration>(`/admin/trips/${id}/registrations`, { limit: 100 }).catch(() => ({
+      items: [] as Registration[],
+      meta: null,
+    })),
+    guideOptions(),
+    merchantOptions(),
   ]);
-  if (!trip) notFound();
 
   const tripData = {
     id: trip.id,
@@ -27,46 +35,54 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
     imageUrl: trip.imageUrl,
     price: trip.price,
     durationDays: trip.durationDays,
-    startDate: trip.startDate.toISOString().slice(0, 10),
+    startDate: trip.startDate ? trip.startDate.slice(0, 10) : "",
     totalSlots: trip.totalSlots,
     description: trip.description,
-    includes: toStringArray(trip.includes),
-    guideId: trip.guideId,
-    merchantId: trip.merchantId,
+    includes: trip.includes,
+    guideId: trip.guideId ?? null,
+    merchantId: trip.merchantId ?? null,
   };
   const itinerary = trip.itinerary.map((d) => ({
     day: d.day,
     title: d.title,
-    activities: toStringArray(d.activities),
+    activities: d.activities,
   }));
 
   return (
     <div className="space-y-6">
       <PageHeader title={trip.title} description={`${trip.destination} • ${trip.bookedSlots}/${trip.totalSlots} slot`} />
 
-      <TripForm action={updateTrip} trip={tripData} itinerary={itinerary} guides={guides} merchants={merchants} />
+      <TripForm
+        action={updateTrip}
+        trip={tripData}
+        itinerary={itinerary}
+        guides={guides.map((g) => ({ id: g.id, name: g.name }))}
+        merchants={merchants}
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle>Registrasi Peserta ({trip.registrations.length})</CardTitle>
+          <CardTitle>Registrasi Peserta ({registrations.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <THead>
               <TR>
-                <TH>Kontak</TH>
+                <TH>ID</TH>
                 <TH>Peserta</TH>
                 <TH>Total</TH>
+                <TH>Status</TH>
                 <TH>Tanggal</TH>
               </TR>
             </THead>
             <TBody>
-              {trip.registrations.length === 0 && <EmptyRow colSpan={4} />}
-              {trip.registrations.map((r) => (
+              {registrations.length === 0 && <EmptyRow colSpan={5} />}
+              {registrations.map((r) => (
                 <TR key={r.id}>
-                  <TD className="font-medium">{r.contactName}</TD>
+                  <TD className="font-mono text-xs">{r.id.slice(0, 8)}</TD>
                   <TD>{r.participants} org</TD>
-                  <TD>{formatRupiah(r.total)}</TD>
+                  <TD>{formatRupiah(r.totalPrice)}</TD>
+                  <TD className="text-slate-500">{r.status}</TD>
                   <TD className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
                 </TR>
               ))}

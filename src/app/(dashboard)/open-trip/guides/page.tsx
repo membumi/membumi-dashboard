@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { guideOptions } from "@/server/queries";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
@@ -7,10 +7,7 @@ import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
 import { createGuide, deleteGuide } from "@/server/actions/trips";
 
 export default async function GuidesPage() {
-  const guides = await prisma.guide.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { trips: true } } },
-  });
+  const guides = await guideOptions();
 
   return (
     <div className="space-y-6">
@@ -49,7 +46,7 @@ export default async function GuidesPage() {
             <TR key={g.id}>
               <TD className="font-medium">{g.name}</TD>
               <TD>★ {g.rating}</TD>
-              <TD>{g._count.trips}</TD>
+              <TD>{g.tripCount}</TD>
               <TD className="text-right"><ConfirmDelete action={deleteGuide} id={g.id} label="Hapus guide ini?" /></TD>
             </TR>
           ))}

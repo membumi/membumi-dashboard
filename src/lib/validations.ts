@@ -10,12 +10,19 @@ import {
   VERIFICATION_STATUSES,
 } from "@/lib/constants";
 
+// Form field shapes for Server Actions. Field names match the dashboard forms;
+// the actions map these onto the NestJS DTOs (see src/server/actions/*).
+
 const id = z.string().min(1);
 const money = z.coerce.number().int().min(0);
 const optionalId = z
   .string()
   .optional()
   .transform((v) => (v && v.length > 0 ? v : undefined));
+const optionalNum = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.length > 0 ? Number(v) : undefined));
 
 export const hotelSchema = z.object({
   name: z.string().min(2),
@@ -23,9 +30,10 @@ export const hotelSchema = z.object({
   address: z.string().min(2),
   imageUrl: z.string().url().optional().or(z.literal("")),
   starRating: z.coerce.number().int().min(1).max(5),
-  pricePerNight: money.refine((v) => v > 0, "Harga harus > 0"),
+  lat: optionalNum,
+  lng: optionalNum,
   merchantId: optionalId,
-  amenityIds: z.array(z.string()).optional().default([]),
+  amenities: z.array(z.string()).optional().default([]),
 });
 
 export const roomSchema = z.object({
@@ -109,9 +117,9 @@ export const restaurantSchema = z.object({
   imageUrl: z.string().url().optional().or(z.literal("")),
   categories: z.array(z.string()).optional().default([]),
   priceLevel: z.coerce.number().int().min(1).max(3),
-  distanceMeters: z.coerce.number().min(0).optional().default(0),
-  etaMinutes: z.coerce.number().int().min(1).default(20),
-  isOpen: z.coerce.boolean().optional().default(true),
+  estimatedDeliveryTime: z.coerce.number().int().min(1).default(20),
+  lat: optionalNum,
+  lng: optionalNum,
   merchantId: optionalId,
 });
 
@@ -130,6 +138,7 @@ export const driverSchema = z.object({
   phoneNumber: z.string().optional(),
   vehiclePlate: z.string().min(2),
   vehicleName: z.string().min(2),
+  type: z.enum(RIDE_TYPES).default("motor"),
   photoUrl: z.string().url().optional().or(z.literal("")),
 });
 
@@ -137,7 +146,8 @@ export const fareConfigSchema = z.object({
   type: z.enum(RIDE_TYPES),
   baseFare: money,
   perKm: money,
-  perMinute: money,
+  minFare: money,
+  avgSpeedKmh: z.coerce.number().int().min(1).default(25),
 });
 
 export const promoSchema = z.object({
@@ -156,12 +166,7 @@ export const adminUserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2),
   role: z.enum(ADMIN_ROLES),
-  password: z.string().min(6).optional(),
-});
-
-export const statusUpdateSchema = z.object({
-  id,
-  status: z.string().min(1),
+  password: z.string().min(8).optional(),
 });
 
 export const shipmentUpdateSchema = z.object({
@@ -174,5 +179,4 @@ export const shipmentUpdateSchema = z.object({
 export const foodStatusSchema = z.object({
   id,
   status: z.enum(FOOD_ORDER_STATUSES),
-  courierName: z.string().optional(),
 });

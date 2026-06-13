@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { apiGetPaged } from "@/lib/api-client";
+import type { AppUser } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants, Button } from "@/components/ui/button";
@@ -8,10 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { toggleUserVerified } from "@/server/actions/users";
 
 export default async function UsersPage() {
-  const users = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { _count: { select: { walletTransactions: true } } },
-  });
+  const { items: users } = await apiGetPaged<AppUser>("/admin/users", { limit: 100 });
 
   return (
     <div>
@@ -27,25 +25,24 @@ export default async function UsersPage() {
             <TH>Nama</TH>
             <TH>No. Telepon</TH>
             <TH>Email</TH>
-            <TH>Transaksi</TH>
             <TH>Verifikasi</TH>
             <TH>Bergabung</TH>
             <TH></TH>
           </TR>
         </THead>
         <TBody>
-          {users.length === 0 && <EmptyRow colSpan={7} />}
+          {users.length === 0 && <EmptyRow colSpan={6} />}
           {users.map((u) => (
             <TR key={u.id}>
               <TD className="font-medium">{u.name}</TD>
-              <TD>{u.phoneNumber}</TD>
+              <TD>{u.phone}</TD>
               <TD className="text-slate-500">{u.email ?? "—"}</TD>
-              <TD>{u._count.walletTransactions}</TD>
               <TD>{u.isVerified ? <Badge tone="green">Terverifikasi</Badge> : <Badge tone="yellow">Belum</Badge>}</TD>
               <TD className="text-slate-500">{formatDate(u.createdAt)}</TD>
               <TD className="text-right">
                 <form action={toggleUserVerified}>
                   <input type="hidden" name="id" value={u.id} />
+                  <input type="hidden" name="isVerified" value={u.isVerified ? "false" : "true"} />
                   <Button type="submit" size="sm" variant="ghost">
                     {u.isVerified ? "Cabut" : "Verifikasi"}
                   </Button>

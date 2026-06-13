@@ -2,9 +2,10 @@ import NextAuth from "next-auth";
 import { authConfig } from "@/auth.config";
 
 // The `authorized` callback in auth.config.ts handles redirect/gating logic.
-export const { auth: middleware } = NextAuth(authConfig);
+// (Next 16 renamed the `middleware` file convention to `proxy`.)
+export const { auth: proxy } = NextAuth(authConfig);
 
-export default middleware;
+export default proxy;
 
 export const config = {
   // Run on everything except Next internals and static assets.

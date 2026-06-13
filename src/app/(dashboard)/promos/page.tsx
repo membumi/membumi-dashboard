@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { formatDate } from "@/lib/utils";
+import { apiGetPaged } from "@/lib/api-client";
+import type { Promo } from "@/lib/types";
+import { formatDate, isExpired } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
@@ -9,8 +10,7 @@ import { ConfirmDelete } from "@/components/forms/form-controls";
 import { togglePromo, deletePromo } from "@/server/actions/promos";
 
 export default async function PromosPage() {
-  const promos = await prisma.promo.findMany({ orderBy: { createdAt: "desc" } });
-  const now = new Date();
+  const { items: promos } = await apiGetPaged<Promo>("/admin/promos");
 
   return (
     <div>
@@ -35,7 +35,7 @@ export default async function PromosPage() {
         <TBody>
           {promos.length === 0 && <EmptyRow colSpan={7} />}
           {promos.map((p) => {
-            const expired = p.expiresAt < now;
+            const expired = isExpired(p.expiresAt);
             return (
               <TR key={p.id}>
                 <TD>
@@ -46,7 +46,7 @@ export default async function PromosPage() {
                 <TD className="font-mono text-xs">{p.code}</TD>
                 <TD>{p.service}</TD>
                 <TD>{p.discountType === "PERCENT" ? `${p.value}%` : p.discountType === "FIXED" ? `Rp${p.value}` : "Gratis Ongkir"}</TD>
-                <TD className={expired ? "text-red-500" : "text-slate-500"}>{formatDate(p.expiresAt)}</TD>
+                <TD className={expired ? "text-red-500" : "text-slate-500"}>{p.expiresAt ? formatDate(p.expiresAt) : "—"}</TD>
                 <TD>
                   {expired ? (
                     <Badge tone="red">Kedaluwarsa</Badge>
@@ -60,6 +60,7 @@ export default async function PromosPage() {
                   <div className="flex items-center gap-1">
                     <form action={togglePromo}>
                       <input type="hidden" name="id" value={p.id} />
+                      <input type="hidden" name="active" value={p.active ? "false" : "true"} />
                       <Button type="submit" size="sm" variant="ghost">{p.active ? "Nonaktifkan" : "Aktifkan"}</Button>
                     </form>
                     <ConfirmDelete action={deletePromo} id={p.id} label="Hapus promo ini?" />

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { apiPost, apiPut, apiPatch, apiDelete } from "@/lib/api-client";
 import { requireRole } from "@/lib/session";
 import { productSchema, categorySchema, shipmentUpdateSchema } from "@/lib/validations";
 import { str, strOrUndef } from "@/lib/form";
@@ -21,21 +21,25 @@ function parseProduct(fd: FormData) {
   });
 }
 
+// Backend semantics: `price` = list/original, `discountPrice` = sale price (< price).
+// Dashboard form: `price` = selling price, `originalPrice` = strike-through.
+function productBody(d: ReturnType<typeof parseProduct>) {
+  const discounted = d.originalPrice != null && d.originalPrice > d.price;
+  return {
+    name: d.name,
+    categoryId: d.categoryId,
+    price: discounted ? d.originalPrice : d.price,
+    discountPrice: discounted ? d.price : undefined,
+    stock: d.stock,
+    unit: d.unit,
+    imageUrls: d.imageUrl ? [d.imageUrl] : [],
+    merchantId: d.merchantId ?? null, // stripped until backend gap 2 lands
+  };
+}
+
 export async function createProduct(fd: FormData) {
   await requireRole("OPERATOR");
-  const d = parseProduct(fd);
-  await prisma.product.create({
-    data: {
-      name: d.name,
-      imageUrl: d.imageUrl || null,
-      price: d.price,
-      originalPrice: d.originalPrice ?? null,
-      unit: d.unit,
-      stock: d.stock,
-      categoryId: d.categoryId,
-      merchantId: d.merchantId ?? null,
-    },
-  });
+  await apiPost("/mart/products", productBody(parseProduct(fd)));
   revalidatePath("/mart");
   redirect("/mart");
 }
@@ -43,40 +47,27 @@ export async function createProduct(fd: FormData) {
 export async function updateProduct(fd: FormData) {
   await requireRole("OPERATOR");
   const id = str(fd, "id");
-  const d = parseProduct(fd);
-  await prisma.product.update({
-    where: { id },
-    data: {
-      name: d.name,
-      imageUrl: d.imageUrl || null,
-      price: d.price,
-      originalPrice: d.originalPrice ?? null,
-      unit: d.unit,
-      stock: d.stock,
-      categoryId: d.categoryId,
-      merchantId: d.merchantId ?? null,
-    },
-  });
+  await apiPut(`/admin/mart/products/${id}`, productBody(parseProduct(fd)));
   revalidatePath("/mart");
   redirect("/mart");
 }
 
 export async function deleteProduct(fd: FormData) {
   await requireRole("ADMIN");
-  await prisma.product.delete({ where: { id: str(fd, "id") } });
+  await apiDelete(`/admin/mart/products/${str(fd, "id")}`);
   revalidatePath("/mart");
 }
 
 export async function createCategory(fd: FormData) {
   await requireRole("OPERATOR");
   const d = categorySchema.parse({ name: str(fd, "name") });
-  await prisma.martCategory.create({ data: d });
+  await apiPost("/mart/categories", { name: d.name });
   revalidatePath("/mart/categories");
 }
 
 export async function deleteCategory(fd: FormData) {
   await requireRole("ADMIN");
-  await prisma.martCategory.delete({ where: { id: str(fd, "id") } });
+  await apiDelete(`/admin/mart/categories/${str(fd, "id")}`);
   revalidatePath("/mart/categories");
 }
 
@@ -88,13 +79,10 @@ export async function updateShipment(fd: FormData) {
     trackingNumber: strOrUndef(fd, "trackingNumber"),
     courierName: strOrUndef(fd, "courierName"),
   });
-  await prisma.martOrder.update({
-    where: { id: d.id },
-    data: {
-      shipmentStatus: d.shipmentStatus,
-      trackingNumber: d.trackingNumber ?? null,
-      courierName: d.courierName ?? null,
-    },
+  await apiPatch(`/admin/mart/orders/${d.id}/shipment`, {
+    status: d.shipmentStatus,
+    trackingNumber: d.trackingNumber,
+    note: d.courierName, // courierName is folded into `note` (backend gap 7)
   });
   revalidatePath("/orders");
 }

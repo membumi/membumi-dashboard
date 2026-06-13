@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { formatRupiah, toStringArray } from "@/lib/utils";
+import { apiGet, ApiError } from "@/lib/api-client";
+import type { Restaurant, MenuItem } from "@/lib/types";
+import { merchantOptions } from "@/server/queries";
+import { formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
@@ -12,11 +14,18 @@ import { updateRestaurant, deleteRestaurant, createMenuItem, deleteMenuItem } fr
 
 export default async function RestaurantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [restaurant, merchants] = await Promise.all([
-    prisma.restaurant.findUnique({ where: { id }, include: { menuItems: true } }),
-    prisma.merchant.findMany({ where: { verificationStatus: "VERIFIED" }, select: { id: true, businessName: true } }),
-  ]);
-  if (!restaurant) notFound();
+  let restaurant: Restaurant;
+  let menu: MenuItem[];
+  try {
+    [restaurant, menu] = await Promise.all([
+      apiGet<Restaurant>(`/restaurants/${id}`),
+      apiGet<MenuItem[]>(`/restaurants/${id}/menu`),
+    ]);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) notFound();
+    throw e;
+  }
+  const merchants = await merchantOptions();
 
   return (
     <div className="space-y-6">
@@ -25,7 +34,7 @@ export default async function RestaurantDetailPage({ params }: { params: Promise
       <RestaurantForm
         action={updateRestaurant}
         restaurant={restaurant}
-        categories={toStringArray(restaurant.categories)}
+        categories={restaurant.categories}
         merchants={merchants}
       />
 
@@ -45,14 +54,16 @@ export default async function RestaurantDetailPage({ params }: { params: Promise
               </TR>
             </THead>
             <TBody>
-              {restaurant.menuItems.length === 0 && <EmptyRow colSpan={5} />}
-              {restaurant.menuItems.map((m) => (
+              {menu.length === 0 && <EmptyRow colSpan={5} />}
+              {menu.map((m) => (
                 <TR key={m.id}>
                   <TD className="font-medium">{m.name}</TD>
                   <TD>{m.category}</TD>
                   <TD>{formatRupiah(m.price)}</TD>
                   <TD>{m.available ? <Badge tone="green">Ya</Badge> : <Badge tone="red">Tidak</Badge>}</TD>
-                  <TD className="text-right"><ConfirmDelete action={deleteMenuItem} id={m.id} label="Hapus menu ini?" /></TD>
+                  <TD className="text-right">
+                    <ConfirmDelete action={deleteMenuItem} id={m.id} fields={{ restaurantId: restaurant.id }} label="Hapus menu ini?" />
+                  </TD>
                 </TR>
               ))}
             </TBody>

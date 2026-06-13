@@ -1,8 +1,13 @@
 # Dokumentasi — SuperApp.id Admin Dashboard (membumi-dashboard)
 
+> ⚠️ **Catatan migrasi (2026-06-13):** dashboard kini **UI murni** di atas backend NestJS —
+> tanpa Prisma/Postgres/`/api/v1` sendiri. Dokumen `architecture.md`, `testing.md`, dan PRD di
+> bawah masih menggambarkan **arsitektur lama** (Prisma full-stack) dan disimpan sebagai referensi
+> historis. Sumber kebenaran terkini: [`migration-to-nestjs.md`](./migration-to-nestjs.md) +
+> `../README.md`.
+
 Dashboard back-office (CMS + monitoring) untuk ekosistem **SuperApp.id** (`ojol-super-app`).
-Dibangun dengan **Next.js full-stack + PostgreSQL/Prisma**, sekaligus menjadi sumber data utama
-yang REST API-nya (`/api/v1`) dikonsumsi oleh aplikasi Flutter.
+Sebelum migrasi: **Next.js full-stack + PostgreSQL/Prisma** dengan REST API (`/api/v1`) untuk Flutter.
 
 ## Daftar Dokumen
 

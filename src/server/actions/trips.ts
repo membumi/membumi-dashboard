@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { apiPost, apiPut, apiDelete } from "@/lib/api-client";
 import { requireRole } from "@/lib/session";
 import { tripSchema, guideSchema } from "@/lib/validations";
 import { str, strOrUndef, list } from "@/lib/form";
@@ -30,27 +30,28 @@ function parseTrip(fd: FormData) {
   });
 }
 
+// Maps the dashboard trip form onto NestJS CreateTripDto / UpdateTripDto
+// (departureDate/maxParticipants/pricePerPerson/coverImageUrl naming).
+function tripBody(d: ReturnType<typeof parseTrip>) {
+  return {
+    title: d.title,
+    destination: d.destination,
+    description: d.description || undefined,
+    coverImageUrl: d.imageUrl || undefined,
+    departureDate: d.startDate.toISOString(),
+    durationDays: d.durationDays,
+    maxParticipants: d.totalSlots,
+    pricePerPerson: d.price,
+    includes: d.includes,
+    itinerary: d.itinerary.map((it) => ({ day: it.day, title: it.title, activities: it.activities })),
+    guideId: d.guideId ?? null, // stripped until backend gap 1 lands
+    merchantId: d.merchantId ?? null, // stripped until backend gap 2 lands
+  };
+}
+
 export async function createTrip(fd: FormData) {
   await requireRole("OPERATOR");
-  const d = parseTrip(fd);
-  const trip = await prisma.trip.create({
-    data: {
-      title: d.title,
-      destination: d.destination,
-      imageUrl: d.imageUrl || null,
-      price: d.price,
-      durationDays: d.durationDays,
-      startDate: d.startDate,
-      totalSlots: d.totalSlots,
-      description: d.description,
-      includes: d.includes,
-      guideId: d.guideId ?? null,
-      merchantId: d.merchantId ?? null,
-      itinerary: {
-        create: d.itinerary.map((it) => ({ day: it.day, title: it.title, activities: it.activities })),
-      },
-    },
-  });
+  const trip = await apiPost<{ id: string }>("/trips", tripBody(parseTrip(fd)));
   revalidatePath("/open-trip");
   redirect(`/open-trip/${trip.id}`);
 }
@@ -58,36 +59,14 @@ export async function createTrip(fd: FormData) {
 export async function updateTrip(fd: FormData) {
   await requireRole("OPERATOR");
   const id = str(fd, "id");
-  const d = parseTrip(fd);
-  await prisma.$transaction([
-    prisma.itineraryDay.deleteMany({ where: { tripId: id } }),
-    prisma.trip.update({
-      where: { id },
-      data: {
-        title: d.title,
-        destination: d.destination,
-        imageUrl: d.imageUrl || null,
-        price: d.price,
-        durationDays: d.durationDays,
-        startDate: d.startDate,
-        totalSlots: d.totalSlots,
-        description: d.description,
-        includes: d.includes,
-        guideId: d.guideId ?? null,
-        merchantId: d.merchantId ?? null,
-        itinerary: {
-          create: d.itinerary.map((it) => ({ day: it.day, title: it.title, activities: it.activities })),
-        },
-      },
-    }),
-  ]);
+  await apiPut(`/admin/trips/${id}`, tripBody(parseTrip(fd)));
   revalidatePath(`/open-trip/${id}`);
   redirect(`/open-trip/${id}`);
 }
 
 export async function deleteTrip(fd: FormData) {
   await requireRole("ADMIN");
-  await prisma.trip.delete({ where: { id: str(fd, "id") } });
+  await apiDelete(`/admin/trips/${str(fd, "id")}`);
   revalidatePath("/open-trip");
   redirect("/open-trip");
 }
@@ -99,12 +78,13 @@ export async function createGuide(fd: FormData) {
     rating: str(fd, "rating") || 0,
     tripCount: str(fd, "tripCount") || 0,
   });
-  await prisma.guide.create({ data: d });
+  // Guides module is backend gap 1.
+  await apiPost("/admin/guides", { name: d.name, rating: d.rating, tripCount: d.tripCount });
   revalidatePath("/open-trip/guides");
 }
 
 export async function deleteGuide(fd: FormData) {
   await requireRole("ADMIN");
-  await prisma.guide.delete({ where: { id: str(fd, "id") } });
+  await apiDelete(`/admin/guides/${str(fd, "id")}`);
   revalidatePath("/open-trip/guides");
 }

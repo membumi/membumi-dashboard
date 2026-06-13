@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Promo } from "@prisma/client";
+import type { Promo } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
@@ -52,7 +52,7 @@ export function PromoForm({
               name="expiresAt"
               type="date"
               required
-              defaultValue={promo ? promo.expiresAt.toISOString().slice(0, 10) : ""}
+              defaultValue={promo?.expiresAt ? promo.expiresAt.slice(0, 10) : ""}
             />
           </div>
           <div className="flex items-end">

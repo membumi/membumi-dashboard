@@ -1,20 +1,21 @@
-import { prisma } from "@/lib/prisma";
+import { apiGetPaged } from "@/lib/api-client";
+import type { Driver, FareConfig, Ride } from "@/lib/types";
 import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { StatusBadge, Badge } from "@/components/ui/badge";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
 import { RIDE_TYPES } from "@/lib/constants";
 import { createDriver, verifyDriver, deleteDriver, updateFareConfig } from "@/server/actions/ride";
 
 export default async function RidePage() {
-  const [drivers, fares, rides] = await Promise.all([
-    prisma.driver.findMany({ orderBy: { createdAt: "desc" } }),
-    prisma.fareConfig.findMany(),
-    prisma.ride.findMany({ orderBy: { createdAt: "desc" }, take: 20, include: { driver: true } }),
+  const [{ items: drivers }, { items: fares }, { items: rides }] = await Promise.all([
+    apiGetPaged<Driver>("/admin/drivers", { limit: 100 }),
+    apiGetPaged<FareConfig>("/admin/fare-config"),
+    apiGetPaged<Ride>("/admin/rides", { limit: 20 }),
   ]);
   const fareByType = Object.fromEntries(fares.map((f) => [f.type, f]));
 
@@ -32,7 +33,7 @@ export default async function RidePage() {
                 <CardTitle>Tarif {type}</CardTitle>
               </CardHeader>
               <CardContent>
-                <form action={updateFareConfig} className="grid grid-cols-3 gap-3">
+                <form action={updateFareConfig} className="grid grid-cols-2 gap-3">
                   <input type="hidden" name="type" value={type} />
                   <div>
                     <Label>Dasar</Label>
@@ -43,10 +44,14 @@ export default async function RidePage() {
                     <Input name="perKm" type="number" min={0} defaultValue={f?.perKm ?? 0} />
                   </div>
                   <div>
-                    <Label>per Menit</Label>
-                    <Input name="perMinute" type="number" min={0} defaultValue={f?.perMinute ?? 0} />
+                    <Label>Tarif Minimum</Label>
+                    <Input name="minFare" type="number" min={0} defaultValue={f?.minFare ?? 0} />
                   </div>
-                  <div className="col-span-3">
+                  <div>
+                    <Label>Kecepatan Rata² (km/jam)</Label>
+                    <Input name="avgSpeedKmh" type="number" min={1} defaultValue={f?.avgSpeedKmh ?? 25} />
+                  </div>
+                  <div className="col-span-2">
                     <SubmitButton variant="secondary" size="sm">Simpan Tarif</SubmitButton>
                   </div>
                 </form>
@@ -79,6 +84,12 @@ export default async function RidePage() {
               <Label>Kendaraan</Label>
               <Input name="vehicleName" required placeholder="Honda Vario" />
             </div>
+            <div>
+              <Label>Tipe</Label>
+              <Select name="type" defaultValue="motor">
+                {RIDE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              </Select>
+            </div>
             <div className="md:col-span-4">
               <SubmitButton variant="secondary">Tambah Driver</SubmitButton>
             </div>
@@ -105,8 +116,8 @@ export default async function RidePage() {
             {drivers.map((d) => (
               <TR key={d.id}>
                 <TD className="font-medium">{d.name}</TD>
-                <TD>{d.vehicleName}</TD>
-                <TD>{d.vehiclePlate}</TD>
+                <TD>{d.vehicleModel}</TD>
+                <TD>{d.plateNumber}</TD>
                 <TD>★ {d.rating}</TD>
                 <TD><StatusBadge status={d.verificationStatus} /></TD>
                 <TD>
@@ -153,8 +164,8 @@ export default async function RidePage() {
             {rides.map((r) => (
               <TR key={r.id}>
                 <TD><Badge>{r.type}</Badge></TD>
-                <TD className="text-slate-600">{r.pickupAddress} → {r.destAddress}</TD>
-                <TD>{formatRupiah(r.fareAmount)}</TD>
+                <TD className="text-slate-600">{r.pickup.address} → {r.destination.address}</TD>
+                <TD>{formatRupiah(r.fare.amount)}</TD>
                 <TD>{r.driver?.name ?? "—"}</TD>
                 <TD><StatusBadge status={r.status} /></TD>
                 <TD className="text-slate-500">{formatDateTime(r.createdAt)}</TD>

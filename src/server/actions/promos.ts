@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { apiPost, apiPut, apiPatch, apiDelete } from "@/lib/api-client";
 import { requireRole } from "@/lib/session";
 import { promoSchema } from "@/lib/validations";
 import { str, bool } from "@/lib/form";
@@ -21,10 +21,23 @@ function parse(fd: FormData) {
   });
 }
 
+function body(d: ReturnType<typeof parse>) {
+  return {
+    title: d.title,
+    description: d.description || undefined,
+    code: d.code,
+    discountType: d.discountType,
+    value: d.value,
+    service: d.service,
+    imageUrl: d.imageUrl || undefined,
+    expiresAt: d.expiresAt.toISOString(),
+    active: d.active,
+  };
+}
+
 export async function createPromo(fd: FormData) {
   await requireRole("OPERATOR");
-  const d = parse(fd);
-  await prisma.promo.create({ data: { ...d, imageUrl: d.imageUrl || null } });
+  await apiPost("/admin/promos", body(parse(fd)));
   revalidatePath("/promos");
   redirect("/promos");
 }
@@ -32,8 +45,7 @@ export async function createPromo(fd: FormData) {
 export async function updatePromo(fd: FormData) {
   await requireRole("OPERATOR");
   const id = str(fd, "id");
-  const d = parse(fd);
-  await prisma.promo.update({ where: { id }, data: { ...d, imageUrl: d.imageUrl || null } });
+  await apiPut(`/admin/promos/${id}`, body(parse(fd)));
   revalidatePath("/promos");
   redirect("/promos");
 }
@@ -41,13 +53,13 @@ export async function updatePromo(fd: FormData) {
 export async function togglePromo(fd: FormData) {
   await requireRole("ADMIN");
   const id = str(fd, "id");
-  const promo = await prisma.promo.findUnique({ where: { id } });
-  if (promo) await prisma.promo.update({ where: { id }, data: { active: !promo.active } });
+  const active = str(fd, "active") === "true";
+  await apiPatch(`/admin/promos/${id}/toggle`, { active });
   revalidatePath("/promos");
 }
 
 export async function deletePromo(fd: FormData) {
   await requireRole("ADMIN");
-  await prisma.promo.delete({ where: { id: str(fd, "id") } });
+  await apiDelete(`/admin/promos/${str(fd, "id")}`);
   revalidatePath("/promos");
 }
