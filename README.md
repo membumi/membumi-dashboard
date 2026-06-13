@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SuperApp.id — Admin Dashboard (membumi-dashboard)
 
-## Getting Started
+Back-office (CMS + monitoring) untuk ekosistem **SuperApp.id** (`ojol-super-app`).
+Next.js full-stack + Prisma + PostgreSQL. Dashboard ini sekaligus menjadi sumber data
+yang REST API-nya (`/api/v1`) dapat dikonsumsi oleh aplikasi Flutter.
 
-First, run the development server:
+Dokumentasi lengkap (arsitektur + PRD per fitur) ada di [`docs/`](./docs/README.md).
+
+## Tech Stack
+Next.js 16 (App Router, TS) · Tailwind CSS 4 · Prisma 6 + **PostgreSQL** (enum native +
+`String[]`) · Auth.js v5 (Credentials, role-based) · TanStack Table · React Hook Form +
+Zod · Recharts.
+
+## Menjalankan
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+docker compose up -d        # PostgreSQL di host port 5433 (lihat docker-compose.yml)
+npx prisma migrate dev      # buat schema (sudah ada migrasi init)
+npm run db:seed             # isi data demo (porting dari app Flutter)
+npm run dev                 # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> `DATABASE_URL` default menunjuk ke Postgres docker di `localhost:5433`. Ubah di `.env`
+> bila memakai Postgres lain. Port app bisa diubah dengan `PORT=3100 npm run dev`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Login awal (hasil seed):**
+- Super Admin — `admin@superapp.id` / `admin123`
+- Operator — `operator@superapp.id` / `operator123`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Reset database kapan saja: `npm run db:reset` (drop + migrate + seed).
 
-## Learn More
+## Modul
+- **Overview** — metrik lintas layanan, grafik pendapatan, item "perlu tindakan".
+- **Penginapan** — CRUD hotel, kamar, amenities, ulasan.
+- **Open Trip** — CRUD trip + editor itinerary harian, guide, registrasi.
+- **Merchant (UMKM)** — onboarding & verifikasi, lihat konten & estimasi komisi.
+- **Mart** — produk, kategori, stok, diskon.
+- **Food** — restoran & menu.
+- **Ride** — driver (verifikasi), konfigurasi tarif, monitoring perjalanan.
+- **Promo** — voucher & banner.
+- **Pesanan & Transaksi** — monitoring booking, registrasi, order Mart/Food (+update status).
+- **Pembayaran** — wallet ledger & ringkasan (ADMIN+).
+- **Pengguna** — user app + kelola admin (SUPER_ADMIN).
 
-To learn more about Next.js, take a look at the following resources:
+## REST API untuk Flutter (`/api/v1`)
+Response envelope `{ success, data, message, meta }` (sesuai `dio_client` Flutter).
+Endpoint utama: `GET /hotels`, `GET /hotels/[id]`, `POST /hotel-bookings`,
+`GET /trips`, `GET /trips/[id]`, `POST /trip-registrations`, `GET /restaurants`,
+`GET /restaurants/[id]/menu`, `POST /food-orders`, `GET /mart/categories`,
+`GET /mart/products`, `POST /mart/orders`, `GET /promos`, `GET /rides/estimate`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Hanya konten internal atau milik **merchant VERIFIED** yang tampil di API publik.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Integrasi dengan app Flutter
+Di `ojol-super-app/lib/core/constants/`: set `AppConstants.demoMode = false` dan
+`ApiConstants.baseUrl = "http://<host>:3000/api/v1"`.
 
-## Deploy on Vercel
+## Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Unit test memakai **Vitest** (tanpa perlu DB — Prisma di-mock):
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test            # jalankan semua test sekali
+npm run test:watch  # mode watch
+npm run test:coverage
+```
+
+Cakupan (lihat [`docs/testing.md`](./docs/testing.md)): validasi Zod per fitur,
+util & serializer, business logic API (total booking, cek slot trip, decrement
+stok, item tak tersedia, hitung tarif, filter visibility), dan server action
+(role gating + transformasi data). **69 test** di 5 berkas.
+
+## Catatan database
+Schema memakai **enum native** (`Role`, `BookingStatus`, `ShipmentStatus`,
+`FoodOrderStatus`, `RideStatus`, `RideType`, `VerificationStatus`, `DiscountType`,
+`PromoService`, `TransactionType`) dan kolom **`String[]`** (`Room.facilities`,
+`Trip.includes`, `ItineraryDay.activities`, `Restaurant.categories`). Untuk produksi,
+arahkan `DATABASE_URL` ke instance Postgres terkelola dan jalankan
+`npx prisma migrate deploy`.

@@ -19,6 +19,7 @@ yang REST API-nya (`/api/v1`) dikonsumsi oleh aplikasi Flutter.
 | [prd/08-promo.md](./prd/08-promo.md) | PRD Modul Promo & Banner |
 | [prd/09-payment.md](./prd/09-payment.md) | PRD Modul Payment & Wallet |
 | [prd/10-analytics.md](./prd/10-analytics.md) | PRD Modul Overview & Analytics |
+| [testing.md](./testing.md) | Peta unit test (Vitest) → use case per fitur |
 
 ## Konvensi PRD
 

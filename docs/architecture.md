@@ -15,7 +15,7 @@ Dashboard ini dibangun sebagai **Next.js full-stack app + database**, sehingga s
 |------|---------|
 | Framework | **Next.js 15** (App Router) + TypeScript |
 | Styling/UI | **Tailwind CSS** + **shadcn/ui** (Radix) |
-| Database | **PostgreSQL** + **Prisma ORM** (dev cepat bisa SQLite, ganti `provider`) |
+| Database | **PostgreSQL** + **Prisma ORM** (enum native + `String[]`; Postgres dev via `docker compose`) |
 | Auth | **Auth.js (NextAuth v5)** — Credentials, role-based (`SUPER_ADMIN`, `ADMIN`, `OPERATOR`) |
 | Data fetching | **TanStack Query** + Server Actions / Route Handlers |
 | Tabel | **TanStack Table** (sort, filter, paginate server-side) |
@@ -51,6 +51,8 @@ membumi-dashboard/
 ## 4. Data Model (Prisma) — diturunkan dari entities Flutter
 
 Sumber: `ojol-super-app/lib/features/*/domain/entities/`. Semua harga `Int` (Rupiah).
+Field enum memakai **enum native Postgres**; field list (facilities, includes,
+activities, categories) memakai **`String[]`**.
 
 **Auth/Admin & User**
 - `AdminUser` — `id, email, name, passwordHash, role(SUPER_ADMIN|ADMIN|OPERATOR), createdAt`

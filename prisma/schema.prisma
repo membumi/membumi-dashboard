@@ -1,0 +1,441 @@
+// SuperApp.id Admin Dashboard — PostgreSQL data model.
+// Enum-like fields use native enums; list fields use String[]. Values mirror the
+// Flutter domain entities in ojol-super-app/lib/features/*/domain/entities/.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  OPERATOR
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum ShipmentStatus {
+  PACKING
+  SHIPPED
+  ON_DELIVERY
+  ARRIVED
+}
+
+enum FoodOrderStatus {
+  CONFIRMED
+  PREPARING
+  PICKED_UP
+  DELIVERING
+  DELIVERED
+}
+
+enum RideType {
+  MOTOR
+  MOBIL
+}
+
+enum RideStatus {
+  SEARCHING
+  DRIVER_ASSIGNED
+  DRIVER_ARRIVING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+  FREE_SHIPPING
+}
+
+enum PromoService {
+  RIDE
+  FOOD
+  MART
+  HOTEL
+  TRIP
+  ALL
+}
+
+enum TransactionType {
+  TOP_UP
+  RIDE
+  FOOD
+  MART
+  HOTEL
+  TRIP
+  REFUND
+}
+
+// ---------------------------------------------------------------------------
+// Auth / Users
+// ---------------------------------------------------------------------------
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(OPERATOR)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  phoneNumber String   @unique
+  email       String?
+  avatarUrl   String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  walletTransactions WalletTransaction[]
+}
+
+// ---------------------------------------------------------------------------
+// Merchant (UMKM marketplace)
+// ---------------------------------------------------------------------------
+
+model Merchant {
+  id                 String             @id @default(cuid())
+  businessName       String
+  ownerName          String
+  phoneNumber        String
+  city               String
+  bankAccount        String?
+  commissionRate     Float              @default(10) // percent
+  verificationStatus VerificationStatus @default(PENDING)
+  rejectionReason    String?
+  createdAt          DateTime           @default(now())
+
+  hotels      Hotel[]
+  trips       Trip[]
+  products    Product[]
+  restaurants Restaurant[]
+}
+
+// ---------------------------------------------------------------------------
+// Penginapan
+// ---------------------------------------------------------------------------
+
+model Hotel {
+  id            String    @id @default(cuid())
+  name          String
+  city          String
+  address       String
+  imageUrl      String?
+  rating        Float     @default(0)
+  reviewCount   Int       @default(0)
+  starRating    Int       @default(3)
+  pricePerNight Int
+  merchantId    String?
+  merchant      Merchant? @relation(fields: [merchantId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  rooms     Room[]
+  reviews   HotelReview[]
+  bookings  Booking[]
+  amenities Amenity[]
+}
+
+model Amenity {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  hotels Hotel[]
+}
+
+model Room {
+  id            String   @id @default(cuid())
+  hotelId       String
+  hotel         Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  name          String
+  pricePerNight Int
+  capacity      Int      @default(2)
+  facilities    String[] @default([])
+  available     Boolean  @default(true)
+
+  bookings Booking[]
+}
+
+model HotelReview {
+  id         String   @id @default(cuid())
+  hotelId    String
+  hotel      Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  authorName String
+  rating     Float
+  comment    String
+  date       DateTime @default(now())
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  voucherCode String        @unique
+  hotelId     String
+  hotel       Hotel         @relation(fields: [hotelId], references: [id])
+  roomId      String
+  room        Room          @relation(fields: [roomId], references: [id])
+  guestName   String
+  city        String
+  checkIn     DateTime
+  checkOut    DateTime
+  guests      Int           @default(1)
+  total       Int
+  status      BookingStatus @default(CONFIRMED)
+  createdAt   DateTime      @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Open Trip
+// ---------------------------------------------------------------------------
+
+model Guide {
+  id        String @id @default(cuid())
+  name      String
+  rating    Float  @default(0)
+  tripCount Int    @default(0)
+  trips     Trip[]
+}
+
+model Trip {
+  id           String    @id @default(cuid())
+  title        String
+  destination  String
+  imageUrl     String?
+  price        Int
+  durationDays Int       @default(1)
+  startDate    DateTime
+  totalSlots   Int       @default(10)
+  bookedSlots  Int       @default(0)
+  rating       Float     @default(0)
+  description  String    @default("")
+  includes     String[]  @default([])
+  guideId      String?
+  guide        Guide?    @relation(fields: [guideId], references: [id])
+  merchantId   String?
+  merchant     Merchant? @relation(fields: [merchantId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  itinerary     ItineraryDay[]
+  registrations TripRegistration[]
+}
+
+model ItineraryDay {
+  id         String   @id @default(cuid())
+  tripId     String
+  trip       Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  day        Int
+  title      String
+  activities String[] @default([])
+}
+
+model TripRegistration {
+  id           String   @id @default(cuid())
+  tripId       String
+  trip         Trip     @relation(fields: [tripId], references: [id])
+  participants Int      @default(1)
+  contactName  String
+  total        Int
+  createdAt    DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Belanja Mart
+// ---------------------------------------------------------------------------
+
+model MartCategory {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Product {
+  id            String       @id @default(cuid())
+  name          String
+  imageUrl      String?
+  price         Int
+  originalPrice Int?
+  unit          String       @default("pcs")
+  stock         Int          @default(0)
+  rating        Float        @default(0)
+  categoryId    String
+  category      MartCategory @relation(fields: [categoryId], references: [id])
+  merchantId    String?
+  merchant      Merchant?    @relation(fields: [merchantId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  orderItems MartOrderItem[]
+}
+
+model MartOrder {
+  id             String         @id @default(cuid())
+  paymentMethod  String         @default("wallet")
+  address        String
+  total          Int
+  trackingNumber String?
+  shipmentStatus ShipmentStatus @default(PACKING)
+  courierName    String?
+  createdAt      DateTime       @default(now())
+
+  items MartOrderItem[]
+}
+
+model MartOrderItem {
+  id        String    @id @default(cuid())
+  orderId   String
+  order     MartOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product   @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int
+}
+
+// ---------------------------------------------------------------------------
+// Food Delivery
+// ---------------------------------------------------------------------------
+
+model Restaurant {
+  id             String    @id @default(cuid())
+  name           String
+  imageUrl       String?
+  rating         Float     @default(0)
+  ratingCount    Int       @default(0)
+  categories     String[]  @default([])
+  distanceMeters Float     @default(0)
+  etaMinutes     Int       @default(20)
+  priceLevel     Int       @default(1) // 1..3
+  isOpen         Boolean   @default(true)
+  merchantId     String?
+  merchant       Merchant? @relation(fields: [merchantId], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  menuItems MenuItem[]
+  orders    FoodOrder[]
+}
+
+model MenuItem {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String
+  description  String     @default("")
+  price        Int
+  imageUrl     String?
+  category     String     @default("Lainnya")
+  available    Boolean    @default(true)
+
+  orderItems FoodOrderItem[]
+}
+
+model FoodOrder {
+  id            String          @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant      @relation(fields: [restaurantId], references: [id])
+  status        FoodOrderStatus @default(CONFIRMED)
+  paymentMethod String          @default("wallet")
+  courierName   String?
+  total         Int
+  createdAt     DateTime        @default(now())
+
+  items FoodOrderItem[]
+}
+
+model FoodOrderItem {
+  id         String    @id @default(cuid())
+  orderId    String
+  order      FoodOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem  @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  notes      String?
+}
+
+// ---------------------------------------------------------------------------
+// Ride
+// ---------------------------------------------------------------------------
+
+model Driver {
+  id                 String             @id @default(cuid())
+  name               String
+  photoUrl           String?
+  vehiclePlate       String
+  vehicleName        String
+  rating             Float              @default(5)
+  phoneNumber        String?
+  verificationStatus VerificationStatus @default(PENDING)
+  createdAt          DateTime           @default(now())
+
+  rides Ride[]
+}
+
+model FareConfig {
+  id        String   @id @default(cuid())
+  type      RideType @unique
+  baseFare  Int      @default(0)
+  perKm     Int      @default(0)
+  perMinute Int      @default(0)
+}
+
+model Ride {
+  id            String     @id @default(cuid())
+  type          RideType
+  status        RideStatus @default(SEARCHING)
+  pickupAddress String
+  destAddress   String
+  fareAmount    Int
+  driverId      String?
+  driver        Driver?    @relation(fields: [driverId], references: [id])
+  createdAt     DateTime   @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Promo & Payment
+// ---------------------------------------------------------------------------
+
+model Promo {
+  id           String       @id @default(cuid())
+  title        String
+  description  String       @default("")
+  code         String       @unique
+  discountType DiscountType @default(PERCENT)
+  value        Int          @default(0)
+  service      PromoService @default(ALL)
+  imageUrl     String?
+  expiresAt    DateTime
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+}
+
+model WalletTransaction {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  type        TransactionType
+  description String
+  amount      Int
+  isCredit    Boolean
+  createdAt   DateTime        @default(now())
+}
