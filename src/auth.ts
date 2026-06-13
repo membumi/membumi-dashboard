@@ -1,14 +1,23 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/auth.config";
+import { toAdminRole } from "@/lib/constants";
 
 const credsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+const API_URL =
+  process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/v1";
+
+// NestJS `POST /v1/auth/admin/login` → { success, data: AdminSession }
+interface AdminSession {
+  accessToken: string;
+  refreshToken: string;
+  user: { id: string; email: string; name: string; role: string; active: boolean };
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -22,19 +31,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(raw) {
         const parsed = credsSchema.safeParse(raw);
         if (!parsed.success) return null;
-        const { email, password } = parsed.data;
 
-        const admin = await prisma.adminUser.findUnique({ where: { email } });
-        if (!admin || !admin.active) return null;
+        let res: Response;
+        try {
+          res = await fetch(`${API_URL}/auth/admin/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(parsed.data),
+            cache: "no-store",
+          });
+        } catch {
+          return null; // backend unreachable
+        }
+        if (!res.ok) return null;
 
-        const ok = await bcrypt.compare(password, admin.passwordHash);
-        if (!ok) return null;
+        const json = (await res.json()) as { success: boolean; data?: AdminSession };
+        if (!json.success || !json.data) return null;
 
+        const { accessToken, refreshToken, user } = json.data;
+        // Carry the JWT + role into the NextAuth token (see jwt callback).
         return {
-          id: admin.id,
-          name: admin.name,
-          email: admin.email,
-          role: admin.role,
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: toAdminRole(user.role), // normalize lowercase → dashboard uppercase
+          accessToken,
+          refreshToken,
         };
       },
     }),

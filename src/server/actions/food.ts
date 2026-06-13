@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { apiPost, apiPut, apiPatch, apiDelete } from "@/lib/api-client";
 import { requireRole } from "@/lib/session";
 import { restaurantSchema, menuItemSchema, foodStatusSchema } from "@/lib/validations";
 import { str, strOrUndef, bool, list } from "@/lib/form";
@@ -13,28 +13,36 @@ function parseRestaurant(fd: FormData) {
     imageUrl: str(fd, "imageUrl"),
     categories: list(fd, "categories"),
     priceLevel: str(fd, "priceLevel"),
-    distanceMeters: str(fd, "distanceMeters") || 0,
-    etaMinutes: str(fd, "etaMinutes") || 20,
-    isOpen: bool(fd, "isOpen"),
+    estimatedDeliveryTime: str(fd, "estimatedDeliveryTime") || 20,
+    lat: str(fd, "lat"),
+    lng: str(fd, "lng"),
     merchantId: strOrUndef(fd, "merchantId"),
   });
+}
+
+// Maps the dashboard restaurant form onto NestJS CreateRestaurantDto / UpdateRestaurantDto.
+function restaurantBody(d: ReturnType<typeof parseRestaurant>, opts: { create: boolean }) {
+  const body: Record<string, unknown> = {
+    name: d.name,
+    cuisineType: d.categories,
+    priceLevel: d.priceLevel,
+    estimatedDeliveryTime: d.estimatedDeliveryTime,
+    imageUrl: d.imageUrl || undefined,
+    merchantId: d.merchantId ?? null, // stripped until backend gap 2 lands
+  };
+  if (d.lat !== undefined) body.lat = d.lat;
+  if (d.lng !== undefined) body.lng = d.lng;
+  if (opts.create) {
+    body.lat ??= 0;
+    body.lng ??= 0;
+  }
+  return body;
 }
 
 export async function createRestaurant(fd: FormData) {
   await requireRole("OPERATOR");
   const d = parseRestaurant(fd);
-  const r = await prisma.restaurant.create({
-    data: {
-      name: d.name,
-      imageUrl: d.imageUrl || null,
-      categories: d.categories,
-      priceLevel: d.priceLevel,
-      distanceMeters: d.distanceMeters,
-      etaMinutes: d.etaMinutes,
-      isOpen: d.isOpen,
-      merchantId: d.merchantId ?? null,
-    },
-  });
+  const r = await apiPost<{ id: string }>("/restaurants", restaurantBody(d, { create: true }));
   revalidatePath("/food");
   redirect(`/food/${r.id}`);
 }
@@ -43,26 +51,14 @@ export async function updateRestaurant(fd: FormData) {
   await requireRole("OPERATOR");
   const id = str(fd, "id");
   const d = parseRestaurant(fd);
-  await prisma.restaurant.update({
-    where: { id },
-    data: {
-      name: d.name,
-      imageUrl: d.imageUrl || null,
-      categories: d.categories,
-      priceLevel: d.priceLevel,
-      distanceMeters: d.distanceMeters,
-      etaMinutes: d.etaMinutes,
-      isOpen: d.isOpen,
-      merchantId: d.merchantId ?? null,
-    },
-  });
+  await apiPut(`/admin/restaurants/${id}`, restaurantBody(d, { create: false }));
   revalidatePath(`/food/${id}`);
   redirect(`/food/${id}`);
 }
 
 export async function deleteRestaurant(fd: FormData) {
   await requireRole("ADMIN");
-  await prisma.restaurant.delete({ where: { id: str(fd, "id") } });
+  await apiDelete(`/admin/restaurants/${str(fd, "id")}`);
   revalidatePath("/food");
   redirect("/food");
 }
@@ -78,28 +74,28 @@ export async function createMenuItem(fd: FormData) {
     category: str(fd, "category") || "Lainnya",
     available: bool(fd, "available"),
   });
-  await prisma.menuItem.create({
-    data: { ...d, imageUrl: d.imageUrl || null },
+  await apiPost(`/admin/restaurants/${d.restaurantId}/menu-items`, {
+    category: d.category,
+    name: d.name,
+    description: d.description || undefined,
+    price: d.price,
+    imageUrl: d.imageUrl || undefined,
+    isAvailable: d.available,
   });
   revalidatePath(`/food/${d.restaurantId}`);
 }
 
 export async function deleteMenuItem(fd: FormData) {
   await requireRole("OPERATOR");
-  const item = await prisma.menuItem.delete({ where: { id: str(fd, "id") } });
-  revalidatePath(`/food/${item.restaurantId}`);
+  const restaurantId = str(fd, "restaurantId");
+  const itemId = str(fd, "id");
+  await apiDelete(`/admin/restaurants/${restaurantId}/menu-items/${itemId}`);
+  revalidatePath(`/food/${restaurantId}`);
 }
 
 export async function updateFoodStatus(fd: FormData) {
   await requireRole("ADMIN");
-  const d = foodStatusSchema.parse({
-    id: str(fd, "id"),
-    status: str(fd, "status"),
-    courierName: strOrUndef(fd, "courierName"),
-  });
-  await prisma.foodOrder.update({
-    where: { id: d.id },
-    data: { status: d.status, courierName: d.courierName ?? undefined },
-  });
+  const d = foodStatusSchema.parse({ id: str(fd, "id"), status: str(fd, "status") });
+  await apiPatch(`/admin/food-orders/${d.id}/status`, { status: d.status });
   revalidatePath("/orders");
 }

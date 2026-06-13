@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { apiGet, apiGetPaged } from "@/lib/api-client";
+import type { WalletTransaction } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
-import { hasRole } from "@/lib/constants";
+import { hasRole, TRANSACTION_TYPES } from "@/lib/constants";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { TransactionType } from "@prisma/client";
-import { TRANSACTION_TYPES } from "@/lib/constants";
 
 export default async function PaymentsPage({
   searchParams,
@@ -23,20 +22,14 @@ export default async function PaymentsPage({
 
   const { type } = await searchParams;
   const validType =
-    type && (TRANSACTION_TYPES as readonly string[]).includes(type)
-      ? (type as TransactionType)
-      : undefined;
-  const where = validType ? { type: validType } : {};
+    type && (TRANSACTION_TYPES as readonly string[]).includes(type) ? type : undefined;
 
-  const [txns, creditAgg, debitAgg] = await Promise.all([
-    prisma.walletTransaction.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: { user: true },
-      take: 200,
-    }),
-    prisma.walletTransaction.aggregate({ where: { ...where, isCredit: true }, _sum: { amount: true } }),
-    prisma.walletTransaction.aggregate({ where: { ...where, isCredit: false }, _sum: { amount: true } }),
+  const [{ items: txns }, summary] = await Promise.all([
+    apiGetPaged<WalletTransaction>("/admin/wallet-transactions", { type: validType, limit: 200 }),
+    // Summary is a backend gap (Gap 6); fall back to zeros until it ships.
+    apiGet<{ credit: number; debit: number }>("/admin/wallet-transactions/summary", {
+      type: validType,
+    }).catch(() => ({ credit: 0, debit: 0 })),
   ]);
 
   return (
@@ -47,13 +40,13 @@ export default async function PaymentsPage({
         <Card>
           <CardContent className="pt-5">
             <p className="text-xs text-slate-500">Total Kredit (masuk)</p>
-            <p className="mt-1 text-xl font-semibold text-emerald-600">{formatRupiah(creditAgg._sum?.amount ?? 0)}</p>
+            <p className="mt-1 text-xl font-semibold text-emerald-600">{formatRupiah(summary.credit)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-5">
             <p className="text-xs text-slate-500">Total Debit (keluar)</p>
-            <p className="mt-1 text-xl font-semibold text-red-600">{formatRupiah(debitAgg._sum?.amount ?? 0)}</p>
+            <p className="mt-1 text-xl font-semibold text-red-600">{formatRupiah(summary.debit)}</p>
           </CardContent>
         </Card>
       </div>
@@ -81,7 +74,7 @@ export default async function PaymentsPage({
             <TR key={t.id}>
               <TD><Badge>{t.type}</Badge></TD>
               <TD>{t.description}</TD>
-              <TD className="text-slate-500">{t.user.name}</TD>
+              <TD className="text-slate-500">{t.user?.name ?? "—"}</TD>
               <TD className={t.isCredit ? "font-medium text-emerald-600" : "font-medium text-red-600"}>
                 {t.isCredit ? "+" : "−"}{formatRupiah(t.amount)}
               </TD>

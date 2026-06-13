@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Product, MartCategory, Merchant } from "@prisma/client";
+import type { Product, MartCategory } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
@@ -14,7 +14,7 @@ export function ProductForm({
   action: (fd: FormData) => Promise<void>;
   product?: Product;
   categories: Pick<MartCategory, "id" | "name">[];
-  merchants: Pick<Merchant, "id" | "businessName">[];
+  merchants: { id: string; businessName: string }[];
 }) {
   return (
     <Card>

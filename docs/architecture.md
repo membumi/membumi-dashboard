@@ -1,5 +1,10 @@
 # Arsitektur & Rencana Implementasi — SuperApp.id Admin Dashboard
 
+> ⚠️ **Historis.** Dokumen ini menggambarkan arsitektur **lama** (Next.js full-stack +
+> Prisma/Postgres + route handler `/api/v1`). Per 2026-06-13 dashboard telah dimigrasi menjadi
+> UI murni di atas NestJS (lihat [`migration-to-nestjs.md`](./migration-to-nestjs.md)). Bagian
+> "Data Model (Prisma)" & "Tahapan Implementasi" di bawah tidak lagi mencerminkan kode aktual.
+
 ## 1. Konteks
 
 `ojol-super-app` adalah Flutter super app (Ojek Motor/Mobil, Food, Mart, Penginapan, Open Trip) yang saat ini **berjalan 100% dengan data mock/demo**. Endpoint API sudah didefinisikan di `lib/core/constants/api_constants.dart` (base `https://api.superapp.id/v1`) tetapi **belum ada backend** yang mengimplementasikannya (`AppConstants.demoMode = true`).

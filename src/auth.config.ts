@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 
-// Edge-safe config (no Prisma / bcrypt). Used by middleware and extended in
-// src/auth.ts with the Credentials provider.
+// Edge-safe config (no Node-only deps). Used by middleware and extended in
+// src/auth.ts with the Credentials provider that calls the NestJS backend.
 export const authConfig = {
   pages: {
     signIn: "/login",
@@ -11,11 +11,10 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnLogin = nextUrl.pathname.startsWith("/login");
-      const isApiV1 = nextUrl.pathname.startsWith("/api/v1");
       const isAuthApi = nextUrl.pathname.startsWith("/api/auth");
 
-      // Public: the app-facing REST API and the auth endpoints.
-      if (isApiV1 || isAuthApi) return true;
+      // Public: NextAuth's own endpoints.
+      if (isAuthApi) return true;
 
       if (isOnLogin) {
         if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
@@ -26,8 +25,16 @@ export const authConfig = {
     },
     jwt({ token, user }) {
       if (user) {
-        token.role = (user as { role?: string }).role ?? "OPERATOR";
-        token.id = user.id;
+        const u = user as {
+          id?: string;
+          role?: string;
+          accessToken?: string;
+          refreshToken?: string;
+        };
+        token.id = u.id;
+        token.role = u.role ?? "OPERATOR";
+        token.accessToken = u.accessToken;
+        token.refreshToken = u.refreshToken;
       }
       return token;
     },
@@ -36,6 +43,7 @@ export const authConfig = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
+      session.accessToken = token.accessToken as string | undefined;
       return session;
     },
   },

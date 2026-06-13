@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma";
+import { apiGetPaged } from "@/lib/api-client";
 import { getCurrentAdmin } from "@/lib/session";
-import { hasRole } from "@/lib/constants";
+import { hasRole, toAdminRole, ADMIN_ROLES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,8 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
-import { ADMIN_ROLES } from "@/lib/constants";
 import { createAdmin, toggleAdminActive, deleteAdmin } from "@/server/actions/users";
+
+interface RawAdmin {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  active: boolean;
+  createdAt: string;
+}
 
 export default async function AdminsPage() {
   const me = await getCurrentAdmin();
@@ -29,7 +37,8 @@ export default async function AdminsPage() {
     );
   }
 
-  const admins = await prisma.adminUser.findMany({ orderBy: { createdAt: "asc" } });
+  const { items: raw } = await apiGetPaged<RawAdmin>("/admin/admins", { limit: 100 });
+  const admins = raw.map((a) => ({ ...a, role: toAdminRole(a.role) }));
 
   return (
     <div className="space-y-6">
@@ -48,7 +57,7 @@ export default async function AdminsPage() {
             </div>
             <div>
               <Label>Password</Label>
-              <Input name="password" type="password" required minLength={6} />
+              <Input name="password" type="password" required minLength={8} />
             </div>
             <div>
               <Label>Role</Label>
@@ -89,6 +98,7 @@ export default async function AdminsPage() {
                 <div className="flex items-center gap-1">
                   <form action={toggleAdminActive}>
                     <input type="hidden" name="id" value={a.id} />
+                    <input type="hidden" name="active" value={a.active ? "false" : "true"} />
                     <Button type="submit" size="sm" variant="ghost" disabled={a.id === me?.id}>
                       {a.active ? "Nonaktifkan" : "Aktifkan"}
                     </Button>

@@ -29,29 +29,13 @@ export function formatDateTime(value: Date | string | null | undefined): string 
   return formatDate(value, { dateStyle: "medium", timeStyle: "short" });
 }
 
-/** Prisma Json fields holding string[] come back as `unknown`; normalize them. */
-export function toStringArray(value: unknown): string[] {
-  if (Array.isArray(value)) return value.map(String);
-  if (typeof value === "string" && value.trim()) {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed.map(String);
-    } catch {
-      return value.split(",").map((s) => s.trim()).filter(Boolean);
-    }
-  }
-  return [];
-}
-
 export function discountPercent(price: number, originalPrice?: number | null): number {
   if (!originalPrice || originalPrice <= price) return 0;
   return Math.round(((originalPrice - price) / originalPrice) * 100);
 }
 
-/** Short pseudo-random code (cuid-free, deterministic enough for vouchers). */
-export function genCode(prefix: string): string {
-  const rand = Math.floor(Math.random() * 1e6)
-    .toString()
-    .padStart(6, "0");
-  return `${prefix}-${rand}`;
+/** True when an ISO date string is in the past (kept out of render for purity). */
+export function isExpired(value?: string | null): boolean {
+  if (!value) return false;
+  return new Date(value).getTime() < Date.now();
 }

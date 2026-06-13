@@ -1,13 +1,10 @@
-import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/layout/page-header";
 import { createRestaurant } from "@/server/actions/food";
+import { merchantOptions } from "@/server/queries";
 import { RestaurantForm } from "../restaurant-form";
 
 export default async function NewRestaurantPage() {
-  const merchants = await prisma.merchant.findMany({
-    where: { verificationStatus: "VERIFIED" },
-    select: { id: true, businessName: true },
-  });
+  const merchants = await merchantOptions();
 
   return (
     <div>

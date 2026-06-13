@@ -1,17 +1,13 @@
-import { prisma } from "@/lib/prisma";
+import { categoryOptions } from "@/server/queries";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
 import { createCategory, deleteCategory } from "@/server/actions/mart";
 
 export default async function MartCategoriesPage() {
-  const categories = await prisma.martCategory.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { products: true } } },
-  });
+  const categories = await categoryOptions();
 
   return (
     <div className="space-y-6">
@@ -33,16 +29,14 @@ export default async function MartCategoriesPage() {
         <THead>
           <TR>
             <TH>Kategori</TH>
-            <TH>Jumlah Produk</TH>
             <TH></TH>
           </TR>
         </THead>
         <TBody>
-          {categories.length === 0 && <EmptyRow colSpan={3} />}
+          {categories.length === 0 && <EmptyRow colSpan={2} />}
           {categories.map((c) => (
             <TR key={c.id}>
               <TD className="font-medium">{c.name}</TD>
-              <TD><Badge>{c._count.products}</Badge></TD>
               <TD className="text-right"><ConfirmDelete action={deleteCategory} id={c.id} label="Hapus kategori ini?" /></TD>
             </TR>
           ))}

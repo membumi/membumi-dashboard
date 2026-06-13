@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Restaurant, Merchant } from "@prisma/client";
+import type { Restaurant } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export function RestaurantForm({
   action: (fd: FormData) => Promise<void>;
   restaurant?: Restaurant;
   categories?: string[];
-  merchants: Pick<Merchant, "id" | "businessName">[];
+  merchants: { id: string; businessName: string }[];
 }) {
   return (
     <Card>
@@ -31,12 +31,16 @@ export function RestaurantForm({
             <Input name="priceLevel" type="number" min={1} max={3} required defaultValue={restaurant?.priceLevel ?? 1} />
           </div>
           <div>
-            <Label>Estimasi (menit)</Label>
-            <Input name="etaMinutes" type="number" min={1} defaultValue={restaurant?.etaMinutes ?? 20} />
+            <Label>Estimasi Antar (menit)</Label>
+            <Input name="estimatedDeliveryTime" type="number" min={1} defaultValue={restaurant?.eta ?? 20} />
           </div>
           <div>
-            <Label>Jarak (meter)</Label>
-            <Input name="distanceMeters" type="number" min={0} defaultValue={restaurant?.distanceMeters ?? 0} />
+            <Label>Latitude{restaurant ? " (kosong = tidak diubah)" : ""}</Label>
+            <Input name="lat" type="number" step="any" required={!restaurant} placeholder="-6.2" />
+          </div>
+          <div>
+            <Label>Longitude{restaurant ? " (kosong = tidak diubah)" : ""}</Label>
+            <Input name="lng" type="number" step="any" required={!restaurant} placeholder="106.8" />
           </div>
           <div>
             <Label>Merchant</Label>
@@ -46,11 +50,6 @@ export function RestaurantForm({
                 <option key={m.id} value={m.id}>{m.businessName}</option>
               ))}
             </Select>
-          </div>
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input type="checkbox" name="isOpen" value="true" defaultChecked={restaurant?.isOpen ?? true} /> Buka
-            </label>
           </div>
           <div className="md:col-span-2">
             <Label>URL Gambar (opsional)</Label>

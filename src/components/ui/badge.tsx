@@ -49,6 +49,15 @@ const STATUS_TONE: Record<string, keyof typeof TONE> = {
   REJECTED: "red",
 };
 
+// Normalize API status values (lowercase / camelCase like `onDelivery`,
+// `pickedUp`) to the UPPER_SNAKE keys used in STATUS_TONE.
+function normalize(status: string): string {
+  return status
+    .replace(/([a-z])([A-Z])/g, "$1_$2")
+    .toUpperCase();
+}
+
 export function StatusBadge({ status }: { status: string }) {
-  return <Badge tone={STATUS_TONE[status] ?? "default"}>{status.replace(/_/g, " ")}</Badge>;
+  const key = normalize(status);
+  return <Badge tone={STATUS_TONE[key] ?? "default"}>{key.replace(/_/g, " ")}</Badge>;
 }

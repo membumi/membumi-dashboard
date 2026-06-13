@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { apiGetPaged } from "@/lib/api-client";
+import type { Hotel } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 export default async function PenginapanPage() {
-  const hotels = await prisma.hotel.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { _count: { select: { rooms: true, bookings: true } }, merchant: true },
-  });
+  const { items: hotels } = await apiGetPaged<Hotel>("/hotels", { limit: 100 });
 
   return (
     <div>
@@ -27,12 +25,11 @@ export default async function PenginapanPage() {
             <TH>Bintang</TH>
             <TH>Harga/malam</TH>
             <TH>Kamar</TH>
-            <TH>Booking</TH>
             <TH>Merchant</TH>
           </TR>
         </THead>
         <TBody>
-          {hotels.length === 0 && <EmptyRow colSpan={7} />}
+          {hotels.length === 0 && <EmptyRow colSpan={6} />}
           {hotels.map((h) => (
             <TR key={h.id}>
               <TD>
@@ -43,9 +40,8 @@ export default async function PenginapanPage() {
               <TD>{h.city}</TD>
               <TD>{"★".repeat(h.starRating)}</TD>
               <TD>{formatRupiah(h.pricePerNight)}</TD>
-              <TD><Badge>{h._count.rooms}</Badge></TD>
-              <TD><Badge tone="blue">{h._count.bookings}</Badge></TD>
-              <TD className="text-slate-500">{h.merchant?.businessName ?? "—"}</TD>
+              <TD><Badge>{h.rooms.length}</Badge></TD>
+              <TD className="text-slate-500">{h.merchantName ?? "—"}</TD>
             </TR>
           ))}
         </TBody>

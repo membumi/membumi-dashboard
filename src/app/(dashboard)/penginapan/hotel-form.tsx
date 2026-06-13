@@ -1,22 +1,21 @@
 import Link from "next/link";
-import type { Hotel, Merchant, Amenity } from "@prisma/client";
+import type { Hotel } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
+import { ArrayInput } from "@/components/forms/array-input";
 
 export function HotelForm({
   action,
   hotel,
   merchants,
-  amenities,
-  selectedAmenityIds = [],
+  selectedAmenities = [],
 }: {
   action: (fd: FormData) => Promise<void>;
   hotel?: Hotel;
-  merchants: Pick<Merchant, "id" | "businessName">[];
-  amenities: Amenity[];
-  selectedAmenityIds?: string[];
+  merchants: { id: string; businessName: string }[];
+  selectedAmenities?: string[];
 }) {
   return (
     <Card>
@@ -40,8 +39,12 @@ export function HotelForm({
             <Input name="address" required defaultValue={hotel?.address} />
           </div>
           <div>
-            <Label>Harga / malam (Rp)</Label>
-            <Input name="pricePerNight" type="number" min={1} required defaultValue={hotel?.pricePerNight} />
+            <Label>Latitude{hotel ? " (kosong = tidak diubah)" : ""}</Label>
+            <Input name="lat" type="number" step="any" required={!hotel} placeholder="-6.2" />
+          </div>
+          <div>
+            <Label>Longitude{hotel ? " (kosong = tidak diubah)" : ""}</Label>
+            <Input name="lng" type="number" step="any" required={!hotel} placeholder="106.8" />
           </div>
           <div>
             <Label>Merchant</Label>
@@ -52,27 +55,17 @@ export function HotelForm({
               ))}
             </Select>
           </div>
-          <div className="md:col-span-2">
+          <div>
             <Label>URL Gambar (opsional)</Label>
             <Input name="imageUrl" type="url" defaultValue={hotel?.imageUrl ?? ""} placeholder="https://…" />
           </div>
           <div className="md:col-span-2">
             <Label>Amenities</Label>
-            <div className="flex flex-wrap gap-3">
-              {amenities.map((a) => (
-                <label key={a.id} className="flex items-center gap-1.5 text-sm text-slate-700">
-                  <input
-                    type="checkbox"
-                    name="amenityIds"
-                    value={a.id}
-                    defaultChecked={selectedAmenityIds.includes(a.id)}
-                  />
-                  {a.name}
-                </label>
-              ))}
-              {amenities.length === 0 && <span className="text-xs text-slate-400">Belum ada amenity</span>}
-            </div>
+            <ArrayInput name="amenities" defaultValue={selectedAmenities} placeholder="WiFi, Pool, Parking…" />
           </div>
+          <p className="md:col-span-2 text-xs text-slate-400">
+            Harga/malam dihitung otomatis dari kamar termurah. Tambah kamar setelah hotel dibuat.
+          </p>
           <div className="md:col-span-2 flex gap-2">
             <SubmitButton>{hotel ? "Simpan Perubahan" : "Tambah Hotel"}</SubmitButton>
             <Link href="/penginapan" className={buttonVariants({ variant: "outline" })}>Batal</Link>

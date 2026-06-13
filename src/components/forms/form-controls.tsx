@@ -19,10 +19,13 @@ export function ConfirmDelete({
   action,
   id,
   label = "Hapus item ini?",
+  fields,
 }: {
   action: (formData: FormData) => Promise<void>;
   id: string;
   label?: string;
+  /** Extra hidden fields submitted alongside `id` (e.g. parent ids). */
+  fields?: Record<string, string>;
 }) {
   const [pending, startTransition] = useTransition();
   return (
@@ -33,6 +36,10 @@ export function ConfirmDelete({
       }}
     >
       <input type="hidden" name="id" value={id} />
+      {fields &&
+        Object.entries(fields).map(([k, v]) => (
+          <input key={k} type="hidden" name={k} value={v} />
+        ))}
       <Button type="submit" variant="ghost" size="icon" disabled={pending} title="Hapus">
         <Trash2 className="h-4 w-4 text-red-500" />
       </Button>

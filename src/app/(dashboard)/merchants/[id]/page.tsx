@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { apiGet, ApiError } from "@/lib/api-client";
+import type { Merchant } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,17 +16,22 @@ export default async function MerchantDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const merchant = await prisma.merchant.findUnique({
-    where: { id },
-    include: { hotels: true, trips: true, products: true, restaurants: true },
-  });
-  if (!merchant) notFound();
+  let merchant: Merchant;
+  try {
+    merchant = await apiGet<Merchant>(`/admin/merchants/${id}`);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) notFound();
+    throw e;
+  }
 
+  // Linked content arrays are a backend gap (docs/dashboard-admin-gaps.md · Gap 2);
+  // render whatever the API provides.
+  const c = merchant.content ?? {};
   const content = [
-    ...merchant.hotels.map((h) => ({ type: "Hotel", name: h.name, sub: formatRupiah(h.pricePerNight) })),
-    ...merchant.trips.map((t) => ({ type: "Trip", name: t.title, sub: formatRupiah(t.price) })),
-    ...merchant.products.map((p) => ({ type: "Produk", name: p.name, sub: formatRupiah(p.price) })),
-    ...merchant.restaurants.map((r) => ({ type: "Resto", name: r.name, sub: `Level ${r.priceLevel}` })),
+    ...(c.hotels ?? []).map((h) => ({ type: "Hotel", name: h.name, sub: formatRupiah(h.pricePerNight) })),
+    ...(c.trips ?? []).map((t) => ({ type: "Trip", name: t.title, sub: formatRupiah(t.price) })),
+    ...(c.products ?? []).map((p) => ({ type: "Produk", name: p.name, sub: formatRupiah(p.price) })),
+    ...(c.restaurants ?? []).map((r) => ({ type: "Resto", name: r.name, sub: `Level ${r.priceLevel}` })),
   ];
 
   return (

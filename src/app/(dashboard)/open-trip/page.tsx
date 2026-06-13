@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { apiGetPaged } from "@/lib/api-client";
+import type { Trip } from "@/lib/types";
 import { formatRupiah, formatDate } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
@@ -7,10 +8,7 @@ import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table
 import { Badge } from "@/components/ui/badge";
 
 export default async function OpenTripPage() {
-  const trips = await prisma.trip.findMany({
-    orderBy: { startDate: "asc" },
-    include: { guide: true, _count: { select: { registrations: true } } },
-  });
+  const { items: trips } = await apiGetPaged<Trip>("/trips", { limit: 100 });
 
   return (
     <div>
@@ -57,7 +55,7 @@ export default async function OpenTripPage() {
                     <Badge tone="green">{t.bookedSlots}/{t.totalSlots}</Badge>
                   )}
                 </TD>
-                <TD className="text-slate-500">{t.guide?.name ?? "—"}</TD>
+                <TD className="text-slate-500">{t.organizer?.name ?? "—"}</TD>
               </TR>
             );
           })}

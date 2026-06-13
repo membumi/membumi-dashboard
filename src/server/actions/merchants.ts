@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { apiPost, apiPut, apiPatch, apiDelete } from "@/lib/api-client";
 import { requireRole } from "@/lib/session";
 import { merchantSchema, merchantVerifySchema } from "@/lib/validations";
 import { str, strOrUndef } from "@/lib/form";
@@ -20,7 +20,7 @@ function parse(fd: FormData) {
 
 export async function createMerchant(fd: FormData) {
   await requireRole("OPERATOR");
-  await prisma.merchant.create({ data: parse(fd) });
+  await apiPost("/admin/merchants", parse(fd));
   revalidatePath("/merchants");
   redirect("/merchants");
 }
@@ -28,7 +28,7 @@ export async function createMerchant(fd: FormData) {
 export async function updateMerchant(fd: FormData) {
   await requireRole("OPERATOR");
   const id = str(fd, "id");
-  await prisma.merchant.update({ where: { id }, data: parse(fd) });
+  await apiPut(`/admin/merchants/${id}`, parse(fd));
   revalidatePath("/merchants");
   redirect(`/merchants/${id}`);
 }
@@ -40,12 +40,9 @@ export async function verifyMerchant(fd: FormData) {
     verificationStatus: str(fd, "verificationStatus"),
     rejectionReason: strOrUndef(fd, "rejectionReason"),
   });
-  await prisma.merchant.update({
-    where: { id: data.id },
-    data: {
-      verificationStatus: data.verificationStatus,
-      rejectionReason: data.verificationStatus === "REJECTED" ? data.rejectionReason ?? null : null,
-    },
+  await apiPatch(`/admin/merchants/${data.id}/verify`, {
+    status: data.verificationStatus,
+    rejectionReason: data.verificationStatus === "REJECTED" ? data.rejectionReason : undefined,
   });
   revalidatePath(`/merchants/${data.id}`);
   revalidatePath("/merchants");
@@ -53,6 +50,6 @@ export async function verifyMerchant(fd: FormData) {
 
 export async function deleteMerchant(fd: FormData) {
   await requireRole("SUPER_ADMIN");
-  await prisma.merchant.delete({ where: { id: str(fd, "id") } });
+  await apiDelete(`/admin/merchants/${str(fd, "id")}`);
   revalidatePath("/merchants");
 }

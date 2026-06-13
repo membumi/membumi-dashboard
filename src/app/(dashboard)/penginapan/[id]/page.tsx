@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { formatRupiah, toStringArray } from "@/lib/utils";
+import { apiGet, ApiError } from "@/lib/api-client";
+import type { Hotel } from "@/lib/types";
+import { merchantOptions } from "@/server/queries";
+import { formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
@@ -13,15 +15,14 @@ import { updateHotel, deleteHotel, createRoom, deleteRoom } from "@/server/actio
 
 export default async function HotelDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [hotel, merchants, amenities] = await Promise.all([
-    prisma.hotel.findUnique({
-      where: { id },
-      include: { rooms: true, amenities: true, reviews: true },
-    }),
-    prisma.merchant.findMany({ where: { verificationStatus: "VERIFIED" }, select: { id: true, businessName: true } }),
-    prisma.amenity.findMany({ orderBy: { name: "asc" } }),
-  ]);
-  if (!hotel) notFound();
+  let hotel: Hotel;
+  try {
+    hotel = await apiGet<Hotel>(`/hotels/${id}`);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) notFound();
+    throw e;
+  }
+  const merchants = await merchantOptions();
 
   return (
     <div className="space-y-6">
@@ -31,8 +32,7 @@ export default async function HotelDetailPage({ params }: { params: Promise<{ id
         action={updateHotel}
         hotel={hotel}
         merchants={merchants}
-        amenities={amenities}
-        selectedAmenityIds={hotel.amenities.map((a) => a.id)}
+        selectedAmenities={hotel.amenities.map((a) => a.name)}
       />
 
       <Card>
@@ -58,9 +58,11 @@ export default async function HotelDetailPage({ params }: { params: Promise<{ id
                   <TD className="font-medium">{r.name}</TD>
                   <TD>{formatRupiah(r.pricePerNight)}</TD>
                   <TD>{r.capacity} org</TD>
-                  <TD className="text-slate-500">{toStringArray(r.facilities).join(", ") || "—"}</TD>
+                  <TD className="text-slate-500">{r.facilities.join(", ") || "—"}</TD>
                   <TD>{r.available ? <Badge tone="green">Ya</Badge> : <Badge tone="red">Tidak</Badge>}</TD>
-                  <TD className="text-right"><ConfirmDelete action={deleteRoom} id={r.id} label="Hapus kamar ini?" /></TD>
+                  <TD className="text-right">
+                    <ConfirmDelete action={deleteRoom} id={r.id} fields={{ hotelId: hotel.id }} label="Hapus kamar ini?" />
+                  </TD>
                 </TR>
               ))}
             </TBody>
@@ -103,8 +105,8 @@ export default async function HotelDetailPage({ params }: { params: Promise<{ id
             <CardTitle>Ulasan ({hotel.reviews.length})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {hotel.reviews.map((rv) => (
-              <div key={rv.id} className="border-b border-slate-100 pb-2 text-sm last:border-0">
+            {hotel.reviews.map((rv, i) => (
+              <div key={i} className="border-b border-slate-100 pb-2 text-sm last:border-0">
                 <p className="font-medium text-slate-800">{rv.authorName} • ★ {rv.rating}</p>
                 <p className="text-slate-500">{rv.comment}</p>
               </div>
