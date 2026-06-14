@@ -3,6 +3,9 @@ import { hasRole, type AdminRole } from "@/lib/constants";
 
 export async function getCurrentAdmin() {
   const session = await auth();
+  // A broken refresh chain means the session is no longer usable → treat as
+  // logged out so the dashboard layout redirects to /login.
+  if (session?.error) return null;
   return session?.user ?? null;
 }
 

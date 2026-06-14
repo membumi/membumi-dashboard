@@ -40,7 +40,14 @@ function buildUrl(path: string, query?: Query): string {
 }
 
 async function authHeader(): Promise<Record<string, string>> {
+  // Reading the session runs the NextAuth `jwt` callback, which proactively
+  // refreshes the access token when it's near expiry (see auth.config.ts).
+  // So by the time we build this header, the token is already fresh.
   const session = await auth();
+  if (session?.error) {
+    // Refresh token expired/revoked — no point hitting the API with a dead token.
+    throw new ApiError("Sesi berakhir, silakan login ulang.", 401, "SESSION_EXPIRED");
+  }
   const token = session?.accessToken;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
