@@ -16,6 +16,8 @@ const API_URL =
 interface AdminSession {
   accessToken: string;
   refreshToken: string;
+  /** Access-token lifetime in seconds (e.g. 900 = 15m). */
+  expiresIn: number;
   user: { id: string; email: string; name: string; role: string; active: boolean };
 }
 
@@ -48,7 +50,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const json = (await res.json()) as { success: boolean; data?: AdminSession };
         if (!json.success || !json.data) return null;
 
-        const { accessToken, refreshToken, user } = json.data;
+        const { accessToken, refreshToken, expiresIn, user } = json.data;
         // Carry the JWT + role into the NextAuth token (see jwt callback).
         return {
           id: user.id,
@@ -57,6 +59,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: toAdminRole(user.role), // normalize lowercase → dashboard uppercase
           accessToken,
           refreshToken,
+          // Absolute expiry so the jwt callback can refresh ahead of time.
+          expiresAt: Date.now() + (expiresIn ?? 0) * 1000,
         };
       },
     }),

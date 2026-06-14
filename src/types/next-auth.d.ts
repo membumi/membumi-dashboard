@@ -5,9 +5,13 @@ declare module "next-auth" {
     role?: string;
     accessToken?: string;
     refreshToken?: string;
+    /** Absolute epoch ms at which the access token expires. */
+    expiresAt?: number;
   }
   interface Session {
     accessToken?: string;
+    /** Set when the refresh chain breaks (refresh token expired/revoked). */
+    error?: string;
     user: {
       id: string;
       role: string;
@@ -21,5 +25,9 @@ declare module "next-auth/jwt" {
     role?: string;
     accessToken?: string;
     refreshToken?: string;
+    /** Absolute epoch ms at which the access token expires. */
+    expiresAt?: number;
+    /** Set when a refresh attempt fails so the session can force re-login. */
+    error?: string;
   }
 }
