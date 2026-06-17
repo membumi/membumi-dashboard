@@ -150,6 +150,27 @@ export const fareConfigSchema = z.object({
   avgSpeedKmh: z.coerce.number().int().min(1).default(25),
 });
 
+// ── Kirim Barang (package courier) ─────────────────────────────────────────
+export const deliveryFareConfigSchema = z.object({
+  vehicle: z.enum(RIDE_TYPES),
+  baseFare: money,
+  perKm: money,
+  minFare: money,
+  avgSpeedKmh: z.coerce.number().int().min(1).default(25),
+  weightThresholdGram: money.default(5000),
+  perKgOver: money.default(2000),
+});
+
+export const deliveryCategorySchema = z.object({
+  name: z.string().min(2),
+  description: z.string().optional().default(""),
+  maxWeightGram: z.coerce.number().int().min(1),
+  priceMultiplier: z.coerce.number().min(0).default(1),
+  flatFee: money.default(0),
+  requiresInsurance: z.coerce.boolean().default(false),
+  active: z.coerce.boolean().default(true),
+});
+
 export const promoSchema = z.object({
   title: z.string().min(2),
   description: z.string().optional().default(""),

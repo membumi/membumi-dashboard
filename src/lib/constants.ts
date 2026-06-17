@@ -64,6 +64,18 @@ export type FoodOrderStatus = (typeof FOOD_ORDER_STATUSES)[number];
 export const RIDE_TYPES = ["motor", "mobil"] as const;
 export type RideType = (typeof RIDE_TYPES)[number];
 
+// ── Delivery (Kirim Barang) status — backend (snake_case), per PRD §4 ──────
+export const DELIVERY_STATUSES = [
+  "searching",
+  "driver_assigned",
+  "driver_arriving",
+  "picking_up",
+  "in_transit",
+  "completed",
+  "cancelled",
+] as const;
+export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
+
 // ── Promos — same values as backend ────────────────────────────────────────
 export const DISCOUNT_TYPES = ["PERCENT", "FIXED", "FREE_SHIPPING"] as const;
 export type DiscountType = (typeof DISCOUNT_TYPES)[number];
