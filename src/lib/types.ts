@@ -279,6 +279,45 @@ export interface Ride {
   createdAt: string;
 }
 
+// ── Kirim Barang (package courier) ──────────────────────────────────────────
+export interface DeliveryFareConfig {
+  vehicle: string; // motor | mobil
+  baseFare: number;
+  perKm: number;
+  minFare: number;
+  avgSpeedKmh: number;
+  weightThresholdGram: number;
+  perKgOver: number;
+}
+
+export interface PackageCategory {
+  id: string;
+  name: string;
+  description?: string | null;
+  maxWeightGram: number;
+  priceMultiplier: number;
+  flatFee: number;
+  requiresInsurance: boolean;
+  active: boolean;
+}
+
+export interface Delivery {
+  id: string;
+  vehicle: string;
+  status: string;
+  pickup: { lat: number; lng: number; address: string; name?: string | null };
+  destination: { lat: number; lng: number; address: string; name?: string | null };
+  sender: { name: string; phone: string };
+  recipient: { name: string; phone: string };
+  categoryId: string;
+  weightGram: number;
+  itemNote?: string | null;
+  fare: { amount: number; distance: number; duration: number; currency: string };
+  paymentMethod: string;
+  courier: { id: string; name: string } | null;
+  createdAt: string;
+}
+
 // ── Payments ───────────────────────────────────────────────────────────────
 export interface WalletTransaction {
   id: string;
