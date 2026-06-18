@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
+import { ImageUploadInput } from "@/components/forms/image-upload";
 import { ArrayInput } from "@/components/forms/array-input";
 
 type Day = { day: number; title: string; activities: string[] };
@@ -104,8 +105,7 @@ export function TripForm({
               </Select>
             </div>
             <div className="md:col-span-2">
-              <Label>URL Gambar (opsional)</Label>
-              <Input name="imageUrl" type="url" defaultValue={trip?.imageUrl ?? ""} placeholder="https://…" />
+              <ImageUploadInput folder="trips" defaultValue={trip?.imageUrl ?? ""} label="Gambar Trip (opsional)" />
             </div>
             <div className="md:col-span-2">
               <Label>Deskripsi</Label>

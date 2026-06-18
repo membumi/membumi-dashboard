@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
+import { ImageUploadInput } from "@/components/forms/image-upload";
 import { DISCOUNT_TYPES, PROMO_SERVICES } from "@/lib/constants";
 
 export function PromoForm({
@@ -65,8 +66,7 @@ export function PromoForm({
             <Textarea name="description" defaultValue={promo?.description} />
           </div>
           <div className="md:col-span-2">
-            <Label>URL Banner (opsional)</Label>
-            <Input name="imageUrl" type="url" defaultValue={promo?.imageUrl ?? ""} placeholder="https://…" />
+            <ImageUploadInput folder="promos" defaultValue={promo?.imageUrl ?? ""} label="Banner Promo (opsional)" />
           </div>
           <div className="md:col-span-2 flex gap-2">
             <SubmitButton>{promo ? "Simpan Perubahan" : "Tambah Promo"}</SubmitButton>
