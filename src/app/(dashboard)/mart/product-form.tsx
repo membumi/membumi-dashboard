@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
+import { ImageUploadInput } from "@/components/forms/image-upload";
 
 export function ProductForm({
   action,
@@ -60,8 +61,7 @@ export function ProductForm({
             </Select>
           </div>
           <div className="md:col-span-2">
-            <Label>URL Gambar (opsional)</Label>
-            <Input name="imageUrl" type="url" defaultValue={product?.imageUrl ?? ""} placeholder="https://…" />
+            <ImageUploadInput folder="products" defaultValue={product?.imageUrl ?? ""} label="Gambar Produk (opsional)" />
           </div>
           <div className="md:col-span-2 flex gap-2">
             <SubmitButton>{product ? "Simpan Perubahan" : "Tambah Produk"}</SubmitButton>

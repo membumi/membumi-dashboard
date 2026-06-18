@@ -1,0 +1,37 @@
+"use server";
+
+import { apiPost } from "@/lib/api-client";
+import { requireRole } from "@/lib/session";
+
+export type UploadFolder =
+  | "products"
+  | "merchants"
+  | "avatars"
+  | "restaurants"
+  | "hotels"
+  | "trips"
+  | "promos";
+
+export interface PresignedUpload {
+  uploadUrl: string;
+  key: string;
+  publicUrl: string;
+  expiresIn: number;
+}
+
+/**
+ * Mints a presigned PUT URL on the backend (which holds the storage creds). The
+ * browser then PUTs the file straight to object storage — bytes never pass
+ * through Next.js or the API. Returns the URL pair; the caller persists
+ * `publicUrl`.
+ */
+export async function presignUpload(input: {
+  folder: UploadFolder;
+  contentType: string;
+}): Promise<PresignedUpload> {
+  await requireRole("OPERATOR");
+  return apiPost<PresignedUpload>("/uploads/presign", {
+    folder: input.folder,
+    contentType: input.contentType,
+  });
+}

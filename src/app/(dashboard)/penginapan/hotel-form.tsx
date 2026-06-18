@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
+import { ImageUploadInput } from "@/components/forms/image-upload";
 import { ArrayInput } from "@/components/forms/array-input";
 
 export function HotelForm({
@@ -56,8 +57,7 @@ export function HotelForm({
             </Select>
           </div>
           <div>
-            <Label>URL Gambar (opsional)</Label>
-            <Input name="imageUrl" type="url" defaultValue={hotel?.imageUrl ?? ""} placeholder="https://…" />
+            <ImageUploadInput folder="hotels" defaultValue={hotel?.imageUrl ?? ""} label="Gambar Hotel (opsional)" />
           </div>
           <div className="md:col-span-2">
             <Label>Amenities</Label>

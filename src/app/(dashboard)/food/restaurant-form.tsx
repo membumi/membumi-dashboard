@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
+import { ImageUploadInput } from "@/components/forms/image-upload";
 import { ArrayInput } from "@/components/forms/array-input";
 
 export function RestaurantForm({
@@ -52,8 +53,7 @@ export function RestaurantForm({
             </Select>
           </div>
           <div className="md:col-span-2">
-            <Label>URL Gambar (opsional)</Label>
-            <Input name="imageUrl" type="url" defaultValue={restaurant?.imageUrl ?? ""} placeholder="https://…" />
+            <ImageUploadInput folder="restaurants" defaultValue={restaurant?.imageUrl ?? ""} label="Gambar Restoran (opsional)" />
           </div>
           <div className="md:col-span-2">
             <Label>Kategori Masakan</Label>
