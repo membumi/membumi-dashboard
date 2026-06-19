@@ -14,6 +14,7 @@ import { ConfirmDelete } from "@/components/forms/form-controls";
 import { deleteFinanceRecord } from "@/server/actions/finance";
 import { FinanceForm } from "./finance-form";
 import { CommissionForm } from "./commission-form";
+import { ExportButton } from "./export-button";
 
 const DEFAULT_RATES: CommissionRates = { ride: 0.2, food: 0.2, trip: 0.1, mart: 0.15 };
 
@@ -130,10 +131,11 @@ export default async function KeuanganPage({
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle>Riwayat Transaksi</CardTitle>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <FilterChip label="Semua" href="/keuangan" active={!validSource} />
               <FilterChip label="Manual" href="/keuangan?source=manual" active={validSource === "manual"} />
               <FilterChip label="Platform" href="/keuangan?source=platform" active={validSource === "platform"} />
+              <ExportButton rows={history} />
             </div>
           </div>
         </CardHeader>
