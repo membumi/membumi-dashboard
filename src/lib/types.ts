@@ -351,6 +351,7 @@ export interface FinanceSummary {
   total: number;
   commission: number;
   commissionByService: { ride: number; food: number; trip: number; mart: number };
+  gmvByService: { ride: number; food: number; trip: number; mart: number };
   income: number;
   expense: number;
 }

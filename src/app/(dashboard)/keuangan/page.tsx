@@ -21,6 +21,7 @@ const EMPTY: FinanceSummary = {
   total: 0,
   commission: 0,
   commissionByService: { ride: 0, food: 0, trip: 0, mart: 0 },
+  gmvByService: { ride: 0, food: 0, trip: 0, mart: 0 },
   income: 0,
   expense: 0,
 };
@@ -57,12 +58,13 @@ export default async function KeuanganPage({
     { label: "Pengeluaran", value: summary.expense, icon: TrendingDown, tone: "text-red-600" },
   ];
 
-  const commissionRows = [
-    { label: "Driver (Ride)", value: summary.commissionByService.ride },
-    { label: "Food", value: summary.commissionByService.food },
-    { label: "Open Trip", value: summary.commissionByService.trip },
-    { label: "UMKM (Mart)", value: summary.commissionByService.mart },
-  ];
+  const commissionRows = (["ride", "food", "trip", "mart"] as const).map((key) => ({
+    key,
+    label: { ride: "Driver (Ride)", food: "Food", trip: "Open Trip", mart: "UMKM (Mart)" }[key],
+    value: summary.commissionByService[key],
+    gmv: summary.gmvByService[key],
+    rate: rates[key],
+  }));
 
   return (
     <div className="space-y-6">
@@ -94,9 +96,14 @@ export default async function KeuanganPage({
           <CardContent className="space-y-4">
             <div className="space-y-2">
               {commissionRows.map((r) => (
-                <div key={r.label} className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0">
+                <div key={r.key} className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2 last:border-0">
                   <span className="text-sm text-slate-600">{r.label}</span>
-                  <span className="text-sm font-medium text-slate-800">{formatRupiah(r.value)}</span>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-slate-800">{formatRupiah(r.value)}</div>
+                    <div className="text-xs text-slate-400">
+                      {Math.round(r.rate * 1000) / 10}% × {formatRupiah(r.gmv)}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
