@@ -330,6 +330,29 @@ export interface WalletTransaction {
   user?: { id: string; name: string }; // backend gap 6 (optional)
 }
 
+// ── Finance (Keuangan) ─────────────────────────────────────────────────────
+export type FinanceType = "INCOME" | "EXPENSE";
+export type FinanceMethod = "cash" | "transfer" | "wallet" | "other";
+
+export interface FinanceSummary {
+  total: number;
+  commission: number;
+  commissionByService: { ride: number; food: number; trip: number; mart: number };
+  income: number;
+  expense: number;
+}
+
+export interface FinanceEntry {
+  id: string;
+  source: "manual" | "platform";
+  type: FinanceType;
+  category: string;
+  description: string;
+  amount: number;
+  method: string | null;
+  occurredAt: string;
+}
+
 // ── Promos ─────────────────────────────────────────────────────────────────
 export interface Promo {
   id: string;
