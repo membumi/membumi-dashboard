@@ -8,6 +8,7 @@ import {
   Users,
   Store,
   AlertTriangle,
+  HandCoins,
 } from "lucide-react";
 import { apiGet } from "@/lib/api-client";
 import type { Overview } from "@/lib/types";
@@ -15,6 +16,7 @@ import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import { RevenueChart } from "./revenue-chart";
+import { TopupChart } from "./topup-chart";
 
 // Empty overview used when the backend stats endpoint isn't available yet
 // (see docs/dashboard-admin-gaps.md · Gap 4).
@@ -25,6 +27,7 @@ const EMPTY: Overview = {
   gmvByService: { hotel: 0, trip: 0, mart: 0, food: 0, ride: 0 },
   gmvTotal: 0,
   recent: [],
+  manualTopup: { total: 0, pending: 0, daily: [] },
 };
 
 export default async function OverviewPage() {
@@ -51,11 +54,13 @@ export default async function OverviewPage() {
     { label: "Produk Mart", value: ov.counts.products, icon: ShoppingBasket, href: "/mart" },
     { label: "Restoran", value: ov.counts.restaurants, icon: UtensilsCrossed, href: "/food" },
     { label: "Driver", value: ov.counts.drivers, icon: Bike, href: "/ride" },
+    { label: "Total Topup Manual", value: formatRupiah(ov.manualTopup.total), icon: HandCoins, href: "/topup" },
   ];
 
   const actions = [
     { label: "Merchant menunggu verifikasi", count: ov.pending.merchants, href: "/merchants", icon: Store },
     { label: "Driver menunggu verifikasi", count: ov.pending.drivers, href: "/ride", icon: Bike },
+    { label: "Topup menunggu konfirmasi", count: ov.manualTopup.pending, href: "/topup", icon: HandCoins },
     { label: "Produk stok menipis (< 5)", count: ov.lowStock, href: "/mart", icon: AlertTriangle },
   ].filter((a) => a.count > 0);
 
@@ -103,6 +108,20 @@ export default async function OverviewPage() {
           })}
         </div>
       )}
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Topup Manual Harian (14 hari)</CardTitle>
+            <span className="text-sm font-medium text-emerald-600">
+              {formatRupiah(ov.manualTopup.total)} total
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <TopupChart data={ov.manualTopup.daily} />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
