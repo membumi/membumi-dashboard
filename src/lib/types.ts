@@ -373,4 +373,9 @@ export interface Overview {
   gmvByService: { hotel: number; trip: number; mart: number; food: number; ride: number };
   gmvTotal: number;
   recent: { kind: string; title: string; amount: number; status: string; createdAt: string }[];
+  manualTopup: {
+    total: number;
+    pending: number;
+    daily: { date: string; amount: number }[];
+  };
 }
