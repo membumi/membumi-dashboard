@@ -330,6 +330,19 @@ export interface WalletTransaction {
   user?: { id: string; name: string }; // backend gap 6 (optional)
 }
 
+// ── Manual top-up requests ──────────────────────────────────────────────────
+export type TopupRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface TopupRequest {
+  id: string;
+  amount: number;
+  status: TopupRequestStatus;
+  note?: string | null;
+  createdAt: string;
+  reviewedAt?: string | null;
+  user?: { id: string; name: string; phone?: string | null } | null;
+}
+
 // ── Finance (Keuangan) ─────────────────────────────────────────────────────
 export type FinanceType = "INCOME" | "EXPENSE";
 export type FinanceMethod = "cash" | "transfer" | "wallet" | "other";
@@ -383,4 +396,9 @@ export interface Overview {
   gmvByService: { hotel: number; trip: number; mart: number; food: number; ride: number };
   gmvTotal: number;
   recent: { kind: string; title: string; amount: number; status: string; createdAt: string }[];
+  manualTopup: {
+    total: number;
+    pending: number;
+    daily: { date: string; amount: number }[];
+  };
 }
