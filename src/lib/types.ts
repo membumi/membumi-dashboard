@@ -366,6 +366,14 @@ export interface FinanceEntry {
   occurredAt: string;
 }
 
+// Commission rates per service, as fractions 0–1 (e.g. 0.2 = 20%).
+export interface CommissionRates {
+  ride: number;
+  food: number;
+  trip: number;
+  mart: number;
+}
+
 // ── Promos ─────────────────────────────────────────────────────────────────
 export interface Promo {
   id: string;

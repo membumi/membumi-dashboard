@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Wallet, TrendingUp, TrendingDown, Percent } from "lucide-react";
 import { apiGet, apiGetPaged } from "@/lib/api-client";
-import type { FinanceEntry, FinanceSummary } from "@/lib/types";
+import type { CommissionRates, FinanceEntry, FinanceSummary } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
 import { hasRole } from "@/lib/constants";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
@@ -13,6 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmDelete } from "@/components/forms/form-controls";
 import { deleteFinanceRecord } from "@/server/actions/finance";
 import { FinanceForm } from "./finance-form";
+import { CommissionForm } from "./commission-form";
+
+const DEFAULT_RATES: CommissionRates = { ride: 0.2, food: 0.2, trip: 0.1, mart: 0.15 };
 
 const EMPTY: FinanceSummary = {
   total: 0,
@@ -39,11 +42,12 @@ export default async function KeuanganPage({
     ? (source as "manual" | "platform")
     : undefined;
 
-  const [summary, { items: history }] = await Promise.all([
+  const [summary, { items: history }, rates] = await Promise.all([
     apiGet<FinanceSummary>("/admin/finance/summary").catch(() => EMPTY),
     apiGetPaged<FinanceEntry>("/admin/finance/history", { source: validSource, limit: 100 }).catch(
       () => ({ items: [] as FinanceEntry[], meta: null })
     ),
+    apiGet<CommissionRates>("/admin/finance/commission").catch(() => DEFAULT_RATES),
   ]);
 
   const cards = [
@@ -87,13 +91,21 @@ export default async function KeuanganPage({
           <CardHeader>
             <CardTitle>Komisi per Layanan</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {commissionRows.map((r) => (
-              <div key={r.label} className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0">
-                <span className="text-sm text-slate-600">{r.label}</span>
-                <span className="text-sm font-medium text-slate-800">{formatRupiah(r.value)}</span>
-              </div>
-            ))}
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              {commissionRows.map((r) => (
+                <div key={r.label} className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0">
+                  <span className="text-sm text-slate-600">{r.label}</span>
+                  <span className="text-sm font-medium text-slate-800">{formatRupiah(r.value)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-slate-100 pt-4">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-400">
+                Atur Rate Komisi
+              </p>
+              <CommissionForm rates={rates} />
+            </div>
           </CardContent>
         </Card>
 
