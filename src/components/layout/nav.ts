@@ -11,6 +11,7 @@ import {
   Users,
   Ticket,
   Wallet,
+  Landmark,
   HandCoins,
   ClipboardList,
 } from "lucide-react";
@@ -35,5 +36,6 @@ export const NAV: NavItem[] = [
   { label: "Pesanan & Transaksi", href: "/orders", icon: ClipboardList, group: "Monitoring" },
   { label: "Pembayaran", href: "/payments", icon: Wallet, group: "Monitoring" },
   { label: "Top Up Saldo", href: "/topup", icon: HandCoins, group: "Monitoring" },
+  { label: "Keuangan", href: "/keuangan", icon: Landmark, group: "Monitoring" },
   { label: "Pengguna", href: "/users", icon: Users, group: "Pengelolaan" },
 ];

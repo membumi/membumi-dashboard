@@ -343,6 +343,38 @@ export interface TopupRequest {
   user?: { id: string; name: string; phone?: string | null } | null;
 }
 
+// ── Finance (Keuangan) ─────────────────────────────────────────────────────
+export type FinanceType = "INCOME" | "EXPENSE";
+export type FinanceMethod = "cash" | "transfer" | "wallet" | "other";
+
+export interface FinanceSummary {
+  total: number;
+  commission: number;
+  commissionByService: { ride: number; food: number; trip: number; mart: number };
+  gmvByService: { ride: number; food: number; trip: number; mart: number };
+  income: number;
+  expense: number;
+}
+
+export interface FinanceEntry {
+  id: string;
+  source: "manual" | "platform";
+  type: FinanceType;
+  category: string;
+  description: string;
+  amount: number;
+  method: string | null;
+  occurredAt: string;
+}
+
+// Commission rates per service, as fractions 0–1 (e.g. 0.2 = 20%).
+export interface CommissionRates {
+  ride: number;
+  food: number;
+  trip: number;
+  mart: number;
+}
+
 // ── Promos ─────────────────────────────────────────────────────────────────
 export interface Promo {
   id: string;
