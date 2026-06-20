@@ -50,6 +50,7 @@ export interface MerchantContent {
 
 export interface Merchant {
   id: string;
+  userId?: string | null; // owning end-user (null if unassigned)
   businessName: string;
   ownerName: string;
   phoneNumber: string;
@@ -335,11 +336,14 @@ export interface WalletTransaction {
 
 // ── Manual top-up requests ──────────────────────────────────────────────────
 export type TopupRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type TopupRequestSource = "USER_REQUEST" | "ADMIN_MANUAL";
+export type RecipientType = "user" | "driver" | "merchant";
 
 export interface TopupRequest {
   id: string;
   amount: number;
   status: TopupRequestStatus;
+  source?: TopupRequestSource;
   note?: string | null;
   createdAt: string;
   reviewedAt?: string | null;

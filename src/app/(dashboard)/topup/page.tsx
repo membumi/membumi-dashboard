@@ -6,6 +6,7 @@ import { getCurrentAdmin } from "@/lib/session";
 import { hasRole } from "@/lib/constants";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
+import { buttonVariants } from "@/components/ui/button";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ReviewActions } from "./review-actions";
@@ -51,16 +52,21 @@ export default async function TopupPage({
         description="Permintaan top up manual. Verifikasi bukti transfer (WhatsApp) lalu setujui untuk menambah saldo."
       />
 
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        <FilterChip label="Semua" href="/topup" active={!validStatus} />
-        {STATUSES.map((s) => (
-          <FilterChip
-            key={s}
-            label={STATUS_LABEL[s]}
-            href={`/topup?status=${s}`}
-            active={validStatus === s}
-          />
-        ))}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5">
+          <FilterChip label="Semua" href="/topup" active={!validStatus} />
+          {STATUSES.map((s) => (
+            <FilterChip
+              key={s}
+              label={STATUS_LABEL[s]}
+              href={`/topup?status=${s}`}
+              active={validStatus === s}
+            />
+          ))}
+        </div>
+        <Link href="/topup/manual" className={buttonVariants({ size: "sm" })}>
+          Topup Manual
+        </Link>
       </div>
 
       <Table>
@@ -68,6 +74,7 @@ export default async function TopupPage({
           <TR>
             <TH>Pengguna</TH>
             <TH>Jumlah</TH>
+            <TH>Sumber</TH>
             <TH>Status</TH>
             <TH>Catatan</TH>
             <TH>Waktu</TH>
@@ -75,7 +82,7 @@ export default async function TopupPage({
           </TR>
         </THead>
         <TBody>
-          {requests.length === 0 && <EmptyRow colSpan={6} />}
+          {requests.length === 0 && <EmptyRow colSpan={7} />}
           {requests.map((r) => (
             <TR key={r.id}>
               <TD>
@@ -83,6 +90,11 @@ export default async function TopupPage({
                 <div className="text-xs text-slate-500">{r.user?.phone ?? r.id.slice(0, 8)}</div>
               </TD>
               <TD className="font-medium text-emerald-600">{formatRupiah(r.amount)}</TD>
+              <TD>
+                <Badge tone={r.source === "ADMIN_MANUAL" ? "blue" : "default"}>
+                  {r.source === "ADMIN_MANUAL" ? "Manual oleh admin" : "Permintaan user"}
+                </Badge>
+              </TD>
               <TD>
                 <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>
               </TD>
