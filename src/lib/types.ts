@@ -7,6 +7,9 @@ import type {
   VerificationStatus,
   DiscountType,
   PromoService,
+  TicketStatus,
+  TicketCategory,
+  TicketPriority,
 } from "@/lib/constants";
 
 // ── Auth / accounts ────────────────────────────────────────────────────────
@@ -410,4 +413,69 @@ export interface Overview {
     pending: number;
     daily: { date: string; amount: number }[];
   };
+}
+
+// ── Customer Support (chat) — api-contract §11A ─────────────────────────────
+export type ChatRole = "user" | "driver" | "agent";
+export type ChatMessageType = "text" | "image" | "system";
+
+export interface ChatParticipant {
+  userId: string;
+  role: ChatRole;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderRole: ChatRole;
+  type: ChatMessageType;
+  text: string | null;
+  imageUrl: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+/** A support ticket is a `type:"support"` conversation. */
+export interface SupportTicket {
+  id: string;
+  type: "ride" | "support";
+  status: TicketStatus;
+  participants: ChatParticipant[];
+  userId: string | null;
+  subject: string | null;
+  category: TicketCategory | null;
+  priority: TicketPriority | null;
+  assignedAgentId: string | null;
+  lastMessage: {
+    text: string;
+    senderId: string;
+    type: ChatMessageType;
+    createdAt: string;
+  } | null;
+  unreadCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketDetail {
+  ticket: SupportTicket;
+  messages: ChatMessage[];
+}
+
+export interface SupportStats {
+  open: number;
+  pending: number;
+  resolved: number;
+  closed: number;
+  unassigned: number;
+}
+
+export interface QuickReply {
+  id: string;
+  title: string;
+  body: string;
+  category: TicketCategory | null;
 }

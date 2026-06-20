@@ -14,6 +14,7 @@ import {
   Landmark,
   HandCoins,
   ClipboardList,
+  Headphones,
 } from "lucide-react";
 
 export type NavItem = {
@@ -33,6 +34,7 @@ export const NAV: NavItem[] = [
   { label: "Ride & Driver", href: "/ride", icon: Bike, group: "Konten" },
   { label: "Kirim Barang", href: "/kirim-barang", icon: PackageOpen, group: "Konten" },
   { label: "Promo", href: "/promos", icon: Ticket, group: "Konten" },
+  { label: "Customer Support", href: "/support", icon: Headphones, group: "Monitoring" },
   { label: "Pesanan & Transaksi", href: "/orders", icon: ClipboardList, group: "Monitoring" },
   { label: "Pembayaran", href: "/payments", icon: Wallet, group: "Monitoring" },
   { label: "Top Up Saldo", href: "/topup", icon: HandCoins, group: "Monitoring" },

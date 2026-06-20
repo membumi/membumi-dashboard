@@ -7,6 +7,8 @@ import {
   PROMO_SERVICES,
   RIDE_TYPES,
   SHIPMENT_STATUSES,
+  TICKET_CATEGORIES,
+  TICKET_STATUS_ACTIONS,
   VERIFICATION_STATUSES,
 } from "@/lib/constants";
 
@@ -200,4 +202,26 @@ export const shipmentUpdateSchema = z.object({
 export const foodStatusSchema = z.object({
   id,
   status: z.enum(FOOD_ORDER_STATUSES),
+});
+
+// ── Customer Support ───────────────────────────────────────────────────────
+export const ticketReplySchema = z.object({
+  id,
+  text: z.string().min(1).max(4000),
+});
+
+export const ticketAssignSchema = z.object({
+  id,
+  agentId: z.string().optional(),
+});
+
+export const ticketStatusSchema = z.object({
+  id,
+  status: z.enum(TICKET_STATUS_ACTIONS),
+});
+
+export const quickReplySchema = z.object({
+  title: z.string().min(2).max(100),
+  body: z.string().min(2).max(4000),
+  category: z.enum(TICKET_CATEGORIES).optional(),
 });

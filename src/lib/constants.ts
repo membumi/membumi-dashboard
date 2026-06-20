@@ -86,6 +86,40 @@ export type PromoService = (typeof PROMO_SERVICES)[number];
 // ── Wallet transaction reference types — backend `referenceType` filter ────
 export const TRANSACTION_TYPES = ["topup", "ride", "food", "mart", "hotel", "trip"] as const;
 
+// ── Customer Support tickets — backend chat (api-contract §11A) ────────────
+export const TICKET_STATUSES = ["open", "pending", "resolved", "closed"] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+// Statuses an agent can transition a ticket to (open is the initial state only).
+export const TICKET_STATUS_ACTIONS = ["pending", "resolved", "closed"] as const;
+
+export const TICKET_CATEGORIES = ["order", "payment", "account", "other"] as const;
+export type TicketCategory = (typeof TICKET_CATEGORIES)[number];
+
+export const TICKET_PRIORITIES = ["low", "normal", "high"] as const;
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
+
+export const TICKET_STATUS_TONE: Record<TicketStatus, string> = {
+  open: "yellow",
+  pending: "blue",
+  resolved: "green",
+  closed: "default",
+};
+
+export const TICKET_STATUS_LABEL: Record<TicketStatus, string> = {
+  open: "Terbuka",
+  pending: "Diproses",
+  resolved: "Selesai",
+  closed: "Ditutup",
+};
+
+export const TICKET_CATEGORY_LABEL: Record<TicketCategory, string> = {
+  order: "Pesanan",
+  payment: "Pembayaran",
+  account: "Akun",
+  other: "Lainnya",
+};
+
 // ── Role hierarchy for gating. Higher number = more privilege. ─────────────
 export const ROLE_LEVEL: Record<AdminRole, number> = {
   OPERATOR: 1,
