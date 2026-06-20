@@ -2,12 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV } from "./nav";
+import { NAV, type NavItem } from "./nav";
 import { cn } from "@/lib/utils";
 
 export function Sidebar() {
   const pathname = usePathname();
   const groups = Array.from(new Set(NAV.map((n) => n.group)));
+
+  // Longest-prefix match: only the most specific nav href is "active" so that
+  // e.g. /ride does not light up while on /ride/drivers.
+  const activeHref = NAV.reduce<string | null>((best, item) => {
+    const matches =
+      item.href === "/"
+        ? pathname === "/"
+        : pathname === item.href || pathname.startsWith(item.href + "/");
+    if (!matches) return best;
+    if (best === null || item.href.length > best.length) return item.href;
+    return best;
+  }, null);
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
@@ -24,32 +36,35 @@ export function Sidebar() {
               {group}
             </p>
             <div className="space-y-0.5">
-              {NAV.filter((n) => n.group === group).map((item) => {
-                const active =
-                  item.href === "/"
-                    ? pathname === "/"
-                    : pathname.startsWith(item.href);
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "text-slate-600 hover:bg-slate-100"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+              {NAV.filter((n) => n.group === group).map((item) => (
+                <NavEntry
+                  key={item.href}
+                  item={item}
+                  active={item.href === activeHref}
+                />
+              ))}
             </div>
           </div>
         ))}
       </nav>
     </aside>
+  );
+}
+
+function NavEntry({ item, active }: { item: NavItem; active: boolean }) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        active
+          ? "bg-emerald-50 text-emerald-700"
+          : "text-slate-600 hover:bg-slate-100"
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      {item.label}
+    </Link>
   );
 }

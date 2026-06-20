@@ -84,7 +84,31 @@ export const PROMO_SERVICES = ["RIDE", "FOOD", "MART", "HOTEL", "TRIP", "ALL"] a
 export type PromoService = (typeof PROMO_SERVICES)[number];
 
 // ── Wallet transaction reference types — backend `referenceType` filter ────
-export const TRANSACTION_TYPES = ["topup", "ride", "food", "mart", "hotel", "trip"] as const;
+export const TRANSACTION_TYPES = [
+  "topup",
+  "ride",
+  "food",
+  "mart",
+  "hotel",
+  "trip",
+  "driver_earning",
+  "driver_payout",
+] as const;
+
+// Human-readable labels for transaction reference types (filter chips + table badge).
+export const TRANSACTION_TYPE_LABELS: Record<string, string> = {
+  topup: "Top Up",
+  topUp: "Top Up",
+  ride: "Perjalanan",
+  food: "Makanan",
+  mart: "Mart",
+  hotel: "Hotel",
+  trip: "Trip",
+  driver_earning: "Penghasilan Driver",
+  driver_payout: "Pencairan Driver",
+};
+
+export const transactionTypeLabel = (t: string): string => TRANSACTION_TYPE_LABELS[t] ?? t;
 
 // ── Customer Support tickets — backend chat (api-contract §11A) ────────────
 export const TICKET_STATUSES = ["open", "pending", "resolved", "closed"] as const;
