@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { apiGet, apiGetPaged } from "@/lib/api-client";
 import type { WalletTransaction } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
-import { hasRole, TRANSACTION_TYPES } from "@/lib/constants";
+import { hasRole, TRANSACTION_TYPES, transactionTypeLabel } from "@/lib/constants";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +25,7 @@ export default async function PaymentsPage({
     type && (TRANSACTION_TYPES as readonly string[]).includes(type) ? type : undefined;
 
   const [{ items: txns }, summary] = await Promise.all([
-    apiGetPaged<WalletTransaction>("/admin/wallet-transactions", { type: validType, limit: 200 }),
+    apiGetPaged<WalletTransaction>("/admin/wallet-transactions", { type: validType, limit: 100 }),
     // Summary is a backend gap (Gap 6); fall back to zeros until it ships.
     apiGet<{ credit: number; debit: number }>("/admin/wallet-transactions/summary", {
       type: validType,
@@ -54,7 +54,12 @@ export default async function PaymentsPage({
       <div className="mb-4 flex flex-wrap gap-1.5">
         <FilterChip label="Semua" href="/payments" active={!type} />
         {TRANSACTION_TYPES.map((t) => (
-          <FilterChip key={t} label={t} href={`/payments?type=${t}`} active={type === t} />
+          <FilterChip
+            key={t}
+            label={transactionTypeLabel(t)}
+            href={`/payments?type=${t}`}
+            active={type === t}
+          />
         ))}
       </div>
 
@@ -72,7 +77,7 @@ export default async function PaymentsPage({
           {txns.length === 0 && <EmptyRow colSpan={5} />}
           {txns.map((t) => (
             <TR key={t.id}>
-              <TD><Badge>{t.type}</Badge></TD>
+              <TD><Badge>{transactionTypeLabel(t.type)}</Badge></TD>
               <TD>{t.description}</TD>
               <TD className="text-slate-500">{t.user?.name ?? "—"}</TD>
               <TD className={t.isCredit ? "font-medium text-emerald-600" : "font-medium text-red-600"}>

@@ -325,7 +325,7 @@ export interface Delivery {
 // ── Payments ───────────────────────────────────────────────────────────────
 export interface WalletTransaction {
   id: string;
-  type: string; // topUp | ride | food | mart | hotel | trip | refund
+  type: string; // topUp | ride | food | mart | hotel | trip | driver_earning | driver_payout | refund
   description: string;
   amount: number;
   isCredit: boolean;
@@ -348,6 +348,50 @@ export interface TopupRequest {
   createdAt: string;
   reviewedAt?: string | null;
   user?: { id: string; name: string; phone?: string | null } | null;
+}
+
+// ── Merchant (UMKM) withdrawals ─────────────────────────────────────────────
+export type WithdrawalStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type WithdrawalDestinationType = "BANK" | "EWALLET";
+
+export interface MerchantWithdrawal {
+  id: string;
+  amount: number;
+  destinationType: WithdrawalDestinationType;
+  destinationName: string;
+  accountNumber: string;
+  accountName: string;
+  status: WithdrawalStatus;
+  note?: string | null;
+  createdAt: string;
+  reviewedAt?: string | null;
+  merchant?: { id: string; businessName: string; ownerName?: string | null } | null;
+}
+
+/** Who requested the payout — normalized across driver & merchant. */
+export type WithdrawalKind = "driver" | "merchant";
+export interface WithdrawalParty {
+  id: string;
+  /** Driver name or merchant business name. */
+  name: string;
+  /** Driver phone or merchant owner name. */
+  detail?: string | null;
+}
+
+/** Unified back-office withdrawal row (driver + merchant) from /admin/finance/withdrawals. */
+export interface AdminWithdrawal {
+  id: string;
+  kind: WithdrawalKind;
+  amount: number;
+  destinationType: WithdrawalDestinationType;
+  destinationName: string;
+  accountNumber: string;
+  accountName: string;
+  status: WithdrawalStatus;
+  note?: string | null;
+  party?: WithdrawalParty | null;
+  createdAt: string;
+  reviewedAt?: string | null;
 }
 
 // ── Finance (Keuangan) ─────────────────────────────────────────────────────
