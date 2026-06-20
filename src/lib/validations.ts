@@ -225,3 +225,14 @@ export const quickReplySchema = z.object({
   body: z.string().min(2).max(4000),
   category: z.enum(TICKET_CATEGORIES).optional(),
 });
+
+export const manualTopupSchema = z.object({
+  userId: z.string().uuid(),
+  recipientType: z.enum(["user", "driver", "merchant"]),
+  amount: z.coerce.number().int().min(10000),
+  note: z
+    .string()
+    .max(280)
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+});
