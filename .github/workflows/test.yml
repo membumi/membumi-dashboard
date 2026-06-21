@@ -1,0 +1,33 @@
+name: tests
+
+# Lint, type-check, unit test (Vitest), dan build pada push ke main & setiap PR
+# yang menyentuh kode/test/konfigurasi. E2E (Playwright) belum dipasang di repo ini.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '*.config.*'
+      - '.github/workflows/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run test:coverage
+      - run: npm run build
+        env:
+          API_URL: http://localhost:3000/v1
+          AUTH_SECRET: ci-placeholder-secret
