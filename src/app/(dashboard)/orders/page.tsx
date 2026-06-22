@@ -7,7 +7,12 @@ import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table
 import { StatusBadge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BOOKING_STATUSES, SHIPMENT_STATUSES, FOOD_ORDER_STATUSES } from "@/lib/constants";
+import {
+  BOOKING_STATUSES,
+  BOOKING_STATUS_LABEL,
+  SHIPMENT_STATUSES,
+  FOOD_ORDER_STATUSES,
+} from "@/lib/constants";
 import { updateBookingStatus } from "@/server/actions/hotels";
 import { updateShipment } from "@/server/actions/mart";
 import { updateFoodStatus } from "@/server/actions/food";
@@ -79,12 +84,21 @@ async function BookingsTab() {
             <TD>{b.guestCount} org</TD>
             <TD className="text-slate-500">{formatDateTime(b.checkIn)}</TD>
             <TD>{formatRupiah(b.totalPrice)}</TD>
-            <TD><StatusBadge status={b.status} /></TD>
+            <TD>
+              <StatusBadge
+                status={b.status}
+                label={BOOKING_STATUS_LABEL[b.status as keyof typeof BOOKING_STATUS_LABEL] ?? b.status}
+              />
+            </TD>
             <TD>
               <form action={updateBookingStatus} className="flex items-center gap-1">
                 <input type="hidden" name="id" value={b.id} />
-                <Select name="status" defaultValue={b.status} className="h-8 w-36">
-                  {BOOKING_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                <Select name="status" defaultValue={b.status} className="h-8 w-44">
+                  {BOOKING_STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {BOOKING_STATUS_LABEL[s]}
+                    </option>
+                  ))}
                 </Select>
                 <Button type="submit" size="sm" variant="secondary">OK</Button>
               </form>

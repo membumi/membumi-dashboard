@@ -30,13 +30,34 @@ export const VERIFICATION_STATUSES = ["PENDING", "VERIFIED", "REJECTED"] as cons
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
 
 // ── Hotel booking status (admin) — backend HotelBooking lifecycle ──────────
+// New approval flow: user submits without paying → admin confirms availability
+// → user pays (wallet auto / bank transfer via WhatsApp) → admin approves the
+// transfer → CONFIRMED. See docs/prd/11-penginapan-booking-approval.md.
 export const BOOKING_STATUSES = [
-  "PENDING",
+  "AWAITING_CONFIRMATION", // submitted, waiting for availability confirmation
+  "AWAITING_PAYMENT", // availability confirmed, waiting for user payment
+  "PAYMENT_REVIEW", // bank-transfer proof sent via WA, waiting admin approval
+  "REJECTED", // no room available (terminal)
+  "PENDING", // legacy/in-flight bookings created before the approval flow
   "CONFIRMED",
   "CHECKED_IN",
   "CHECKED_OUT",
   "CANCELLED",
 ] as const;
+export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+
+// Indonesian labels for the booking lifecycle, used across the booking queues.
+export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
+  AWAITING_CONFIRMATION: "Menunggu Konfirmasi",
+  AWAITING_PAYMENT: "Menunggu Pembayaran",
+  PAYMENT_REVIEW: "Verifikasi Pembayaran",
+  REJECTED: "Ditolak",
+  PENDING: "Menunggu",
+  CONFIRMED: "Dikonfirmasi",
+  CHECKED_IN: "Check-in",
+  CHECKED_OUT: "Check-out",
+  CANCELLED: "Dibatalkan",
+};
 
 // ── Mart order shipment status — backend MartOrderStatus (lowercase) ───────
 export const SHIPMENT_STATUSES = [

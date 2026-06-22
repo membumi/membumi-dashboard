@@ -14,6 +14,7 @@ import {
   HandCoins,
   Banknote,
   ClipboardList,
+  ClipboardCheck,
   Headphones,
   Settings,
 } from "lucide-react";
@@ -28,6 +29,7 @@ export type NavItem = {
 export const NAV: NavItem[] = [
   { label: "Overview", href: "/", icon: LayoutDashboard, group: "Umum" },
   { label: "Penginapan", href: "/penginapan", icon: BedDouble, group: "Konten" },
+  { label: "Approval Booking", href: "/penginapan/booking", icon: ClipboardCheck, group: "Konten" },
   { label: "Open Trip", href: "/open-trip", icon: Map, group: "Konten" },
   { label: "Merchant (UMKM)", href: "/merchants", icon: Store, group: "Konten" },
   { label: "Mart", href: "/mart", icon: ShoppingBasket, group: "Konten" },

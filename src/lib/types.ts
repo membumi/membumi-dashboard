@@ -112,6 +112,10 @@ export interface Booking {
   paymentMethod: string;
   voucherCode: string;
   createdAt: string;
+  // Approval flow extras (optional; populated by the backend approval endpoints).
+  hotelName?: string;
+  guestName?: string;
+  rejectionReason?: string;
 }
 
 // ── Trips / guides ─────────────────────────────────────────────────────────
