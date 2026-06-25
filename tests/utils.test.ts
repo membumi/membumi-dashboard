@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { formatRupiah, discountPercent } from "@/lib/utils";
-import { hasRole, toAdminRole, toApiRole } from "@/lib/constants";
+import {
+  hasRole,
+  toAdminRole,
+  toApiRole,
+  BOOKING_STATUSES,
+  BOOKING_STATUS_LABEL,
+} from "@/lib/constants";
 
 describe("utils — formatRupiah", () => {
   it("formats integers as IDR without decimals", () => {
@@ -35,6 +41,21 @@ describe("constants — role hierarchy (Auth UC-04)", () => {
   it("unknown/empty role fails", () => {
     expect(hasRole(undefined, "OPERATOR")).toBe(false);
     expect(hasRole("GUEST", "OPERATOR")).toBe(false);
+  });
+});
+
+describe("constants — booking status labels (approval flow)", () => {
+  it("has an Indonesian label for every booking status", () => {
+    for (const s of BOOKING_STATUSES) {
+      expect(BOOKING_STATUS_LABEL[s]).toBeTruthy();
+    }
+  });
+  it("includes the new approval-flow statuses", () => {
+    expect(BOOKING_STATUSES).toContain("AWAITING_CONFIRMATION");
+    expect(BOOKING_STATUSES).toContain("AWAITING_PAYMENT");
+    expect(BOOKING_STATUSES).toContain("PAYMENT_REVIEW");
+    expect(BOOKING_STATUSES).toContain("REJECTED");
+    expect(BOOKING_STATUS_LABEL.PAYMENT_REVIEW).toBe("Verifikasi Pembayaran");
   });
 });
 

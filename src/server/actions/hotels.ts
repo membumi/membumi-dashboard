@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiPost, apiPut, apiPatch, apiDelete } from "@/lib/api-client";
 import { requireRole } from "@/lib/session";
-import { hotelSchema, roomSchema, bookingStatusSchema } from "@/lib/validations";
+import {
+  hotelSchema,
+  roomSchema,
+  bookingStatusSchema,
+  bookingReviewSchema,
+} from "@/lib/validations";
 import { str, strOrUndef, bool, list } from "@/lib/form";
 
 function parseHotel(fd: FormData) {
@@ -99,5 +104,44 @@ export async function updateBookingStatus(fd: FormData) {
   await requireRole("ADMIN");
   const d = bookingStatusSchema.parse({ id: str(fd, "id"), status: str(fd, "status") });
   await apiPatch(`/admin/bookings/${d.id}/status`, { status: d.status });
+  revalidatePath("/orders");
+}
+
+// ── Booking approval flow (docs/prd/11-penginapan-booking-approval.md) ──────
+// Gate 1: confirm room availability with the lodging, then move the booking to
+// AWAITING_PAYMENT so the user can pay.
+export async function confirmBookingAvailability(fd: FormData) {
+  await requireRole("ADMIN");
+  const { id } = bookingReviewSchema.parse({ id: str(fd, "id") });
+  await apiPost(`/admin/bookings/${id}/confirm-availability`);
+  revalidatePath("/penginapan/booking");
+  revalidatePath("/orders");
+}
+
+// Reject for lack of availability (terminal). Optional reason shown to the user.
+export async function rejectBooking(fd: FormData) {
+  await requireRole("ADMIN");
+  const d = bookingReviewSchema.parse({ id: str(fd, "id"), reason: strOrUndef(fd, "reason") });
+  await apiPost(`/admin/bookings/${d.id}/reject`, { reason: d.reason });
+  revalidatePath("/penginapan/booking");
+  revalidatePath("/orders");
+}
+
+// Gate 2: approve the bank-transfer payment (proof verified via WhatsApp) →
+// booking becomes CONFIRMED, mirrored to the owner, e-ticket issued.
+export async function approveBookingPayment(fd: FormData) {
+  await requireRole("ADMIN");
+  const { id } = bookingReviewSchema.parse({ id: str(fd, "id") });
+  await apiPost(`/admin/bookings/${id}/approve-payment`);
+  revalidatePath("/penginapan/booking");
+  revalidatePath("/orders");
+}
+
+// Reject the bank-transfer payment → back to AWAITING_PAYMENT. Optional reason.
+export async function rejectBookingPayment(fd: FormData) {
+  await requireRole("ADMIN");
+  const d = bookingReviewSchema.parse({ id: str(fd, "id"), reason: strOrUndef(fd, "reason") });
+  await apiPost(`/admin/bookings/${d.id}/reject-payment`, { reason: d.reason });
+  revalidatePath("/penginapan/booking");
   revalidatePath("/orders");
 }

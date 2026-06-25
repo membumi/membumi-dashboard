@@ -35,6 +35,9 @@ const STATUS_TONE: Record<string, keyof typeof TONE> = {
   ARRIVED: "green",
   DELIVERED: "green",
   PENDING: "yellow",
+  AWAITING_CONFIRMATION: "yellow",
+  AWAITING_PAYMENT: "blue",
+  PAYMENT_REVIEW: "purple",
   PACKING: "yellow",
   PREPARING: "yellow",
   SEARCHING: "yellow",
@@ -59,7 +62,7 @@ function normalize(status: string): string {
     .toUpperCase();
 }
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label }: { status: string; label?: string }) {
   const key = normalize(status);
-  return <Badge tone={STATUS_TONE[key] ?? "default"}>{key.replace(/_/g, " ")}</Badge>;
+  return <Badge tone={STATUS_TONE[key] ?? "default"}>{label ?? key.replace(/_/g, " ")}</Badge>;
 }

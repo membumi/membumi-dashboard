@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   hotelSchema,
   roomSchema,
+  bookingReviewSchema,
   tripSchema,
   merchantSchema,
   merchantVerifySchema,
@@ -37,6 +38,19 @@ describe("Penginapan — roomSchema (UC-02)", () => {
   it("defaults facilities to []", () => {
     const r = roomSchema.safeParse({ hotelId: "h1", name: "Deluxe", pricePerNight: 100, capacity: 2 });
     expect(r.success && r.data.facilities).toEqual([]);
+  });
+});
+
+describe("Penginapan — bookingReviewSchema (approval flow)", () => {
+  it("accepts id with an optional reason", () => {
+    expect(bookingReviewSchema.safeParse({ id: "b1" }).success).toBe(true);
+    expect(bookingReviewSchema.safeParse({ id: "b1", reason: "Kamar penuh" }).success).toBe(true);
+  });
+  it("rejects empty id", () => {
+    expect(bookingReviewSchema.safeParse({ id: "" }).success).toBe(false);
+  });
+  it("rejects an over-long reason (> 500 chars)", () => {
+    expect(bookingReviewSchema.safeParse({ id: "b1", reason: "x".repeat(501) }).success).toBe(false);
   });
 });
 

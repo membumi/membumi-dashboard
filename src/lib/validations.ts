@@ -52,6 +52,13 @@ export const bookingStatusSchema = z.object({
   status: z.enum(BOOKING_STATUSES),
 });
 
+// Approve/reject actions on a booking. `reason` is an optional admin note,
+// surfaced to the user on rejection (availability or payment).
+export const bookingReviewSchema = z.object({
+  id,
+  reason: z.string().trim().max(500).optional(),
+});
+
 export const guideSchema = z.object({
   name: z.string().min(2),
   rating: z.coerce.number().min(0).max(5).optional().default(0),
