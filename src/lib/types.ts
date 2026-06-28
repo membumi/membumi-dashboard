@@ -259,9 +259,15 @@ export interface Driver {
   userId: string;
   name: string;
   phone?: string;
+  fullname?: string | null;
+  nik?: string | null;
   type: string; // motor | mobil
   plateNumber: string;
   vehicleModel: string;
+  simPhotoUrl?: string | null;
+  bpkbPhotoUrl?: string | null;
+  stnkPhotoUrl?: string | null;
+  vehiclePhotoUrl?: string | null;
   verificationStatus: VerificationStatus;
   rating: number;
   totalTrips: number;

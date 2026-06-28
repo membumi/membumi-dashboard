@@ -32,15 +32,19 @@ export async function createDriver(fd: FormData) {
 
 export async function verifyDriver(fd: FormData) {
   await requireRole("ADMIN");
+  const id = str(fd, "id");
   const status = z.enum(VERIFICATION_STATUSES).parse(str(fd, "verificationStatus"));
-  await apiPatch(`/admin/drivers/${str(fd, "id")}/verify`, { status });
+  await apiPatch(`/admin/drivers/${id}/verify`, { status });
   revalidatePath("/ride");
+  revalidatePath("/ride/drivers");
+  revalidatePath(`/ride/drivers/${id}`);
 }
 
 export async function deleteDriver(fd: FormData) {
   await requireRole("ADMIN");
   await apiDelete(`/admin/drivers/${str(fd, "id")}`);
   revalidatePath("/ride");
+  revalidatePath("/ride/drivers");
 }
 
 export async function updateFareConfig(fd: FormData) {

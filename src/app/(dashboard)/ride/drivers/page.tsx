@@ -3,6 +3,7 @@ import type { Driver } from "@/lib/types";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
+import Link from "next/link";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
@@ -26,6 +27,7 @@ export default async function DriversPage() {
             <THead>
               <TR>
                 <TH>Nama</TH>
+                <TH>Nama Lengkap</TH>
                 <TH>No. Telepon</TH>
                 <TH>Kendaraan</TH>
                 <TH>Plat</TH>
@@ -37,10 +39,11 @@ export default async function DriversPage() {
               </TR>
             </THead>
             <TBody>
-              {drivers.length === 0 && <EmptyRow colSpan={9} />}
+              {drivers.length === 0 && <EmptyRow colSpan={10} />}
               {drivers.map((d) => (
                 <TR key={d.id}>
                   <TD className="font-medium">{d.name}</TD>
+                  <TD>{d.fullname ?? "—"}</TD>
                   <TD className="text-slate-500">{d.phone ?? "—"}</TD>
                   <TD>{d.vehicleModel}</TD>
                   <TD>{d.plateNumber}</TD>
@@ -50,6 +53,9 @@ export default async function DriversPage() {
                   <TD><StatusBadge status={d.verificationStatus} /></TD>
                   <TD>
                     <div className="flex items-center gap-1">
+                      <Link href={`/ride/drivers/${d.id}`}>
+                        <Button type="button" size="sm" variant="ghost">Detail</Button>
+                      </Link>
                       {d.verificationStatus !== "VERIFIED" && (
                         <form action={verifyDriver}>
                           <input type="hidden" name="id" value={d.id} />
