@@ -261,11 +261,17 @@ export interface Driver {
   phone?: string;
   fullname?: string | null;
   nik?: string | null;
+  address?: string | null;
+  whatsappNumber?: string | null;
+  gender?: "male" | "female" | null;
+  vestSize?: "M" | "L" | "XL" | null;
+  termsAccepted?: boolean;
   type: string; // motor | mobil
   plateNumber: string;
   vehicleModel: string;
+  ktpPhotoUrl?: string | null;
   simPhotoUrl?: string | null;
-  bpkbPhotoUrl?: string | null;
+  selfiePhotoUrl?: string | null;
   stnkPhotoUrl?: string | null;
   vehiclePhotoUrl?: string | null;
   verificationStatus: VerificationStatus;
