@@ -10,11 +10,17 @@ import { ConfirmDelete } from "@/components/forms/form-controls";
 import { verifyDriver, deleteDriver } from "@/server/actions/ride";
 
 const DOCUMENTS: { label: string; key: keyof Driver }[] = [
+  { label: "Foto KTP", key: "ktpPhotoUrl" },
   { label: "Foto SIM A/C", key: "simPhotoUrl" },
-  { label: "Foto BPKB", key: "bpkbPhotoUrl" },
+  { label: "Foto Selfie Driver", key: "selfiePhotoUrl" },
   { label: "Foto STNK", key: "stnkPhotoUrl" },
   { label: "Foto Fisik Kendaraan", key: "vehiclePhotoUrl" },
 ];
+
+const GENDER_LABELS: Record<string, string> = {
+  male: "Laki-laki",
+  female: "Perempuan",
+};
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -80,9 +86,20 @@ export default async function DriverDetailPage({
             <Field label="NIK" value={driver.nik} />
             <Field label="Nama Akun" value={driver.name} />
             <Field label="No. Telepon" value={driver.phone} />
+            <Field label="No. WhatsApp" value={driver.whatsappNumber} />
+            <Field
+              label="Jenis Kelamin"
+              value={driver.gender ? GENDER_LABELS[driver.gender] ?? driver.gender : null}
+            />
+            <Field label="Alamat" value={driver.address} />
             <Field label="Tipe" value={<span className="capitalize">{driver.type}</span>} />
             <Field label="Plat Nomor" value={driver.plateNumber} />
             <Field label="Model Kendaraan" value={driver.vehicleModel} />
+            <Field label="Ukuran Rompi" value={driver.vestSize} />
+            <Field
+              label="Syarat & Ketentuan"
+              value={driver.termsAccepted ? "Disetujui" : "Belum disetujui"}
+            />
             <Field label="Rating" value={`★ ${driver.rating}`} />
             <Field label="Total Trip" value={driver.totalTrips} />
           </dl>
@@ -94,7 +111,7 @@ export default async function DriverDetailPage({
           <CardTitle>Dokumen</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {DOCUMENTS.map(({ label, key }) => {
               const url = driver[key] as string | null | undefined;
               return (
