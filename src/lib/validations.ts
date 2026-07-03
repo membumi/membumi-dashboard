@@ -170,6 +170,14 @@ export const deliveryFareConfigSchema = z.object({
   perKgOver: money.default(2000),
 });
 
+// ── Food (delivery & service fee) ──────────────────────────────────────────
+export const foodFareConfigSchema = z.object({
+  baseDeliveryFee: money,
+  deliveryFeePerKm: money,
+  minDeliveryFee: money,
+  serviceFee: money,
+});
+
 export const deliveryCategorySchema = z.object({
   name: z.string().min(2),
   description: z.string().optional().default(""),

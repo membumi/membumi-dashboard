@@ -34,6 +34,7 @@ export const NAV: NavItem[] = [
   { label: "Merchant (UMKM)", href: "/merchants", icon: Store, group: "Konten" },
   { label: "Mart", href: "/mart", icon: ShoppingBasket, group: "Konten" },
   { label: "Food", href: "/food", icon: UtensilsCrossed, group: "Konten" },
+  { label: "Tarif Food", href: "/food/settings", icon: Settings, group: "Konten" },
   { label: "Konfigurasi & Monitoring", href: "/ride", icon: Settings, group: "Transportasi" },
   { label: "Daftar Driver", href: "/ride/drivers", icon: Users, group: "Transportasi" },
   { label: "Kirim Barang", href: "/kirim-barang", icon: PackageOpen, group: "Konten" },

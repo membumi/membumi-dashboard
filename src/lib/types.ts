@@ -293,6 +293,14 @@ export interface Ride {
   createdAt: string;
 }
 
+// ── Food (delivery & service fee) ───────────────────────────────────────────
+export interface FoodFareConfig {
+  baseDeliveryFee: number;
+  deliveryFeePerKm: number;
+  minDeliveryFee: number;
+  serviceFee: number;
+}
+
 // ── Kirim Barang (package courier) ──────────────────────────────────────────
 export interface DeliveryFareConfig {
   vehicle: string; // motor | mobil
