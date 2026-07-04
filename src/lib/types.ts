@@ -54,7 +54,10 @@ export interface Merchant {
   businessName: string;
   ownerName: string;
   phoneNumber: string;
-  city: string;
+  category: "UMKM" | "FOOD"; // UMKM → MiLokal products; FOOD → MiFood menu
+  address?: string | null; // pickup address
+  lat?: number | null; // pickup latitude
+  lng?: number | null; // pickup longitude
   bankAccount?: string;
   commissionRate: number;
   verificationStatus: VerificationStatus;

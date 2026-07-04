@@ -36,7 +36,7 @@ export default async function MerchantDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={merchant.businessName} description={`Pemilik: ${merchant.ownerName} • ${merchant.city}`} />
+      <PageHeader title={merchant.businessName} description={`${merchant.category === "FOOD" ? "Food" : "UMKM"} • Pemilik: ${merchant.ownerName}${merchant.address ? ` • ${merchant.address}` : ""}`} />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">

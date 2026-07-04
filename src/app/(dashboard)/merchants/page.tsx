@@ -28,7 +28,7 @@ export default async function MerchantsPage() {
           <TR>
             <TH>Usaha</TH>
             <TH>Pemilik</TH>
-            <TH>Kota</TH>
+            <TH>Alamat Pickup</TH>
             <TH>Komisi</TH>
             <TH>Konten</TH>
             <TH>Status</TH>
@@ -42,12 +42,15 @@ export default async function MerchantsPage() {
             return (
               <TR key={m.id}>
                 <TD>
-                  <Link href={`/merchants/${m.id}`} className="font-medium text-emerald-700 hover:underline">
-                    {m.businessName}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/merchants/${m.id}`} className="font-medium text-emerald-700 hover:underline">
+                      {m.businessName}
+                    </Link>
+                    <Badge>{m.category === "FOOD" ? "Food" : "UMKM"}</Badge>
+                  </div>
                 </TD>
                 <TD>{m.ownerName}</TD>
-                <TD>{m.city}</TD>
+                <TD>{m.address ?? <span className="text-slate-400">—</span>}</TD>
                 <TD>{m.commissionRate}%</TD>
                 <TD>{total === null ? <span className="text-slate-400">—</span> : <Badge>{total} item</Badge>}</TD>
                 <TD>

@@ -12,7 +12,10 @@ function parse(fd: FormData) {
     businessName: str(fd, "businessName"),
     ownerName: str(fd, "ownerName"),
     phoneNumber: str(fd, "phoneNumber"),
-    city: str(fd, "city"),
+    category: str(fd, "category") || "UMKM",
+    address: strOrUndef(fd, "address"),
+    lat: str(fd, "lat"),
+    lng: str(fd, "lng"),
     bankAccount: strOrUndef(fd, "bankAccount"),
     commissionRate: str(fd, "commissionRate"),
   });
