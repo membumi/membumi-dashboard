@@ -70,7 +70,7 @@ describe("Open Trip — tripSchema (UC-01/UC-02)", () => {
 
 describe("Merchant — merchantSchema & verify (UC-01/UC-02)", () => {
   it("clamps commissionRate to 0..100", () => {
-    expect(merchantSchema.safeParse({ businessName: "X", ownerName: "Y", phoneNumber: "0812", city: "JKT", commissionRate: 150 }).success).toBe(false);
+    expect(merchantSchema.safeParse({ businessName: "X", ownerName: "Y", phoneNumber: "0812", commissionRate: 150 }).success).toBe(false);
   });
   it("verify accepts valid status only", () => {
     expect(merchantVerifySchema.safeParse({ id: "m1", verificationStatus: "VERIFIED" }).success).toBe(true);

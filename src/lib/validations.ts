@@ -90,7 +90,10 @@ export const merchantSchema = z.object({
   businessName: z.string().min(2),
   ownerName: z.string().min(2),
   phoneNumber: z.string().min(6),
-  city: z.string().min(2),
+  category: z.enum(["UMKM", "FOOD"]).default("UMKM"),
+  address: z.string().optional(),
+  lat: optionalNum,
+  lng: optionalNum,
   bankAccount: z.string().optional(),
   commissionRate: z.coerce.number().min(0).max(100).default(10),
 });

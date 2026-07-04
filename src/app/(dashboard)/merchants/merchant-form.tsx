@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Merchant } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
 
@@ -30,12 +30,27 @@ export function MerchantForm({
             <Input name="phoneNumber" required defaultValue={merchant?.phoneNumber} />
           </div>
           <div>
-            <Label>Kota</Label>
-            <Input name="city" required defaultValue={merchant?.city} />
+            <Label>Kategori</Label>
+            <Select name="category" defaultValue={merchant?.category ?? "UMKM"}>
+              <option value="UMKM">UMKM (produk → MiLokal)</option>
+              <option value="FOOD">Food (menu → MiFood)</option>
+            </Select>
           </div>
           <div>
             <Label>Komisi (%)</Label>
             <Input name="commissionRate" type="number" min={0} max={100} step="0.5" defaultValue={merchant?.commissionRate ?? 10} />
+          </div>
+          <div className="md:col-span-2">
+            <Label>Alamat Pickup (opsional)</Label>
+            <Input name="address" defaultValue={merchant?.address ?? ""} placeholder="Jl. Merdeka No. 1, Bandung" />
+          </div>
+          <div>
+            <Label>Latitude Pickup{merchant ? " (kosong = tidak diubah)" : " (opsional)"}</Label>
+            <Input name="lat" type="number" step="any" defaultValue={merchant?.lat ?? ""} placeholder="-6.9" />
+          </div>
+          <div>
+            <Label>Longitude Pickup{merchant ? " (kosong = tidak diubah)" : " (opsional)"}</Label>
+            <Input name="lng" type="number" step="any" defaultValue={merchant?.lng ?? ""} placeholder="107.6" />
           </div>
           <div className="md:col-span-2">
             <Label>Rekening Bank (opsional)</Label>
