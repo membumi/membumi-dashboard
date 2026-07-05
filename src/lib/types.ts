@@ -461,8 +461,14 @@ export interface Promo {
   code: string;
   discountType: DiscountType;
   value: number;
+  minSpend: number;
+  maxDiscount?: number;
+  usageLimit?: number;
+  perUserLimit: number;
+  usedCount: number;
   service: PromoService;
   imageUrl?: string;
+  startsAt?: string;
   expiresAt?: string;
   active: boolean;
   createdAt: string;

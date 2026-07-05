@@ -48,6 +48,42 @@ export function PromoForm({
             <Input name="value" type="number" min={0} defaultValue={promo?.value ?? 0} />
           </div>
           <div>
+            <Label>Min. Belanja (Rp)</Label>
+            <Input name="minSpend" type="number" min={0} defaultValue={promo?.minSpend ?? 0} />
+          </div>
+          <div>
+            <Label>Maks. Diskon (Rp, khusus PERCENT)</Label>
+            <Input
+              name="maxDiscount"
+              type="number"
+              min={0}
+              placeholder="Kosong = tanpa batas"
+              defaultValue={promo?.maxDiscount ?? ""}
+            />
+          </div>
+          <div>
+            <Label>Kuota Total</Label>
+            <Input
+              name="usageLimit"
+              type="number"
+              min={1}
+              placeholder="Kosong = tak terbatas"
+              defaultValue={promo?.usageLimit ?? ""}
+            />
+          </div>
+          <div>
+            <Label>Batas per Pengguna</Label>
+            <Input name="perUserLimit" type="number" min={1} defaultValue={promo?.perUserLimit ?? 1} />
+          </div>
+          <div>
+            <Label>Berlaku Mulai (opsional)</Label>
+            <Input
+              name="startsAt"
+              type="date"
+              defaultValue={promo?.startsAt ? promo.startsAt.slice(0, 10) : ""}
+            />
+          </div>
+          <div>
             <Label>Berlaku Hingga</Label>
             <Input
               name="expiresAt"
