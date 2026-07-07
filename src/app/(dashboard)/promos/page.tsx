@@ -27,13 +27,14 @@ export default async function PromosPage() {
             <TH>Kode</TH>
             <TH>Layanan</TH>
             <TH>Diskon</TH>
+            <TH>Terpakai</TH>
             <TH>Berlaku Hingga</TH>
             <TH>Status</TH>
             <TH>Aksi</TH>
           </TR>
         </THead>
         <TBody>
-          {promos.length === 0 && <EmptyRow colSpan={7} />}
+          {promos.length === 0 && <EmptyRow colSpan={8} />}
           {promos.map((p) => {
             const expired = isExpired(p.expiresAt);
             return (
@@ -46,6 +47,7 @@ export default async function PromosPage() {
                 <TD className="font-mono text-xs">{p.code}</TD>
                 <TD>{p.service}</TD>
                 <TD>{p.discountType === "PERCENT" ? `${p.value}%` : p.discountType === "FIXED" ? `Rp${p.value}` : "Gratis Ongkir"}</TD>
+                <TD className="text-slate-500">{p.usedCount ?? 0}{p.usageLimit ? ` / ${p.usageLimit}` : ""}</TD>
                 <TD className={expired ? "text-red-500" : "text-slate-500"}>{p.expiresAt ? formatDate(p.expiresAt) : "—"}</TD>
                 <TD>
                   {expired ? (

@@ -123,6 +123,24 @@ describe("Promo — promoSchema (UC-01)", () => {
     expect(promoSchema.safeParse({ ...base, service: "TAXI" }).success).toBe(false);
     expect(promoSchema.safeParse({ ...base, discountType: "BOGO" }).success).toBe(false);
   });
+  it("defaults rule fields and accepts optional quotas", () => {
+    const r = promoSchema.safeParse(base);
+    expect(r.success && r.data.minSpend).toBe(0);
+    expect(r.success && r.data.perUserLimit).toBe(1);
+    const withRules = promoSchema.safeParse({
+      ...base,
+      minSpend: 50000,
+      maxDiscount: 20000,
+      usageLimit: 100,
+      perUserLimit: 2,
+      startsAt: "2029-12-01",
+    });
+    expect(withRules.success && withRules.data.usageLimit).toBe(100);
+    expect(withRules.success && withRules.data.maxDiscount).toBe(20000);
+  });
+  it("rejects a usageLimit below 1", () => {
+    expect(promoSchema.safeParse({ ...base, usageLimit: 0 }).success).toBe(false);
+  });
 });
 
 describe("Auth — adminUserSchema (Users UC-02)", () => {

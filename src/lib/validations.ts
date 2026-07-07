@@ -197,8 +197,13 @@ export const promoSchema = z.object({
   code: z.string().min(2).transform((s) => s.toUpperCase()),
   discountType: z.enum(DISCOUNT_TYPES),
   value: z.coerce.number().int().min(0),
+  minSpend: z.coerce.number().int().min(0).optional().default(0),
+  maxDiscount: z.coerce.number().int().min(0).optional(),
+  usageLimit: z.coerce.number().int().min(1).optional(),
+  perUserLimit: z.coerce.number().int().min(1).optional().default(1),
   service: z.enum(PROMO_SERVICES),
   imageUrl: z.string().url().optional().or(z.literal("")),
+  startsAt: z.coerce.date().optional(),
   expiresAt: z.coerce.date(),
   active: z.coerce.boolean().optional().default(true),
 });
