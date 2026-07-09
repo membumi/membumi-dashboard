@@ -178,7 +178,15 @@ export const foodFareConfigSchema = z.object({
   baseDeliveryFee: money,
   deliveryFeePerKm: money,
   minDeliveryFee: money,
-  serviceFee: money,
+});
+
+export const serviceFeeConfigSchema = z.object({
+  ride: money,
+  food: money,
+  delivery: money,
+  mart: money,
+  hotel: money,
+  trip: money,
 });
 
 export const deliveryCategorySchema = z.object({

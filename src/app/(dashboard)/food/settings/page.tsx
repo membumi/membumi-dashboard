@@ -14,14 +14,14 @@ export default async function FoodSettingsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Tarif Food"
-        description="Atur biaya pengiriman (berbasis jarak) dan biaya layanan untuk pesanan Food."
+        description="Atur biaya pengiriman (berbasis jarak) untuk pesanan Food."
         actionLabel="Kelola Restoran"
         actionHref="/food"
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Biaya Pengiriman & Layanan</CardTitle>
+          <CardTitle>Biaya Pengiriman</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={updateFoodFareConfig} className="grid grid-cols-2 gap-3">
@@ -50,15 +50,6 @@ export default async function FoodSettingsPage() {
                 type="number"
                 min={0}
                 defaultValue={config.minDeliveryFee}
-              />
-            </div>
-            <div>
-              <Label>Biaya Layanan</Label>
-              <Input
-                name="serviceFee"
-                type="number"
-                min={0}
-                defaultValue={config.serviceFee}
               />
             </div>
             <div className="col-span-2">

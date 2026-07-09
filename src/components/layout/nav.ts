@@ -45,5 +45,6 @@ export const NAV: NavItem[] = [
   { label: "Top Up Saldo", href: "/topup", icon: HandCoins, group: "Monitoring" },
   { label: "Penarikan Dana", href: "/merchants/withdrawals", icon: Banknote, group: "Monitoring" },
   { label: "Keuangan", href: "/keuangan", icon: Landmark, group: "Monitoring" },
+  { label: "Biaya Layanan", href: "/biaya-layanan", icon: Settings, group: "Monitoring" },
   { label: "Pengguna", href: "/users", icon: Users, group: "Pengelolaan" },
 ];
