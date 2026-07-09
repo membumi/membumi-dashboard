@@ -12,7 +12,6 @@ export async function updateFoodFareConfig(fd: FormData) {
     baseDeliveryFee: str(fd, "baseDeliveryFee"),
     deliveryFeePerKm: str(fd, "deliveryFeePerKm"),
     minDeliveryFee: str(fd, "minDeliveryFee"),
-    serviceFee: str(fd, "serviceFee"),
   });
   await apiPut("/admin/food-fare-config", d);
   revalidatePath("/food/settings");

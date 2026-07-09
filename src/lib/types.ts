@@ -302,12 +302,21 @@ export interface Ride {
   createdAt: string;
 }
 
-// ── Food (delivery & service fee) ───────────────────────────────────────────
+// ── Food (delivery fee) ─────────────────────────────────────────────────────
 export interface FoodFareConfig {
   baseDeliveryFee: number;
   deliveryFeePerKm: number;
   minDeliveryFee: number;
-  serviceFee: number;
+}
+
+// ── Biaya Layanan (global service fee per feature) ──────────────────────────
+export interface ServiceFeeConfig {
+  ride: number;
+  food: number;
+  delivery: number;
+  mart: number;
+  hotel: number;
+  trip: number;
 }
 
 // ── Kirim Barang (package courier) ──────────────────────────────────────────
