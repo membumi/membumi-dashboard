@@ -384,6 +384,8 @@ export interface TopupRequest {
   createdAt: string;
   reviewedAt?: string | null;
   user?: { id: string; name: string; phone?: string | null } | null;
+  /** Bukti transfer yang diunggah user dari aplikasi (menggantikan alur WhatsApp). */
+  proofUrl?: string | null;
 }
 
 // ── Merchant (UMKM) withdrawals ─────────────────────────────────────────────
@@ -428,6 +430,8 @@ export interface AdminWithdrawal {
   party?: WithdrawalParty | null;
   createdAt: string;
   reviewedAt?: string | null;
+  /** Bukti transfer yang diunggah admin saat menyetujui penarikan. */
+  proofUrl?: string | null;
 }
 
 // ── Finance (Keuangan) ─────────────────────────────────────────────────────

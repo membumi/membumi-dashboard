@@ -49,5 +49,6 @@ tests/
 | | UC-04 hierarki role (OPERATOR<ADMIN<SUPER_ADMIN) | `utils` hasRole |
 | | UC-02 createAdmin role SUPER_ADMIN + hash password | `actions` createAdmin |
 | **Payment/Util** | format Rupiah, normalisasi array, kode voucher | `utils` |
-
-Total: **69 test**, semua hijau.
+| **Keuangan** | Penarikan: approve dgn bukti transfer (proofUrl opsional), validasi URL/kind | `validations` withdrawalApproveSchema |
+| | Penarikan: approve/reject role ADMIN, route driver vs merchant, body proofUrl | `actions` withdrawals-actions |
+| | Topup: bukti transfer diunggah user (app) & ditampilkan di dashboard | UI (di luar unit test) |
