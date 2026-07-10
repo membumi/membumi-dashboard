@@ -8,6 +8,7 @@ import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ImagePreview } from "@/components/ui/image-preview";
 import { ReviewActions } from "./review-actions";
 
 const STATUSES: WithdrawalStatus[] = ["PENDING", "APPROVED", "REJECTED"];
@@ -159,9 +160,12 @@ export default async function WithdrawalsPage({
                     amountLabel={formatRupiah(r.amount)}
                   />
                 ) : (
-                  <span className="text-xs text-slate-400">
-                    {r.reviewedAt ? formatDateTime(r.reviewedAt) : "—"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <ImagePreview url={r.proofUrl} label="Bukti transfer" />
+                    <span className="text-xs text-slate-400">
+                      {r.reviewedAt ? formatDateTime(r.reviewedAt) : "—"}
+                    </span>
+                  </div>
                 )}
               </TD>
             </TR>

@@ -59,6 +59,14 @@ export const bookingReviewSchema = z.object({
   reason: z.string().trim().max(500).optional(),
 });
 
+// Approve penarikan dana dengan bukti transfer (opsional). `kind` memilih route
+// backend (driver vs merchant); `proofUrl` hasil upload presigned (pola imageUrl).
+export const withdrawalApproveSchema = z.object({
+  id,
+  kind: z.enum(["driver", "merchant"]),
+  proofUrl: z.string().url().optional().or(z.literal("")),
+});
+
 export const guideSchema = z.object({
   name: z.string().min(2),
   rating: z.coerce.number().min(0).max(5).optional().default(0),

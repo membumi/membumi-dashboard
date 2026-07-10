@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ImagePreview } from "@/components/ui/image-preview";
 import { ReviewActions } from "./review-actions";
 
 const STATUSES: TopupRequestStatus[] = ["PENDING", "APPROVED", "REJECTED"];
@@ -49,7 +50,7 @@ export default async function TopupPage({
     <div>
       <PageHeader
         title="Top Up Saldo"
-        description="Permintaan top up manual. Verifikasi bukti transfer (WhatsApp) lalu setujui untuk menambah saldo."
+        description="Permintaan top up. Periksa bukti transfer yang diunggah user lalu setujui untuk menambah saldo."
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -75,6 +76,7 @@ export default async function TopupPage({
             <TH>Pengguna</TH>
             <TH>Jumlah</TH>
             <TH>Sumber</TH>
+            <TH>Bukti</TH>
             <TH>Status</TH>
             <TH>Catatan</TH>
             <TH>Waktu</TH>
@@ -82,7 +84,7 @@ export default async function TopupPage({
           </TR>
         </THead>
         <TBody>
-          {requests.length === 0 && <EmptyRow colSpan={7} />}
+          {requests.length === 0 && <EmptyRow colSpan={8} />}
           {requests.map((r) => (
             <TR key={r.id}>
               <TD>
@@ -94,6 +96,13 @@ export default async function TopupPage({
                 <Badge tone={r.source === "ADMIN_MANUAL" ? "blue" : "default"}>
                   {r.source === "ADMIN_MANUAL" ? "Manual oleh admin" : "Permintaan user"}
                 </Badge>
+              </TD>
+              <TD>
+                {r.proofUrl ? (
+                  <ImagePreview url={r.proofUrl} label="Bukti transfer" />
+                ) : (
+                  <span className="text-slate-400">—</span>
+                )}
               </TD>
               <TD>
                 <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>

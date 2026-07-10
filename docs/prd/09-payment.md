@@ -1,5 +1,11 @@
 # PRD — Modul Payment & Wallet
 
+> **Catatan pembaruan (bukti transfer):** Verifikasi topup & penarikan tidak lagi memakai bukti
+> transfer via WhatsApp. Bukti transfer kini disimpan sebagai gambar (`proofUrl`) dan ditinjau di
+> dashboard: (a) **Topup** — user mengunggah bukti dari aplikasi, admin melihatnya di menu Topup Saldo;
+> (b) **Penarikan** — admin mengunggah bukti transfer saat menyetujui penarikan. Lihat
+> `docs/BUKTI_TRANSFER_PLAN.md`.
+
 ## 1. Tujuan
 Memonitor transaksi keuangan lintas layanan (wallet ledger) dan menyediakan ringkasan settlement. Bersifat read-only + filter di v1 (gateway pembayaran nyata menyusul Phase 5 app).
 

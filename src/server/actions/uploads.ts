@@ -10,7 +10,8 @@ export type UploadFolder =
   | "restaurants"
   | "hotels"
   | "trips"
-  | "promos";
+  | "promos"
+  | "withdrawals";
 
 export interface PresignedUpload {
   uploadUrl: string;

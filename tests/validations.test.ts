@@ -13,6 +13,7 @@ import {
   fareConfigSchema,
   promoSchema,
   adminUserSchema,
+  withdrawalApproveSchema,
 } from "@/lib/validations";
 
 describe("Penginapan — hotelSchema (UC-01)", () => {
@@ -51,6 +52,35 @@ describe("Penginapan — bookingReviewSchema (approval flow)", () => {
   });
   it("rejects an over-long reason (> 500 chars)", () => {
     expect(bookingReviewSchema.safeParse({ id: "b1", reason: "x".repeat(501) }).success).toBe(false);
+  });
+});
+
+describe("Keuangan — withdrawalApproveSchema (upload bukti transfer)", () => {
+  it("accepts a valid proofUrl", () => {
+    expect(
+      withdrawalApproveSchema.safeParse({
+        id: "w1",
+        kind: "driver",
+        proofUrl: "https://cdn.example.com/proof.jpg",
+      }).success
+    ).toBe(true);
+  });
+  it("accepts approval without a proof (undefined or empty string)", () => {
+    expect(withdrawalApproveSchema.safeParse({ id: "w1", kind: "merchant" }).success).toBe(true);
+    expect(
+      withdrawalApproveSchema.safeParse({ id: "w1", kind: "merchant", proofUrl: "" }).success
+    ).toBe(true);
+  });
+  it("rejects empty id", () => {
+    expect(withdrawalApproveSchema.safeParse({ id: "", kind: "driver" }).success).toBe(false);
+  });
+  it("rejects a proofUrl that is not a URL", () => {
+    expect(
+      withdrawalApproveSchema.safeParse({ id: "w1", kind: "driver", proofUrl: "bukan-url" }).success
+    ).toBe(false);
+  });
+  it("rejects an unknown kind", () => {
+    expect(withdrawalApproveSchema.safeParse({ id: "w1", kind: "customer" }).success).toBe(false);
   });
 });
 
