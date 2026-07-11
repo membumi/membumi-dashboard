@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MerchantForm } from "../merchant-form";
+import { WalletBalancesCard } from "@/components/wallet-balances-card";
 import { updateMerchant, verifyMerchant } from "@/server/actions/merchants";
 
 export default async function MerchantDetailPage({
@@ -60,6 +61,10 @@ export default async function MerchantDetailPage({
           )}
         </CardContent>
       </Card>
+
+      {merchant.userId && (
+        <WalletBalancesCard userId={merchant.userId} show={["USER", "MERCHANT"]} />
+      )}
 
       <div>
         <h2 className="mb-2 text-sm font-semibold text-slate-700">Edit Data Merchant</h2>
