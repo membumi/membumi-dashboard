@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Wallet, TrendingUp, TrendingDown, Percent } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, Percent, ReceiptText } from "lucide-react";
 import { apiGet, apiGetPaged } from "@/lib/api-client";
 import type { CommissionRates, FinanceEntry, FinanceSummary } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
@@ -25,6 +25,9 @@ const EMPTY: FinanceSummary = {
   gmvByService: { ride: 0, food: 0, trip: 0, mart: 0 },
   income: 0,
   expense: 0,
+  serviceFeeByService: { ride: 0, food: 0, mart: 0, delivery: 0, trip: 0, hotel: 0 },
+  serviceFeeTotal: 0,
+  commissionCollected: { driver: 0, merchant: 0, total: 0 },
 };
 
 const SOURCES = ["manual", "platform"] as const;
@@ -55,6 +58,7 @@ export default async function KeuanganPage({
   const cards = [
     { label: "Total", value: summary.total, icon: Wallet, tone: "text-slate-900" },
     { label: "Komisi Admin", value: summary.commission, icon: Percent, tone: "text-blue-600" },
+    { label: "Biaya Layanan", value: summary.serviceFeeTotal ?? 0, icon: ReceiptText, tone: "text-amber-600" },
     { label: "Pemasukan", value: summary.income, icon: TrendingUp, tone: "text-emerald-600" },
     { label: "Pengeluaran", value: summary.expense, icon: TrendingDown, tone: "text-red-600" },
   ];
@@ -67,6 +71,24 @@ export default async function KeuanganPage({
     rate: rates[key],
   }));
 
+  const collected = summary.commissionCollected ?? { driver: 0, merchant: 0, total: 0 };
+  const serviceFees =
+    summary.serviceFeeByService ?? { ride: 0, food: 0, mart: 0, delivery: 0, trip: 0, hotel: 0 };
+  const serviceFeeRows = (["ride", "food", "mart", "delivery", "trip", "hotel"] as const).map(
+    (key) => ({
+      key,
+      label: {
+        ride: "Driver (Ride)",
+        food: "Food",
+        mart: "UMKM (Mart)",
+        delivery: "Delivery",
+        trip: "Open Trip",
+        hotel: "Hotel",
+      }[key],
+      value: serviceFees[key],
+    })
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -74,7 +96,7 @@ export default async function KeuanganPage({
         description="Komisi admin (otomatis), catatan manual, dan riwayat seluruh transaksi."
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {cards.map((c) => {
           const Icon = c.icon;
           return (
@@ -108,6 +130,35 @@ export default async function KeuanganPage({
                 </div>
               ))}
             </div>
+            <div className="border-t border-slate-100 pt-3">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-sm font-medium text-slate-700">Terkumpul (aktual)</span>
+                <div className="text-right">
+                  <div className="text-sm font-semibold text-slate-800">
+                    {formatRupiah(collected.total)}
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    Driver {formatRupiah(collected.driver)} · Merchant {formatRupiah(collected.merchant)}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-slate-100 pt-4">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-400">
+                Biaya Layanan per Layanan
+              </p>
+              <div className="space-y-2">
+                {serviceFeeRows.map((r) => (
+                  <div
+                    key={r.key}
+                    className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 last:border-0"
+                  >
+                    <span className="text-sm text-slate-600">{r.label}</span>
+                    <span className="text-sm font-medium text-slate-800">{formatRupiah(r.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="border-t border-slate-100 pt-4">
               <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-400">
                 Atur Rate Komisi
@@ -135,7 +186,7 @@ export default async function KeuanganPage({
               <FilterChip label="Semua" href="/keuangan" active={!validSource} />
               <FilterChip label="Manual" href="/keuangan?source=manual" active={validSource === "manual"} />
               <FilterChip label="Platform" href="/keuangan?source=platform" active={validSource === "platform"} />
-              <ExportButton rows={history} />
+              <ExportButton rows={history} summary={summary} />
             </div>
           </div>
         </CardHeader>

@@ -103,7 +103,12 @@ export const merchantSchema = z.object({
   lat: optionalNum,
   lng: optionalNum,
   bankAccount: z.string().optional(),
-  commissionRate: z.coerce.number().min(0).max(100).default(10),
+  // Kosong = null = ikut rate komisi global dashboard (finance settings).
+  commissionRate: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.length > 0 ? Number(v) : null))
+    .pipe(z.number().min(0).max(100).nullable()),
 });
 
 export const merchantVerifySchema = z.object({

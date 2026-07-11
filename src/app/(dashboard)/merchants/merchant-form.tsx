@@ -37,8 +37,8 @@ export function MerchantForm({
             </Select>
           </div>
           <div>
-            <Label>Komisi (%)</Label>
-            <Input name="commissionRate" type="number" min={0} max={100} step="0.5" defaultValue={merchant?.commissionRate ?? 10} />
+            <Label>Komisi (%) — kosongkan untuk ikut rate global</Label>
+            <Input name="commissionRate" type="number" min={0} max={100} step="0.5" defaultValue={merchant?.commissionRate ?? ""} placeholder="Global" />
           </div>
           <div className="md:col-span-2">
             <Label>Alamat Pickup (opsional)</Label>
