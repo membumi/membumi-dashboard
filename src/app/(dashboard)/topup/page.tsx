@@ -26,25 +26,46 @@ const STATUS_LABEL: Record<TopupRequestStatus, string> = {
   REJECTED: "Ditolak",
 };
 
+// "Sumber" adalah turunan dari (source × walletType) — bukan enum tersendiri.
+type SumberKey = "admin" | "user" | "driver" | "merchant";
+const SUMBER: { key: SumberKey; label: string; tone: "blue" | "default" | "green" | "purple" }[] = [
+  { key: "user", label: "Permintaan User", tone: "default" },
+  { key: "driver", label: "Permintaan Driver", tone: "green" },
+  { key: "merchant", label: "Permintaan Merchant", tone: "purple" },
+  { key: "admin", label: "Manual oleh Admin", tone: "blue" },
+];
+
+function sumberOf(r: TopupRequest): (typeof SUMBER)[number] {
+  if (r.source === "ADMIN_MANUAL") return SUMBER[3];
+  if (r.walletType === "DRIVER") return SUMBER[1];
+  if (r.walletType === "MERCHANT") return SUMBER[2];
+  return SUMBER[0]; // USER_REQUEST + USER (default)
+}
+
 export default async function TopupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; sumber?: string }>;
 }) {
   const me = await getCurrentAdmin();
   if (!hasRole(me?.role, "ADMIN")) {
     redirect("/");
   }
 
-  const { status } = await searchParams;
+  const { status, sumber } = await searchParams;
   const validStatus = STATUSES.includes(status as TopupRequestStatus)
     ? (status as TopupRequestStatus)
     : undefined;
+  const validSumber = SUMBER.find((s) => s.key === sumber)?.key;
 
-  const { items: requests } = await apiGetPaged<TopupRequest>("/admin/topup-requests", {
+  const { items: allRequests } = await apiGetPaged<TopupRequest>("/admin/topup-requests", {
     status: validStatus,
     limit: 100,
   });
+  // "Sumber" difilter di klien (turunan source × walletType; backend hanya memfilter status).
+  const requests = validSumber
+    ? allRequests.filter((r) => sumberOf(r).key === validSumber)
+    : allRequests;
 
   return (
     <div>
@@ -53,14 +74,14 @@ export default async function TopupPage({
         description="Permintaan top up. Periksa bukti transfer yang diunggah user lalu setujui untuk menambah saldo."
       />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1.5">
-          <FilterChip label="Semua" href="/topup" active={!validStatus} />
+          <FilterChip label="Semua" href={hrefWith({ sumber: validSumber })} active={!validStatus} />
           {STATUSES.map((s) => (
             <FilterChip
               key={s}
               label={STATUS_LABEL[s]}
-              href={`/topup?status=${s}`}
+              href={hrefWith({ status: s, sumber: validSumber })}
               active={validStatus === s}
             />
           ))}
@@ -68,6 +89,22 @@ export default async function TopupPage({
         <Link href="/topup/manual" className={buttonVariants({ size: "sm" })}>
           Topup Manual
         </Link>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1.5">
+        <FilterChip
+          label="Semua sumber"
+          href={hrefWith({ status: validStatus })}
+          active={!validSumber}
+        />
+        {SUMBER.map((s) => (
+          <FilterChip
+            key={s.key}
+            label={s.label}
+            href={hrefWith({ status: validStatus, sumber: s.key })}
+            active={validSumber === s.key}
+          />
+        ))}
       </div>
 
       <Table>
@@ -93,9 +130,10 @@ export default async function TopupPage({
               </TD>
               <TD className="font-medium text-emerald-600">{formatRupiah(r.amount)}</TD>
               <TD>
-                <Badge tone={r.source === "ADMIN_MANUAL" ? "blue" : "default"}>
-                  {r.source === "ADMIN_MANUAL" ? "Manual oleh admin" : "Permintaan user"}
-                </Badge>
+                {(() => {
+                  const s = sumberOf(r);
+                  return <Badge tone={s.tone}>{s.label}</Badge>;
+                })()}
               </TD>
               <TD>
                 {r.proofUrl ? (
@@ -124,6 +162,15 @@ export default async function TopupPage({
       </Table>
     </div>
   );
+}
+
+/** Build a /topup URL preserving whichever of status/sumber are provided. */
+function hrefWith(params: { status?: TopupRequestStatus; sumber?: SumberKey }): string {
+  const qs = new URLSearchParams();
+  if (params.status) qs.set("status", params.status);
+  if (params.sumber) qs.set("sumber", params.sumber);
+  const s = qs.toString();
+  return s ? `/topup?${s}` : "/topup";
 }
 
 function FilterChip({ label, href, active }: { label: string; href: string; active: boolean }) {

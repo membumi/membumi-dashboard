@@ -67,6 +67,7 @@ export default async function PaymentsPage({
         <THead>
           <TR>
             <TH>Tipe</TH>
+            <TH>Dompet</TH>
             <TH>Deskripsi</TH>
             <TH>Pengguna</TH>
             <TH>Jumlah</TH>
@@ -74,10 +75,15 @@ export default async function PaymentsPage({
           </TR>
         </THead>
         <TBody>
-          {txns.length === 0 && <EmptyRow colSpan={5} />}
+          {txns.length === 0 && <EmptyRow colSpan={6} />}
           {txns.map((t) => (
             <TR key={t.id}>
               <TD><Badge>{transactionTypeLabel(t.type)}</Badge></TD>
+              <TD>
+                <Badge tone={t.walletType === "DRIVER" ? "green" : t.walletType === "MERCHANT" ? "purple" : "default"}>
+                  {t.walletType ?? "USER"}
+                </Badge>
+              </TD>
               <TD>{t.description}</TD>
               <TD className="text-slate-500">{t.user?.name ?? "—"}</TD>
               <TD className={t.isCredit ? "font-medium text-emerald-600" : "font-medium text-red-600"}>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
+import { WalletBalancesCard } from "@/components/wallet-balances-card";
 import { verifyDriver, deleteDriver } from "@/server/actions/ride";
 
 const DOCUMENTS: { label: string; key: keyof Driver }[] = [
@@ -75,6 +76,10 @@ export default async function DriverDetailPage({
           <ConfirmDelete action={deleteDriver} id={driver.id} label="Hapus driver ini?" />
         </CardContent>
       </Card>
+
+      {driver.userId && (
+        <WalletBalancesCard userId={driver.userId} show={["USER", "DRIVER"]} />
+      )}
 
       <Card>
         <CardHeader>

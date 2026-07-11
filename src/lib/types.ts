@@ -359,9 +359,19 @@ export interface Delivery {
 }
 
 // ── Payments ───────────────────────────────────────────────────────────────
+/** Dompet per-POV (PRD 14). recipientType (lowercase) memetakan ke ini di backend. */
+export type WalletType = "USER" | "DRIVER" | "MERCHANT";
+
+/** Saldo seorang user di seluruh dompet POV (GET /admin/wallet/balances/:userId). */
+export interface PovBalances {
+  userId: string;
+  balances: Record<WalletType, number>;
+}
+
 export interface WalletTransaction {
   id: string;
   type: string; // topUp | ride | food | mart | hotel | trip | driver_earning | driver_payout | refund
+  walletType?: WalletType; // dompet POV yang bergerak (PRD 14)
   description: string;
   amount: number;
   isCredit: boolean;
@@ -378,6 +388,8 @@ export type RecipientType = "user" | "driver" | "merchant";
 export interface TopupRequest {
   id: string;
   amount: number;
+  /** Dompet tujuan (PRD 14). Kombinasi dengan `source` menentukan label "Sumber". */
+  walletType?: WalletType;
   status: TopupRequestStatus;
   source?: TopupRequestSource;
   note?: string | null;
