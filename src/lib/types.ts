@@ -59,7 +59,8 @@ export interface Merchant {
   lat?: number | null; // pickup latitude
   lng?: number | null; // pickup longitude
   bankAccount?: string;
-  commissionRate: number;
+  /** Per-merchant commission override (%). Null = follows the global finance rate. */
+  commissionRate: number | null;
   verificationStatus: VerificationStatus;
   rejectionReason?: string;
   createdAt: string;
@@ -457,6 +458,23 @@ export interface FinanceSummary {
   gmvByService: { ride: number; food: number; trip: number; mart: number };
   income: number;
   expense: number;
+  /** Biaya layanan (service fee) terkumpul per layanan — opsional, backend lama tidak mengirim. */
+  serviceFeeByService?: {
+    ride: number;
+    food: number;
+    mart: number;
+    delivery: number;
+    trip: number;
+    hotel: number;
+  };
+  /** Total biaya layanan terkumpul — opsional, backend lama tidak mengirim. */
+  serviceFeeTotal?: number;
+  /**
+   * Komisi yang benar-benar terkumpul dari transaksi settlement (aktual),
+   * berbeda dari `commission` yang merupakan estimasi GMV × rate.
+   * Opsional — backend lama tidak mengirim.
+   */
+  commissionCollected?: { driver: number; merchant: number; total: number };
 }
 
 export interface FinanceEntry {

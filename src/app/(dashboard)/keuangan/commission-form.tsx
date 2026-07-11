@@ -24,6 +24,10 @@ export function CommissionForm({ rates }: { rates: CommissionRates }) {
       action={(fd) => startTransition(() => updateCommission(fd))}
       className="space-y-3"
     >
+      <p className="text-xs text-slate-500">
+        Rate ini menjadi tarif default settlement komisi yang benar-benar ditagihkan ke driver dan
+        merchant — override per-driver/per-merchant tetap dapat berlaku.
+      </p>
       {FIELDS.map((f) => (
         <div key={f.key} className="flex items-center justify-between gap-3">
           <Label htmlFor={`rate-${f.key}`} className="mb-0">

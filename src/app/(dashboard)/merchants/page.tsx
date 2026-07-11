@@ -51,7 +51,7 @@ export default async function MerchantsPage() {
                 </TD>
                 <TD>{m.ownerName}</TD>
                 <TD>{m.address ?? <span className="text-slate-400">—</span>}</TD>
-                <TD>{m.commissionRate}%</TD>
+                <TD>{m.commissionRate != null ? `${m.commissionRate}%` : <span className="text-slate-400">Global</span>}</TD>
                 <TD>{total === null ? <span className="text-slate-400">—</span> : <Badge>{total} item</Badge>}</TD>
                 <TD>
                   <StatusBadge status={m.verificationStatus} />
