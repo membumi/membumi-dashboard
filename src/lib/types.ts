@@ -200,6 +200,8 @@ export interface MartOrder {
   items: MartOrderItem[];
   subtotal?: number;
   deliveryFee?: number;
+  /** Biaya jasa aplikasi (flat, dari ServiceFeeConfig). Sudah termasuk di `total`. */
+  serviceFee?: number;
   total: number;
   deliveryAddress?: string;
   trackingNumber?: string | null;
@@ -299,6 +301,8 @@ export interface Ride {
   pickup: { lat: number; lng: number; address: string; name?: string | null };
   destination: { lat: number; lng: number; address: string; name?: string | null };
   fare: { amount: number; distance: number; duration: number; currency: string };
+  /** Biaya jasa aplikasi (flat, dari ServiceFeeConfig). Ditambahkan ke atas `fare.amount`. */
+  serviceFee?: number;
   driver: { id: string; name: string } | null;
   createdAt: string;
 }
@@ -354,6 +358,8 @@ export interface Delivery {
   weightGram: number;
   itemNote?: string | null;
   fare: { amount: number; distance: number; duration: number; currency: string };
+  /** Biaya jasa aplikasi (flat, dari ServiceFeeConfig). Ditambahkan ke atas `fare.amount`. */
+  serviceFee?: number;
   paymentMethod: string;
   courier: { id: string; name: string } | null;
   createdAt: string;

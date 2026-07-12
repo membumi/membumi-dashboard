@@ -152,17 +152,23 @@ async function MartTab() {
         <TR>
           <TH>Item</TH>
           <TH>Alamat</TH>
+          <TH>Biaya Layanan</TH>
           <TH>Total</TH>
           <TH>Status</TH>
           <TH>Update Pengiriman</TH>
         </TR>
       </THead>
       <TBody>
-        {orders.length === 0 && <EmptyRow colSpan={5} />}
+        {orders.length === 0 && <EmptyRow colSpan={6} />}
         {orders.map((o) => (
           <TR key={o.id}>
-            <TD className="max-w-xs truncate">{o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}</TD>
+            <TD className="max-w-xs truncate">
+              <Link href={`/orders/mart/${o.id}`} className="text-emerald-700 hover:underline">
+                {o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}
+              </Link>
+            </TD>
             <TD className="text-slate-500">{o.deliveryAddress ?? "—"}</TD>
+            <TD className="text-slate-500">{formatRupiah(o.serviceFee ?? 0)}</TD>
             <TD>{formatRupiah(o.total)}</TD>
             <TD><StatusBadge status={o.status} /></TD>
             <TD>
@@ -191,17 +197,23 @@ async function FoodTab() {
         <TR>
           <TH>Restoran</TH>
           <TH>Item</TH>
+          <TH>Biaya Layanan</TH>
           <TH>Total</TH>
           <TH>Status</TH>
           <TH>Update</TH>
         </TR>
       </THead>
       <TBody>
-        {orders.length === 0 && <EmptyRow colSpan={5} />}
+        {orders.length === 0 && <EmptyRow colSpan={6} />}
         {orders.map((o) => (
           <TR key={o.id}>
-            <TD className="font-medium">{o.restaurantName}</TD>
+            <TD className="font-medium">
+              <Link href={`/orders/food/${o.id}`} className="text-emerald-700 hover:underline">
+                {o.restaurantName}
+              </Link>
+            </TD>
             <TD className="max-w-xs truncate text-slate-500">{o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}</TD>
+            <TD className="text-slate-500">{formatRupiah(o.serviceFee)}</TD>
             <TD>{formatRupiah(o.total)}</TD>
             <TD><StatusBadge status={o.status} /></TD>
             <TD>

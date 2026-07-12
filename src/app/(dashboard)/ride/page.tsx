@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { apiGetPaged } from "@/lib/api-client";
 import type { FareConfig, Ride } from "@/lib/types";
 import { formatRupiah, formatDateTime } from "@/lib/utils";
@@ -73,18 +74,24 @@ export default async function RidePage() {
               <TH>Tipe</TH>
               <TH>Rute</TH>
               <TH>Tarif</TH>
+              <TH>Biaya Layanan</TH>
               <TH>Driver</TH>
               <TH>Status</TH>
               <TH>Waktu</TH>
             </TR>
           </THead>
           <TBody>
-            {rides.length === 0 && <EmptyRow colSpan={6} />}
+            {rides.length === 0 && <EmptyRow colSpan={7} />}
             {rides.map((r) => (
               <TR key={r.id}>
-                <TD><Badge>{r.type}</Badge></TD>
+                <TD>
+                  <Link href={`/orders/ride/${r.id}`} className="hover:underline">
+                    <Badge>{r.type}</Badge>
+                  </Link>
+                </TD>
                 <TD className="text-slate-600">{r.pickup.address} → {r.destination.address}</TD>
                 <TD>{formatRupiah(r.fare.amount)}</TD>
+                <TD className="text-slate-500">{formatRupiah(r.serviceFee ?? 0)}</TD>
                 <TD>{r.driver?.name ?? "—"}</TD>
                 <TD><StatusBadge status={r.status} /></TD>
                 <TD className="text-slate-500">{formatDateTime(r.createdAt)}</TD>

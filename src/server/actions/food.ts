@@ -98,4 +98,5 @@ export async function updateFoodStatus(fd: FormData) {
   const d = foodStatusSchema.parse({ id: str(fd, "id"), status: str(fd, "status") });
   await apiPatch(`/admin/food-orders/${d.id}/status`, { status: d.status });
   revalidatePath("/orders");
+  revalidatePath(`/orders/food/${d.id}`);
 }
