@@ -131,6 +131,25 @@ export const TRANSACTION_TYPE_LABELS: Record<string, string> = {
 
 export const transactionTypeLabel = (t: string): string => TRANSACTION_TYPE_LABELS[t] ?? t;
 
+// ── Transaction status — backend TransactionEntity.status ──────────────────
+// A refund is a distinct row with status 'REFUNDED' (same referenceType &
+// positive amount as the original payment, isCredit forced true). Status is the
+// ONLY field that identifies a refund, so it drives the badge + refund filter.
+export const TRANSACTION_STATUSES = ["SUCCESS", "PENDING", "FAILED", "REFUNDED"] as const;
+export type TransactionStatus = (typeof TRANSACTION_STATUSES)[number];
+
+export const TRANSACTION_STATUS_LABEL: Record<string, string> = {
+  SUCCESS: "Berhasil",
+  PENDING: "Menunggu",
+  FAILED: "Gagal",
+  REFUNDED: "Dikembalikan",
+};
+
+// Tone lives in the shared StatusBadge (components/ui/badge.tsx STATUS_TONE);
+// here we only own the Indonesian labels.
+export const transactionStatusLabel = (s: string): string =>
+  TRANSACTION_STATUS_LABEL[s] ?? s;
+
 // ── Customer Support tickets — backend chat (api-contract §11A) ────────────
 export const TICKET_STATUSES = ["open", "pending", "resolved", "closed"] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];

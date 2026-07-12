@@ -492,6 +492,8 @@ export interface FinanceEntry {
   amount: number;
   method: string | null;
   occurredAt: string;
+  /** Underlying transaction status for platform rows (e.g. REFUNDED). Null for manual records. */
+  status?: string | null;
 }
 
 // Commission rates per service, as fractions 0–1 (e.g. 0.2 = 20%).

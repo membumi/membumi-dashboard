@@ -3,29 +3,52 @@ import { redirect } from "next/navigation";
 import { apiGet, apiGetPaged } from "@/lib/api-client";
 import type { WalletTransaction } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
-import { hasRole, TRANSACTION_TYPES, transactionTypeLabel } from "@/lib/constants";
+import {
+  hasRole,
+  TRANSACTION_TYPES,
+  TRANSACTION_STATUSES,
+  transactionStatusLabel,
+  transactionTypeLabel,
+} from "@/lib/constants";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Badge, StatusBadge } from "@/components/ui/badge";
 
 export default async function PaymentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; status?: string }>;
 }) {
   const me = await getCurrentAdmin();
   if (!hasRole(me?.role, "ADMIN")) {
     redirect("/");
   }
 
-  const { type } = await searchParams;
+  const { type, status } = await searchParams;
   const validType =
     type && (TRANSACTION_TYPES as readonly string[]).includes(type) ? type : undefined;
+  const validStatus =
+    status && (TRANSACTION_STATUSES as readonly string[]).includes(status) ? status : undefined;
+
+  // Preserve the other filter when building a chip's href.
+  const hrefWith = (next: { type?: string; status?: string }) => {
+    const params = new URLSearchParams();
+    const t = "type" in next ? next.type : validType;
+    const s = "status" in next ? next.status : validStatus;
+    if (t) params.set("type", t);
+    if (s) params.set("status", s);
+    const qs = params.toString();
+    return qs ? `/payments?${qs}` : "/payments";
+  };
 
   const [{ items: txns }, summary] = await Promise.all([
-    apiGetPaged<WalletTransaction>("/admin/wallet-transactions", { type: validType, limit: 100 }),
+    apiGetPaged<WalletTransaction>("/admin/wallet-transactions", {
+      type: validType,
+      status: validStatus,
+      limit: 100,
+    }),
     // Summary is a backend gap (Gap 6); fall back to zeros until it ships.
     apiGet<{ credit: number; debit: number }>("/admin/wallet-transactions/summary", {
       type: validType,
@@ -51,14 +74,26 @@ export default async function PaymentsPage({
         </Card>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        <FilterChip label="Semua" href="/payments" active={!type} />
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        <FilterChip label="Semua" href={hrefWith({ type: undefined })} active={!validType} />
         {TRANSACTION_TYPES.map((t) => (
           <FilterChip
             key={t}
             label={transactionTypeLabel(t)}
-            href={`/payments?type=${t}`}
-            active={type === t}
+            href={hrefWith({ type: t })}
+            active={validType === t}
+          />
+        ))}
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1.5">
+        <FilterChip label="Semua Status" href={hrefWith({ status: undefined })} active={!validStatus} />
+        {TRANSACTION_STATUSES.map((s) => (
+          <FilterChip
+            key={s}
+            label={transactionStatusLabel(s)}
+            href={hrefWith({ status: s })}
+            active={validStatus === s}
           />
         ))}
       </div>
@@ -70,12 +105,13 @@ export default async function PaymentsPage({
             <TH>Dompet</TH>
             <TH>Deskripsi</TH>
             <TH>Pengguna</TH>
+            <TH>Status</TH>
             <TH>Jumlah</TH>
             <TH>Waktu</TH>
           </TR>
         </THead>
         <TBody>
-          {txns.length === 0 && <EmptyRow colSpan={6} />}
+          {txns.length === 0 && <EmptyRow colSpan={7} />}
           {txns.map((t) => (
             <TR key={t.id}>
               <TD><Badge>{transactionTypeLabel(t.type)}</Badge></TD>
@@ -86,6 +122,9 @@ export default async function PaymentsPage({
               </TD>
               <TD>{t.description}</TD>
               <TD className="text-slate-500">{t.user?.name ?? "—"}</TD>
+              <TD>
+                <StatusBadge status={t.status} label={transactionStatusLabel(t.status)} />
+              </TD>
               <TD className={t.isCredit ? "font-medium text-emerald-600" : "font-medium text-red-600"}>
                 {t.isCredit ? "+" : "−"}{formatRupiah(t.amount)}
               </TD>
