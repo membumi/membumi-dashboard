@@ -85,4 +85,5 @@ export async function updateShipment(fd: FormData) {
     note: d.courierName, // courierName is folded into `note` (backend gap 7)
   });
   revalidatePath("/orders");
+  revalidatePath(`/orders/mart/${d.id}`);
 }

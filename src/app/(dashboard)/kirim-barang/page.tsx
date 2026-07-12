@@ -222,19 +222,25 @@ export default async function KirimBarangPage({
               <TH>Rute</TH>
               <TH>Pengirim → Penerima</TH>
               <TH>Tarif</TH>
+              <TH>Biaya Layanan</TH>
               <TH>Kurir</TH>
               <TH>Status</TH>
               <TH>Waktu</TH>
             </TR>
           </THead>
           <TBody>
-            {deliveries.length === 0 && <EmptyRow colSpan={7} />}
+            {deliveries.length === 0 && <EmptyRow colSpan={8} />}
             {deliveries.map((d) => (
               <TR key={d.id}>
-                <TD><Badge>{d.vehicle}</Badge></TD>
+                <TD>
+                  <Link href={`/orders/send/${d.id}`} className="hover:underline">
+                    <Badge>{d.vehicle}</Badge>
+                  </Link>
+                </TD>
                 <TD className="text-slate-600">{d.pickup.address} → {d.destination.address}</TD>
                 <TD className="text-slate-600">{d.sender?.name} → {d.recipient?.name}</TD>
                 <TD>{formatRupiah(d.fare.amount)}</TD>
+                <TD className="text-slate-500">{formatRupiah(d.serviceFee ?? 0)}</TD>
                 <TD>{d.courier?.name ?? "—"}</TD>
                 <TD><StatusBadge status={d.status} /></TD>
                 <TD className="text-slate-500">{formatDateTime(d.createdAt)}</TD>
