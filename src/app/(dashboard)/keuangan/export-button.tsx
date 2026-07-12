@@ -4,9 +4,10 @@ import { Download } from "lucide-react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
+import { transactionStatusLabel } from "@/lib/constants";
 import type { FinanceEntry, FinanceSummary } from "@/lib/types";
 
-const HEADERS = ["Tanggal", "Sumber", "Tipe", "Kategori", "Keterangan", "Metode", "Jumlah"] as const;
+const HEADERS = ["Tanggal", "Sumber", "Tipe", "Kategori", "Keterangan", "Metode", "Status", "Jumlah"] as const;
 
 const SERVICE_LABELS = {
   ride: "Driver (Ride)",
@@ -68,12 +69,13 @@ export function ExportButton({ rows, summary }: { rows: FinanceEntry[]; summary?
       Kategori: e.category,
       Keterangan: e.description,
       Metode: e.method ?? "",
+      Status: e.status ? transactionStatusLabel(e.status) : "",
       // Signed so expenses subtract when summed in the sheet.
       Jumlah: e.type === "INCOME" ? e.amount : -e.amount,
     }));
 
     const ws = XLSX.utils.json_to_sheet(data, { header: HEADERS as unknown as string[] });
-    ws["!cols"] = [{ wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 16 }, { wch: 32 }, { wch: 10 }, { wch: 14 }];
+    ws["!cols"] = [{ wch: 18 }, { wch: 10 }, { wch: 12 }, { wch: 16 }, { wch: 32 }, { wch: 10 }, { wch: 14 }, { wch: 14 }];
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Riwayat Transaksi");

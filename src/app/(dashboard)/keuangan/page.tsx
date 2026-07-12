@@ -4,12 +4,12 @@ import { Wallet, TrendingUp, TrendingDown, Percent, ReceiptText } from "lucide-r
 import { apiGet, apiGetPaged } from "@/lib/api-client";
 import type { CommissionRates, FinanceEntry, FinanceSummary } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
-import { hasRole } from "@/lib/constants";
+import { hasRole, transactionStatusLabel } from "@/lib/constants";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ConfirmDelete } from "@/components/forms/form-controls";
 import { deleteFinanceRecord } from "@/server/actions/finance";
 import { FinanceForm } from "./finance-form";
@@ -199,12 +199,13 @@ export default async function KeuanganPage({
                 <TH>Kategori</TH>
                 <TH>Keterangan</TH>
                 <TH>Metode</TH>
+                <TH>Status</TH>
                 <TH>Jumlah</TH>
                 <TH>Aksi</TH>
               </TR>
             </THead>
             <TBody>
-              {history.length === 0 && <EmptyRow colSpan={7} />}
+              {history.length === 0 && <EmptyRow colSpan={8} />}
               {history.map((e) => (
                 <TR key={`${e.source}-${e.id}`}>
                   <TD className="whitespace-nowrap text-slate-500">{formatDateTime(e.occurredAt)}</TD>
@@ -216,6 +217,13 @@ export default async function KeuanganPage({
                   <TD className="capitalize">{e.category}</TD>
                   <TD className="max-w-[220px] truncate text-slate-600">{e.description}</TD>
                   <TD className="uppercase text-xs text-slate-500">{e.method ?? "—"}</TD>
+                  <TD>
+                    {e.status ? (
+                      <StatusBadge status={e.status} label={transactionStatusLabel(e.status)} />
+                    ) : (
+                      <span className="text-xs text-slate-300">—</span>
+                    )}
+                  </TD>
                   <TD
                     className={cn(
                       "whitespace-nowrap font-medium",
