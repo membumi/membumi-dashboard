@@ -7,6 +7,9 @@ import { presignUpload, type UploadFolder } from "@/server/actions/uploads";
 
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 
+/** Mirrors the backend's STORAGE_MAX_UPLOAD_MB (the host rejects bigger files). */
+const MAX_UPLOAD_MB = 5;
+
 /**
  * Image field that submits a URL under [name] (default `imageUrl`). The admin
  * can paste a URL or click "Unggah Foto": the file is uploaded directly to
@@ -37,6 +40,10 @@ export function ImageUploadInput({
       setError("Format harus JPG, PNG, atau WebP.");
       return;
     }
+    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      setError(`Ukuran file maksimal ${MAX_UPLOAD_MB} MB.`);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -44,12 +51,23 @@ export function ImageUploadInput({
         folder,
         contentType: file.type,
       });
-      const res = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!res.ok) throw new Error(`Upload gagal (${res.status})`);
+      let res: Response;
+      try {
+        res = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+      } catch {
+        // A network-level failure on the direct PUT is almost always the
+        // bucket's CORS policy not allowing this dashboard origin — the
+        // browser hides the real status behind a generic TypeError.
+        throw new Error(
+          `Upload diblokir dari ${window.location.origin} — origin ini belum ` +
+            "diizinkan di CORS bucket (jalankan scripts/set-bucket-cors.cjs di repo backend).",
+        );
+      }
+      if (!res.ok) throw new Error(`Upload gagal (HTTP ${res.status})`);
       setUrl(publicUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload gagal");
