@@ -13,7 +13,11 @@ import { formatRupiah } from "@/lib/utils";
 /** Daily approved manual top-up (last N days). `date` is `YYYY-MM-DD`. */
 export function TopupChart({ data }: { data: { date: string; amount: number }[] }) {
   const chartData = data.map((d) => ({
-    label: new Date(d.date).toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+    label: new Date(d.date).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      timeZone: "Asia/Jakarta",
+    }),
     amount: d.amount,
   }));
 
