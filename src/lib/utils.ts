@@ -15,18 +15,20 @@ export function formatRupiah(value: number | null | undefined): string {
   }).format(value);
 }
 
-/** Format a date as a readable Indonesian date. */
+/** Format a date as a readable Indonesian date, pinned to WIB (Asia/Jakarta). */
 export function formatDate(
   value: Date | string | null | undefined,
   opts: Intl.DateTimeFormatOptions = { dateStyle: "medium" }
 ): string {
   if (!value) return "-";
   const d = typeof value === "string" ? new Date(value) : value;
-  return new Intl.DateTimeFormat("id-ID", opts).format(d);
+  // Pin to WIB so Server Components render Jakarta time regardless of server TZ.
+  return new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", ...opts }).format(d);
 }
 
 export function formatDateTime(value: Date | string | null | undefined): string {
-  return formatDate(value, { dateStyle: "medium", timeStyle: "short" });
+  const formatted = formatDate(value, { dateStyle: "medium", timeStyle: "short" });
+  return formatted === "-" ? formatted : `${formatted} WIB`;
 }
 
 export function discountPercent(price: number, originalPrice?: number | null): number {

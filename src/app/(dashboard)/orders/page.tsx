@@ -27,9 +27,9 @@ const TABS = [
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string }>;
 }) {
-  const { tab = "bookings" } = await searchParams;
+  const { tab = "bookings", q = "" } = await searchParams;
 
   return (
     <div>
@@ -39,7 +39,7 @@ export default async function OrdersPage({
         {TABS.map((t) => (
           <Link
             key={t.key}
-            href={`/orders?tab=${t.key}`}
+            href={`/orders?tab=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
             className={cn(
               "border-b-2 px-4 py-2 text-sm font-medium",
               tab === t.key
@@ -52,20 +52,38 @@ export default async function OrdersPage({
         ))}
       </div>
 
-      {tab === "bookings" && <BookingsTab />}
-      {tab === "trips" && <TripsTab />}
-      {tab === "mart" && <MartTab />}
-      {tab === "food" && <FoodTab />}
+      <form method="get" className="mb-4 flex items-center gap-2">
+        <input type="hidden" name="tab" value={tab} />
+        <Input name="q" placeholder="Cari ID pesanan…" defaultValue={q} className="h-9 w-64" />
+        <Button type="submit" size="sm" variant="secondary">Cari</Button>
+        {q && (
+          <Link
+            href={`/orders?tab=${tab}`}
+            className="text-sm text-slate-500 hover:text-slate-700"
+          >
+            Reset
+          </Link>
+        )}
+      </form>
+
+      {tab === "bookings" && <BookingsTab q={q} />}
+      {tab === "trips" && <TripsTab q={q} />}
+      {tab === "mart" && <MartTab q={q} />}
+      {tab === "food" && <FoodTab q={q} />}
     </div>
   );
 }
 
-async function BookingsTab() {
-  const { items: bookings } = await apiGetPaged<Booking>("/admin/bookings", { limit: 100 });
+async function BookingsTab({ q }: { q?: string }) {
+  const { items: bookings } = await apiGetPaged<Booking>("/admin/bookings", {
+    limit: 100,
+    ...(q ? { search: q } : {}),
+  });
   return (
     <Table>
       <THead>
         <TR>
+          <TH>Waktu</TH>
           <TH>Voucher</TH>
           <TH>Hotel</TH>
           <TH>Tamu</TH>
@@ -76,9 +94,10 @@ async function BookingsTab() {
         </TR>
       </THead>
       <TBody>
-        {bookings.length === 0 && <EmptyRow colSpan={7} />}
+        {bookings.length === 0 && <EmptyRow colSpan={8} />}
         {bookings.map((b) => (
           <TR key={b.id}>
+            <TD className="whitespace-nowrap text-slate-500">{formatDateTime(b.createdAt)}</TD>
             <TD className="font-mono text-xs">{b.voucherCode}</TD>
             <TD className="font-mono text-xs text-slate-500">{b.hotelId.slice(0, 8)}</TD>
             <TD>{b.guestCount} org</TD>
@@ -110,12 +129,12 @@ async function BookingsTab() {
   );
 }
 
-async function TripsTab() {
+async function TripsTab({ q }: { q?: string }) {
   // Global registrations list is a backend gap (docs/dashboard-admin-gaps.md · Gap 8);
   // returns empty until the endpoint ships. Per-trip registrations live on each trip page.
   const { items: regs } = await apiGetPaged<Registration & { tripTitle?: string }>(
     "/admin/trip-registrations",
-    { limit: 100 },
+    { limit: 100, ...(q ? { search: q } : {}) },
   ).catch(() => ({ items: [] as (Registration & { tripTitle?: string })[], meta: null }));
   return (
     <Table>
@@ -144,12 +163,16 @@ async function TripsTab() {
   );
 }
 
-async function MartTab() {
-  const { items: orders } = await apiGetPaged<MartOrder>("/admin/mart/orders", { limit: 100 });
+async function MartTab({ q }: { q?: string }) {
+  const { items: orders } = await apiGetPaged<MartOrder>("/admin/mart/orders", {
+    limit: 100,
+    ...(q ? { search: q } : {}),
+  });
   return (
     <Table>
       <THead>
         <TR>
+          <TH>Waktu</TH>
           <TH>Item</TH>
           <TH>Alamat</TH>
           <TH>Biaya Layanan</TH>
@@ -159,9 +182,10 @@ async function MartTab() {
         </TR>
       </THead>
       <TBody>
-        {orders.length === 0 && <EmptyRow colSpan={6} />}
+        {orders.length === 0 && <EmptyRow colSpan={7} />}
         {orders.map((o) => (
           <TR key={o.id}>
+            <TD className="whitespace-nowrap text-slate-500">{formatDateTime(o.createdAt)}</TD>
             <TD className="max-w-xs truncate">
               <Link href={`/orders/mart/${o.id}`} className="text-emerald-700 hover:underline">
                 {o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}
@@ -189,12 +213,16 @@ async function MartTab() {
   );
 }
 
-async function FoodTab() {
-  const { items: orders } = await apiGetPaged<FoodOrder>("/admin/food-orders", { limit: 100 });
+async function FoodTab({ q }: { q?: string }) {
+  const { items: orders } = await apiGetPaged<FoodOrder>("/admin/food-orders", {
+    limit: 100,
+    ...(q ? { search: q } : {}),
+  });
   return (
     <Table>
       <THead>
         <TR>
+          <TH>Waktu</TH>
           <TH>Restoran</TH>
           <TH>Item</TH>
           <TH>Biaya Layanan</TH>
@@ -204,9 +232,10 @@ async function FoodTab() {
         </TR>
       </THead>
       <TBody>
-        {orders.length === 0 && <EmptyRow colSpan={6} />}
+        {orders.length === 0 && <EmptyRow colSpan={7} />}
         {orders.map((o) => (
           <TR key={o.id}>
+            <TD className="whitespace-nowrap text-slate-500">{formatDateTime(o.createdAt)}</TD>
             <TD className="font-medium">
               <Link href={`/orders/food/${o.id}`} className="text-emerald-700 hover:underline">
                 {o.restaurantName}
