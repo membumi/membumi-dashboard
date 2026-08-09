@@ -44,9 +44,9 @@ export default async function GuidesPage() {
           {guides.length === 0 && <EmptyRow colSpan={4} />}
           {guides.map((g) => (
             <TR key={g.id}>
-              <TD className="font-medium">{g.name}</TD>
-              <TD>★ {g.rating}</TD>
-              <TD>{g.tripCount}</TD>
+              <TD data-label="Nama" className="font-medium">{g.name}</TD>
+              <TD data-label="Rating">★ {g.rating}</TD>
+              <TD data-label="Jumlah Trip">{g.tripCount}</TD>
               <TD className="text-right"><ConfirmDelete action={deleteGuide} id={g.id} label="Hapus guide ini?" /></TD>
             </TR>
           ))}

@@ -1,5 +1,6 @@
 // Shared read helpers used by multiple pages (selectors, lookups).
 import { apiGet, apiGetPaged, ApiError } from "@/lib/api-client";
+import { COUNTER_TOPICS, type CounterTopic } from "@/lib/constants";
 import type {
   Merchant,
   MartCategory,
@@ -8,6 +9,8 @@ import type {
   MartOrder,
   Ride,
   Delivery,
+  PushPreferences,
+  PushPublicKey,
 } from "@/lib/types";
 
 /** Verified merchants as {id, businessName} options for catalog selectors. */
@@ -76,4 +79,33 @@ export function rideById(id: string): Promise<Ride | null> {
 /** One delivery (MiSend) for the order-detail page. */
 export function deliveryById(id: string): Promise<Delivery | null> {
   return orderById<Delivery>("/admin/deliveries", id);
+}
+
+/**
+ * VAPID public key for `PushManager.subscribe`, read from the server that signs
+ * the pushes so the two can never drift (a mismatch makes subscribe() succeed
+ * but every send fail with a 403 — a silent, hard-to-diagnose break).
+ * `NEXT_PUBLIC_VAPID_PUBLIC_KEY` is only a fallback for testing the dashboard
+ * before the backend endpoint ships. Null → the push UI stays hidden.
+ */
+export async function pushPublicKey(): Promise<string | null> {
+  try {
+    const { publicKey, configured } = await apiGet<PushPublicKey>("/admin/push/public-key");
+    return configured && publicKey ? publicKey : null;
+  } catch {
+    return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || null;
+  }
+}
+
+/** This admin's per-topic push preferences; all-on when unavailable. */
+export async function pushPreferences(): Promise<PushPreferences> {
+  const allOn = Object.fromEntries(COUNTER_TOPICS.map((t) => [t, true])) as Record<
+    CounterTopic,
+    boolean
+  >;
+  try {
+    return await apiGet<PushPreferences>("/admin/push/preferences");
+  } catch {
+    return { topics: allOn };
+  }
 }

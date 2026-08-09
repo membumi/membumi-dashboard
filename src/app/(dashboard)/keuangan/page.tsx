@@ -96,7 +96,7 @@ export default async function KeuanganPage({
         description="Komisi admin (otomatis), catatan manual, dan riwayat seluruh transaksi."
       />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((c) => {
           const Icon = c.icon;
           return (
@@ -191,7 +191,7 @@ export default async function KeuanganPage({
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table layout="scroll" stickyFirstColumn minWidth="64rem">
             <THead>
               <TR>
                 <TH>Tanggal</TH>
@@ -208,16 +208,16 @@ export default async function KeuanganPage({
               {history.length === 0 && <EmptyRow colSpan={8} />}
               {history.map((e) => (
                 <TR key={`${e.source}-${e.id}`}>
-                  <TD className="whitespace-nowrap text-slate-500">{formatDateTime(e.occurredAt)}</TD>
-                  <TD>
+                  <TD data-label="Tanggal" className="whitespace-nowrap text-slate-500">{formatDateTime(e.occurredAt)}</TD>
+                  <TD data-label="Sumber">
                     <Badge tone={e.source === "manual" ? "purple" : "default"}>
                       {e.source === "manual" ? "Manual" : "Platform"}
                     </Badge>
                   </TD>
-                  <TD className="capitalize">{e.category}</TD>
-                  <TD className="max-w-[220px] truncate text-slate-600">{e.description}</TD>
-                  <TD className="uppercase text-xs text-slate-500">{e.method ?? "—"}</TD>
-                  <TD>
+                  <TD data-label="Kategori" className="capitalize">{e.category}</TD>
+                  <TD data-label="Keterangan" className="max-w-[220px] truncate text-slate-600">{e.description}</TD>
+                  <TD data-label="Metode" className="uppercase text-xs text-slate-500">{e.method ?? "—"}</TD>
+                  <TD data-label="Status">
                     {e.status ? (
                       <StatusBadge status={e.status} label={transactionStatusLabel(e.status)} />
                     ) : (
@@ -225,6 +225,7 @@ export default async function KeuanganPage({
                     )}
                   </TD>
                   <TD
+                    data-label="Jumlah"
                     className={cn(
                       "whitespace-nowrap font-medium",
                       e.type === "INCOME" ? "text-emerald-600" : "text-red-600"

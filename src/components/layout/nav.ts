@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
+  Bell,
   BedDouble,
   Map,
   Store,
@@ -47,4 +48,21 @@ export const NAV: NavItem[] = [
   { label: "Keuangan", href: "/keuangan", icon: Landmark, group: "Monitoring" },
   { label: "Biaya Layanan", href: "/biaya-layanan", icon: Settings, group: "Monitoring" },
   { label: "Pengguna", href: "/users", icon: Users, group: "Pengelolaan" },
+  { label: "Notifikasi", href: "/pengaturan/notifikasi", icon: Bell, group: "Pengelolaan" },
 ];
+
+/**
+ * Longest-prefix match: only the most specific nav href is "active" so that
+ * e.g. /ride does not light up while on /ride/drivers.
+ */
+export function getActiveHref(pathname: string, nav: readonly NavItem[] = NAV): string | null {
+  return nav.reduce<string | null>((best, item) => {
+    const matches =
+      item.href === "/"
+        ? pathname === "/"
+        : pathname === item.href || pathname.startsWith(item.href + "/");
+    if (!matches) return best;
+    if (best === null || item.href.length > best.length) return item.href;
+    return best;
+  }, null);
+}

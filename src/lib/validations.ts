@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   ADMIN_ROLES,
   BOOKING_STATUSES,
+  COUNTER_TOPICS,
   DISCOUNT_TYPES,
   FOOD_ORDER_STATUSES,
   PROMO_SERVICES,
@@ -279,4 +280,30 @@ export const manualTopupSchema = z.object({
     .max(280)
     .optional()
     .transform((v) => (v && v.length > 0 ? v : undefined)),
+});
+
+// ── Web Push (VAPID) ───────────────────────────────────────────────────────
+const base64url = z.string().regex(/^[A-Za-z0-9_-]+=*$/, "Bukan base64url");
+
+export const pushSubscriptionSchema = z.object({
+  endpoint: z
+    .string()
+    .url()
+    .max(2048)
+    .refine((v) => v.startsWith("https://"), "Endpoint push harus https"),
+  p256dh: base64url.min(1).max(255),
+  auth: base64url.min(1).max(255),
+  userAgent: z.string().max(255).optional(),
+});
+
+export const pushUnsubscribeSchema = z.object({
+  endpoint: z.string().url().max(2048),
+});
+
+/**
+ * Only the CHECKED topics are submitted by a checkbox form, so this is the
+ * enabled set — the action expands it into an explicit on/off for all seven.
+ */
+export const pushPreferencesSchema = z.object({
+  topics: z.array(z.enum(COUNTER_TOPICS)),
 });

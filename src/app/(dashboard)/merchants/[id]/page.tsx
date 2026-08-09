@@ -50,10 +50,14 @@ export default async function MerchantDetailPage({
             <input type="hidden" name="verificationStatus" value="VERIFIED" />
             <Button type="submit" variant="default" size="sm">Verifikasi</Button>
           </form>
-          <form action={verifyMerchant} className="flex items-center gap-2">
+          <form action={verifyMerchant} className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <input type="hidden" name="id" value={merchant.id} />
             <input type="hidden" name="verificationStatus" value="REJECTED" />
-            <Input name="rejectionReason" placeholder="Alasan penolakan" className="h-8 w-56" />
+            <Input
+              name="rejectionReason"
+              placeholder="Alasan penolakan"
+              className="min-w-0 flex-1 sm:w-56 sm:flex-none"
+            />
             <Button type="submit" variant="destructive" size="sm">Tolak</Button>
           </form>
           {merchant.rejectionReason && (

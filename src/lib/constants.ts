@@ -29,6 +29,12 @@ export function toApiRole(role: AdminRole): string {
 export const VERIFICATION_STATUSES = ["PENDING", "VERIFIED", "REJECTED"] as const;
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
 
+export const VERIFICATION_STATUS_LABEL: Record<VerificationStatus, string> = {
+  PENDING: "Menunggu Verifikasi",
+  VERIFIED: "Terverifikasi",
+  REJECTED: "Ditolak",
+};
+
 // ── Hotel booking status (admin) — backend HotelBooking lifecycle ──────────
 // New approval flow: user submits without paying → admin confirms availability
 // → user pays (wallet auto / bank transfer via WhatsApp) → admin approves the
@@ -81,9 +87,26 @@ export const FOOD_ORDER_STATUSES = [
 ] as const;
 export type FoodOrderStatus = (typeof FOOD_ORDER_STATUSES)[number];
 
+// Statuses a food order can be *filtered* by. Superset of the settable list
+// above: `pending` is the pre-merchant-confirmation state an admin can only
+// observe, and it is what the MiFood monitoring card counts.
+export const FOOD_ORDER_FILTER_STATUSES = ["pending", ...FOOD_ORDER_STATUSES] as const;
+export type FoodOrderFilterStatus = (typeof FOOD_ORDER_FILTER_STATUSES)[number];
+
 // ── Ride types — backend (lowercase) ───────────────────────────────────────
 export const RIDE_TYPES = ["motor", "mobil"] as const;
 export type RideType = (typeof RIDE_TYPES)[number];
+
+// ── Ride status — backend RideStatus (snake_case lowercase) ────────────────
+export const RIDE_STATUSES = [
+  "searching",
+  "driver_assigned",
+  "driver_arriving",
+  "in_progress",
+  "completed",
+  "cancelled",
+] as const;
+export type RideStatus = (typeof RIDE_STATUSES)[number];
 
 // ── Delivery (Kirim Barang) status — backend (snake_case), per PRD §4 ──────
 export const DELIVERY_STATUSES = [
@@ -182,6 +205,42 @@ export const TICKET_CATEGORY_LABEL: Record<TicketCategory, string> = {
   payment: "Pembayaran",
   account: "Akun",
   other: "Lainnya",
+};
+
+// ── Monitoring "butuh tindakan" topics ─────────────────────────────────────
+// Shared contract with the NestJS `AdminTopic` union (GET /admin/stats/counters,
+// the /admin socket namespace, and the push preferences map). Renaming any id
+// here requires the same change in ojol-super-app-backend.
+export const COUNTER_TOPICS = [
+  "miride",
+  "mifood",
+  "misend",
+  "topup",
+  "support",
+  "driverRegistration",
+  "merchantRegistration",
+] as const;
+export type CounterTopic = (typeof COUNTER_TOPICS)[number];
+
+export const COUNTER_TOPIC_LABEL: Record<CounterTopic, string> = {
+  miride: "Pesanan MiRide menunggu driver",
+  mifood: "Pesanan MiFood perlu diproses",
+  misend: "Kirim Barang menunggu driver",
+  topup: "Topup menunggu konfirmasi",
+  support: "Chat support belum ditangani",
+  driverRegistration: "Driver menunggu verifikasi",
+  merchantRegistration: "Merchant menunggu verifikasi",
+};
+
+/** Shorter labels for the notification settings toggles. */
+export const COUNTER_TOPIC_SHORT_LABEL: Record<CounterTopic, string> = {
+  miride: "Pesanan MiRide",
+  mifood: "Pesanan MiFood",
+  misend: "Pesanan Kirim Barang",
+  topup: "Topup masuk",
+  support: "Chat support",
+  driverRegistration: "Pendaftaran driver",
+  merchantRegistration: "Pendaftaran merchant",
 };
 
 // ── Role hierarchy for gating. Higher number = more privilege. ─────────────

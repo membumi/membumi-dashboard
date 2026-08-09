@@ -36,7 +36,7 @@ export default async function MartCategoriesPage() {
           {categories.length === 0 && <EmptyRow colSpan={2} />}
           {categories.map((c) => (
             <TR key={c.id}>
-              <TD className="font-medium">{c.name}</TD>
+              <TD data-label="Kategori" className="font-medium">{c.name}</TD>
               <TD className="text-right"><ConfirmDelete action={deleteCategory} id={c.id} label="Hapus kategori ini?" /></TD>
             </TR>
           ))}

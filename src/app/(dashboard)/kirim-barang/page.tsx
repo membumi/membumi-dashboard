@@ -66,7 +66,7 @@ export default async function KirimBarangPage({
                 <CardTitle>Tarif {vehicle}</CardTitle>
               </CardHeader>
               <CardContent>
-                <form action={updateDeliveryFareConfig} className="grid grid-cols-2 gap-3">
+                <form action={updateDeliveryFareConfig} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <input type="hidden" name="vehicle" value={vehicle} />
                   <div>
                     <Label>Dasar</Label>
@@ -160,7 +160,7 @@ export default async function KirimBarangPage({
               )}
             </CardHeader>
             <CardContent>
-              <form action={updateDeliveryCategory} className="grid grid-cols-2 gap-3">
+              <form action={updateDeliveryCategory} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <input type="hidden" name="id" value={c.id} />
                 <div className="col-span-2">
                   <Label>Nama</Label>
@@ -203,10 +203,10 @@ export default async function KirimBarangPage({
 
       {/* Deliveries monitoring */}
       <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-slate-700">Pengantaran Terbaru</h2>
-          <form method="get" className="flex items-center gap-2">
-            <Select name="status" defaultValue={status ?? ""} className="h-8 w-44">
+          <form method="get" className="flex flex-wrap items-center gap-2">
+            <Select name="status" defaultValue={status ?? ""} className="w-44">
               <option value="">Semua status</option>
               {DELIVERY_STATUSES.map((s) => (
                 <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
@@ -232,18 +232,18 @@ export default async function KirimBarangPage({
             {deliveries.length === 0 && <EmptyRow colSpan={8} />}
             {deliveries.map((d) => (
               <TR key={d.id}>
-                <TD>
+                <TD data-label="Vehicle">
                   <Link href={`/orders/send/${d.id}`} className="hover:underline">
                     <Badge>{d.vehicle}</Badge>
                   </Link>
                 </TD>
-                <TD className="text-slate-600">{d.pickup.address} → {d.destination.address}</TD>
-                <TD className="text-slate-600">{d.sender?.name} → {d.recipient?.name}</TD>
-                <TD>{formatRupiah(d.fare.amount)}</TD>
-                <TD className="text-slate-500">{formatRupiah(d.serviceFee ?? 0)}</TD>
-                <TD>{d.courier?.name ?? "—"}</TD>
-                <TD><StatusBadge status={d.status} /></TD>
-                <TD className="text-slate-500">{formatDateTime(d.createdAt)}</TD>
+                <TD data-label="Rute" className="text-slate-600">{d.pickup.address} → {d.destination.address}</TD>
+                <TD data-label="Pengirim → Penerima" className="text-slate-600">{d.sender?.name} → {d.recipient?.name}</TD>
+                <TD data-label="Tarif">{formatRupiah(d.fare.amount)}</TD>
+                <TD data-label="Biaya Layanan" className="text-slate-500">{formatRupiah(d.serviceFee ?? 0)}</TD>
+                <TD data-label="Kurir">{d.courier?.name ?? "—"}</TD>
+                <TD data-label="Status"><StatusBadge status={d.status} /></TD>
+                <TD data-label="Waktu" className="text-slate-500">{formatDateTime(d.createdAt)}</TD>
               </TR>
             ))}
           </TBody>

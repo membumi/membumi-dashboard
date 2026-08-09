@@ -124,7 +124,7 @@ export default async function WithdrawalsPage({
           {requests.length === 0 && <EmptyRow colSpan={8} />}
           {requests.map((r) => (
             <TR key={`${r.kind}-${r.id}`}>
-              <TD>
+              <TD data-label="Peminta">
                 <div className="font-medium text-slate-900">
                   {r.party?.name ?? "—"}
                 </div>
@@ -132,11 +132,11 @@ export default async function WithdrawalsPage({
                   {r.party?.detail ?? r.id.slice(0, 8)}
                 </div>
               </TD>
-              <TD>
+              <TD data-label="Tipe">
                 <Badge tone={KIND_TONE[r.kind]}>{KIND_LABEL[r.kind]}</Badge>
               </TD>
-              <TD className="font-medium text-emerald-600">{formatRupiah(r.amount)}</TD>
-              <TD>
+              <TD data-label="Jumlah" className="font-medium text-emerald-600">{formatRupiah(r.amount)}</TD>
+              <TD data-label="Tujuan">
                 <div className="flex items-center gap-1.5">
                   <Badge tone={r.destinationType === "EWALLET" ? "purple" : "blue"}>
                     {r.destinationType === "EWALLET" ? "E-Wallet" : "Bank"}
@@ -147,11 +147,11 @@ export default async function WithdrawalsPage({
                   {r.accountNumber} · {r.accountName}
                 </div>
               </TD>
-              <TD>
+              <TD data-label="Status">
                 <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>
               </TD>
-              <TD className="text-slate-500">{r.note ?? "—"}</TD>
-              <TD className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
+              <TD data-label="Catatan" className="text-slate-500">{r.note ?? "—"}</TD>
+              <TD data-label="Waktu" className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
               <TD>
                 {r.status === "PENDING" ? (
                   <ReviewActions

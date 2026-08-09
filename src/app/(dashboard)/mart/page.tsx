@@ -48,19 +48,19 @@ export default async function MartPage() {
             const disc = discountPercent(p.price, p.originalPrice);
             return (
               <TR key={p.id}>
-                <TD>
+                <TD data-label="Produk">
                   <Link href={`/mart/${p.id}`} className="font-medium text-emerald-700 hover:underline">
                     {p.name}
                   </Link>
                   <span className="text-slate-400"> / {p.unit}</span>
                 </TD>
-                <TD>{catName.get(p.categoryId) ?? "—"}</TD>
-                <TD>{formatRupiah(p.price)}</TD>
-                <TD>{disc > 0 ? <Badge tone="red">-{disc}%</Badge> : "—"}</TD>
-                <TD>
+                <TD data-label="Kategori">{catName.get(p.categoryId) ?? "—"}</TD>
+                <TD data-label="Harga">{formatRupiah(p.price)}</TD>
+                <TD data-label="Diskon">{disc > 0 ? <Badge tone="red">-{disc}%</Badge> : "—"}</TD>
+                <TD data-label="Stok">
                   {p.stock < 5 ? <Badge tone="yellow">{p.stock} (menipis)</Badge> : p.stock}
                 </TD>
-                <TD className="text-slate-500">{p.merchantName ?? "—"}</TD>
+                <TD data-label="Merchant" className="text-slate-500">{p.merchantName ?? "—"}</TD>
                 <TD className="text-right"><ConfirmDelete action={deleteProduct} id={p.id} label="Hapus produk ini?" /></TD>
               </TR>
             );

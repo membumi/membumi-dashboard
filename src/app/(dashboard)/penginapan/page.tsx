@@ -32,16 +32,16 @@ export default async function PenginapanPage() {
           {hotels.length === 0 && <EmptyRow colSpan={6} />}
           {hotels.map((h) => (
             <TR key={h.id}>
-              <TD>
+              <TD data-label="Hotel">
                 <Link href={`/penginapan/${h.id}`} className="font-medium text-emerald-700 hover:underline">
                   {h.name}
                 </Link>
               </TD>
-              <TD>{h.city}</TD>
-              <TD>{"★".repeat(h.starRating)}</TD>
-              <TD>{formatRupiah(h.pricePerNight)}</TD>
-              <TD><Badge>{h.rooms.length}</Badge></TD>
-              <TD className="text-slate-500">{h.merchantName ?? "—"}</TD>
+              <TD data-label="Kota">{h.city}</TD>
+              <TD data-label="Bintang">{"★".repeat(h.starRating)}</TD>
+              <TD data-label="Harga/malam">{formatRupiah(h.pricePerNight)}</TD>
+              <TD data-label="Kamar"><Badge>{h.rooms.length}</Badge></TD>
+              <TD data-label="Merchant" className="text-slate-500">{h.merchantName ?? "—"}</TD>
             </TR>
           ))}
         </TBody>

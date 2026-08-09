@@ -40,22 +40,22 @@ export default async function OpenTripPage() {
             const full = t.bookedSlots >= t.totalSlots;
             return (
               <TR key={t.id}>
-                <TD>
+                <TD data-label="Judul">
                   <Link href={`/open-trip/${t.id}`} className="font-medium text-emerald-700 hover:underline">
                     {t.title}
                   </Link>
                 </TD>
-                <TD>{t.destination}</TD>
-                <TD>{formatRupiah(t.price)}</TD>
-                <TD>{formatDate(t.startDate)}</TD>
-                <TD>
+                <TD data-label="Destinasi">{t.destination}</TD>
+                <TD data-label="Harga">{formatRupiah(t.price)}</TD>
+                <TD data-label="Mulai">{formatDate(t.startDate)}</TD>
+                <TD data-label="Slot">
                   {full ? (
                     <Badge tone="red">SOLD OUT</Badge>
                   ) : (
                     <Badge tone="green">{t.bookedSlots}/{t.totalSlots}</Badge>
                   )}
                 </TD>
-                <TD className="text-slate-500">{t.organizer?.name ?? "—"}</TD>
+                <TD data-label="Guide" className="text-slate-500">{t.organizer?.name ?? "—"}</TD>
               </TR>
             );
           })}

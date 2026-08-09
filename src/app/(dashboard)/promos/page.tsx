@@ -39,17 +39,17 @@ export default async function PromosPage() {
             const expired = isExpired(p.expiresAt);
             return (
               <TR key={p.id}>
-                <TD>
+                <TD data-label="Judul">
                   <Link href={`/promos/${p.id}`} className="font-medium text-emerald-700 hover:underline">
                     {p.title}
                   </Link>
                 </TD>
-                <TD className="font-mono text-xs">{p.code}</TD>
-                <TD>{p.service}</TD>
-                <TD>{p.discountType === "PERCENT" ? `${p.value}%` : p.discountType === "FIXED" ? `Rp${p.value}` : "Gratis Ongkir"}</TD>
-                <TD className="text-slate-500">{p.usedCount ?? 0}{p.usageLimit ? ` / ${p.usageLimit}` : ""}</TD>
-                <TD className={expired ? "text-red-500" : "text-slate-500"}>{p.expiresAt ? formatDate(p.expiresAt) : "—"}</TD>
-                <TD>
+                <TD data-label="Kode" className="font-mono text-xs">{p.code}</TD>
+                <TD data-label="Layanan">{p.service}</TD>
+                <TD data-label="Diskon">{p.discountType === "PERCENT" ? `${p.value}%` : p.discountType === "FIXED" ? `Rp${p.value}` : "Gratis Ongkir"}</TD>
+                <TD data-label="Terpakai" className="text-slate-500">{p.usedCount ?? 0}{p.usageLimit ? ` / ${p.usageLimit}` : ""}</TD>
+                <TD data-label="Berlaku Hingga" className={expired ? "text-red-500" : "text-slate-500"}>{p.expiresAt ? formatDate(p.expiresAt) : "—"}</TD>
+                <TD data-label="Status">
                   {expired ? (
                     <Badge tone="red">Kedaluwarsa</Badge>
                   ) : p.active ? (

@@ -22,7 +22,9 @@ export function TopupChart({ data }: { data: { date: string; amount: number }[] 
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    // Sized by its wrapper so the chart shrinks with the viewport.
+    <div className="h-56 w-full sm:h-64">
+      <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
         <defs>
           <linearGradient id="topupFill" x1="0" y1="0" x2="0" y2="1">
@@ -46,6 +48,7 @@ export function TopupChart({ data }: { data: { date: string; amount: number }[] 
           fill="url(#topupFill)"
         />
       </AreaChart>
-    </ResponsiveContainer>
+      </ResponsiveContainer>
+    </div>
   );
 }

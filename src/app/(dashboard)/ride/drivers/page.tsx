@@ -7,10 +7,22 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
+import { FilterChip } from "@/components/ui/filter-chip";
+import { VERIFICATION_STATUSES, VERIFICATION_STATUS_LABEL } from "@/lib/constants";
 import { verifyDriver, deleteDriver } from "@/server/actions/ride";
 
-export default async function DriversPage() {
-  const { items: drivers } = await apiGetPaged<Driver>("/admin/drivers", { limit: 100 });
+export default async function DriversPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status: statusParam } = await searchParams;
+  const status = VERIFICATION_STATUSES.includes(statusParam as never) ? statusParam : undefined;
+
+  const { items: drivers } = await apiGetPaged<Driver>("/admin/drivers", {
+    limit: 100,
+    ...(status ? { status } : {}),
+  });
 
   return (
     <div className="space-y-6">
@@ -21,9 +33,21 @@ export default async function DriversPage() {
         actionHref="/ride/drivers/new"
       />
 
+      <div className="flex flex-wrap gap-2">
+        <FilterChip href="/ride/drivers" label="Semua" active={!status} />
+        {VERIFICATION_STATUSES.map((s) => (
+          <FilterChip
+            key={s}
+            href={`/ride/drivers?status=${s}`}
+            label={VERIFICATION_STATUS_LABEL[s]}
+            active={status === s}
+          />
+        ))}
+      </div>
+
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <Table layout="scroll" stickyFirstColumn minWidth="64rem">
             <THead>
               <TR>
                 <TH>Nama</TH>
@@ -42,15 +66,15 @@ export default async function DriversPage() {
               {drivers.length === 0 && <EmptyRow colSpan={10} />}
               {drivers.map((d) => (
                 <TR key={d.id}>
-                  <TD className="font-medium">{d.name}</TD>
-                  <TD>{d.fullname ?? "—"}</TD>
-                  <TD className="text-slate-500">{d.phone ?? "—"}</TD>
-                  <TD>{d.vehicleModel}</TD>
-                  <TD>{d.plateNumber}</TD>
-                  <TD className="capitalize">{d.type}</TD>
-                  <TD>★ {d.rating}</TD>
-                  <TD>{d.totalTrips}</TD>
-                  <TD><StatusBadge status={d.verificationStatus} /></TD>
+                  <TD data-label="Nama" className="font-medium">{d.name}</TD>
+                  <TD data-label="Nama Lengkap">{d.fullname ?? "—"}</TD>
+                  <TD data-label="No. Telepon" className="text-slate-500">{d.phone ?? "—"}</TD>
+                  <TD data-label="Kendaraan">{d.vehicleModel}</TD>
+                  <TD data-label="Plat">{d.plateNumber}</TD>
+                  <TD data-label="Tipe" className="capitalize">{d.type}</TD>
+                  <TD data-label="Rating">★ {d.rating}</TD>
+                  <TD data-label="Trip">{d.totalTrips}</TD>
+                  <TD data-label="Status"><StatusBadge status={d.verificationStatus} /></TD>
                   <TD>
                     <div className="flex items-center gap-1">
                       <Link href={`/ride/drivers/${d.id}`}>

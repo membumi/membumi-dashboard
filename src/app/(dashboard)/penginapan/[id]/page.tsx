@@ -55,11 +55,11 @@ export default async function HotelDetailPage({ params }: { params: Promise<{ id
               {hotel.rooms.length === 0 && <EmptyRow colSpan={6} />}
               {hotel.rooms.map((r) => (
                 <TR key={r.id}>
-                  <TD className="font-medium">{r.name}</TD>
-                  <TD>{formatRupiah(r.pricePerNight)}</TD>
-                  <TD>{r.capacity} org</TD>
-                  <TD className="text-slate-500">{r.facilities.join(", ") || "—"}</TD>
-                  <TD>{r.available ? <Badge tone="green">Ya</Badge> : <Badge tone="red">Tidak</Badge>}</TD>
+                  <TD data-label="Nama" className="font-medium">{r.name}</TD>
+                  <TD data-label="Harga/malam">{formatRupiah(r.pricePerNight)}</TD>
+                  <TD data-label="Kapasitas">{r.capacity} org</TD>
+                  <TD data-label="Fasilitas" className="text-slate-500">{r.facilities.join(", ") || "—"}</TD>
+                  <TD data-label="Tersedia">{r.available ? <Badge tone="green">Ya</Badge> : <Badge tone="red">Tidak</Badge>}</TD>
                   <TD className="text-right">
                     <ConfirmDelete action={deleteRoom} id={r.id} fields={{ hotelId: hotel.id }} label="Hapus kamar ini?" />
                   </TD>

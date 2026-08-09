@@ -114,21 +114,21 @@ export default async function PaymentsPage({
           {txns.length === 0 && <EmptyRow colSpan={7} />}
           {txns.map((t) => (
             <TR key={t.id}>
-              <TD><Badge>{transactionTypeLabel(t.type)}</Badge></TD>
-              <TD>
+              <TD data-label="Tipe"><Badge>{transactionTypeLabel(t.type)}</Badge></TD>
+              <TD data-label="Dompet">
                 <Badge tone={t.walletType === "DRIVER" ? "green" : t.walletType === "MERCHANT" ? "purple" : "default"}>
                   {t.walletType ?? "USER"}
                 </Badge>
               </TD>
-              <TD>{t.description}</TD>
-              <TD className="text-slate-500">{t.user?.name ?? "—"}</TD>
-              <TD>
+              <TD data-label="Deskripsi">{t.description}</TD>
+              <TD data-label="Pengguna" className="text-slate-500">{t.user?.name ?? "—"}</TD>
+              <TD data-label="Status">
                 <StatusBadge status={t.status} label={transactionStatusLabel(t.status)} />
               </TD>
-              <TD className={t.isCredit ? "font-medium text-emerald-600" : "font-medium text-red-600"}>
+              <TD data-label="Jumlah" className={t.isCredit ? "font-medium text-emerald-600" : "font-medium text-red-600"}>
                 {t.isCredit ? "+" : "−"}{formatRupiah(t.amount)}
               </TD>
-              <TD className="text-slate-500">{formatDateTime(t.createdAt)}</TD>
+              <TD data-label="Waktu" className="text-slate-500">{formatDateTime(t.createdAt)}</TD>
             </TR>
           ))}
         </TBody>

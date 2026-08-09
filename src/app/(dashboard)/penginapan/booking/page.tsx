@@ -93,12 +93,12 @@ function BookingTable({
         {bookings.length === 0 && <EmptyRow colSpan={7} />}
         {bookings.map((b) => (
           <TR key={b.id}>
-            <TD className="font-mono text-xs">{b.voucherCode || "—"}</TD>
-            <TD className="text-slate-500">{b.hotelName ?? b.hotelId.slice(0, 8)}</TD>
-            <TD>{b.guestName ?? `${b.guestCount} org`}</TD>
-            <TD className="text-slate-500">{formatDateTime(b.checkIn)}</TD>
-            <TD>{formatRupiah(b.totalPrice)}</TD>
-            <TD>
+            <TD data-label="Voucher" className="font-mono text-xs">{b.voucherCode || "—"}</TD>
+            <TD data-label="Hotel" className="text-slate-500">{b.hotelName ?? b.hotelId.slice(0, 8)}</TD>
+            <TD data-label="Tamu">{b.guestName ?? `${b.guestCount} org`}</TD>
+            <TD data-label="Check-in" className="text-slate-500">{formatDateTime(b.checkIn)}</TD>
+            <TD data-label="Total">{formatRupiah(b.totalPrice)}</TD>
+            <TD data-label="Status">
               <StatusBadge
                 status={b.status}
                 label={BOOKING_STATUS_LABEL[b.status as keyof typeof BOOKING_STATUS_LABEL] ?? b.status}
