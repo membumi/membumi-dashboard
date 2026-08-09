@@ -30,16 +30,16 @@ export default async function FoodPage() {
           {restaurants.length === 0 && <EmptyRow colSpan={5} />}
           {restaurants.map((r) => (
             <TR key={r.id}>
-              <TD>
+              <TD data-label="Restoran">
                 <Link href={`/food/${r.id}`} className="font-medium text-emerald-700 hover:underline">
                   {r.name}
                 </Link>
                 {r.merchantName && <span className="text-slate-400"> • {r.merchantName}</span>}
               </TD>
-              <TD className="text-slate-500">{r.categories.join(", ") || "—"}</TD>
-              <TD>{"Rp".repeat(r.priceLevel)}</TD>
-              <TD>★ {r.rating}</TD>
-              <TD>{r.isOpen ? <Badge tone="green">Buka</Badge> : <Badge tone="red">Tutup</Badge>}</TD>
+              <TD data-label="Kategori" className="text-slate-500">{r.categories.join(", ") || "—"}</TD>
+              <TD data-label="Harga">{"Rp".repeat(r.priceLevel)}</TD>
+              <TD data-label="Rating">★ {r.rating}</TD>
+              <TD data-label="Status">{r.isOpen ? <Badge tone="green">Buka</Badge> : <Badge tone="red">Tutup</Badge>}</TD>
             </TR>
           ))}
         </TBody>

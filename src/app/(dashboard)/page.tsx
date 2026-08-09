@@ -71,7 +71,7 @@ export default async function OverviewPage() {
         <p className="mt-1 text-sm text-slate-500">Ringkasan kesehatan bisnis lintas layanan.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-7">
         {metrics.map((m) => {
           const Icon = m.icon;
           return (

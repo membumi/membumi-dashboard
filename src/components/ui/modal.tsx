@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 /**
- * Modal sederhana: overlay gelap + panel putih di tengah. Tutup via tombol ✕,
- * klik overlay, atau tombol Esc. Render `null` saat `open` false — tanpa portal
- * (cukup untuk kebutuhan dashboard saat ini).
+ * Modal sederhana: overlay gelap + panel putih. Di mobile tampil sebagai bottom
+ * sheet, di `sm` ke atas di tengah layar. Tutup via tombol ✕, klik overlay, atau
+ * tombol Esc. Render `null` saat `open` false.
  */
 export function Modal({
   open,
@@ -30,18 +31,23 @@ export function Modal({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  // `open` is only ever true after a client interaction, so the server render
+  // is always `null` and there is nothing to hydrate-mismatch.
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
+    // The overlay is the scroll container: `overscroll-contain` stops a tall
+    // panel from chaining its scroll into <main> behind it, which locking
+    // document.body would not fix (main is the real scroller).
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto overscroll-contain bg-black/50 sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         className={cn(
-          "max-h-[90vh] w-full max-w-lg overflow-auto rounded-xl border border-slate-200 bg-white shadow-xl",
+          "max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-slate-200 bg-white pb-safe shadow-xl sm:max-h-[85dvh] sm:rounded-xl sm:pb-0",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -59,6 +65,7 @@ export function Modal({
         </div>
         <div className="p-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

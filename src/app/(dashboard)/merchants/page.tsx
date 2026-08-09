@@ -41,7 +41,7 @@ export default async function MerchantsPage() {
             const total = contentTotal(m);
             return (
               <TR key={m.id}>
-                <TD>
+                <TD data-label="Usaha">
                   <div className="flex items-center gap-2">
                     <Link href={`/merchants/${m.id}`} className="font-medium text-emerald-700 hover:underline">
                       {m.businessName}
@@ -49,14 +49,14 @@ export default async function MerchantsPage() {
                     <Badge>{m.category === "FOOD" ? "Food" : "UMKM"}</Badge>
                   </div>
                 </TD>
-                <TD>{m.ownerName}</TD>
-                <TD>{m.address ?? <span className="text-slate-400">—</span>}</TD>
-                <TD>{m.commissionRate != null ? `${m.commissionRate}%` : <span className="text-slate-400">Global</span>}</TD>
-                <TD>{total === null ? <span className="text-slate-400">—</span> : <Badge>{total} item</Badge>}</TD>
-                <TD>
+                <TD data-label="Pemilik">{m.ownerName}</TD>
+                <TD data-label="Alamat Pickup">{m.address ?? <span className="text-slate-400">—</span>}</TD>
+                <TD data-label="Komisi">{m.commissionRate != null ? `${m.commissionRate}%` : <span className="text-slate-400">Global</span>}</TD>
+                <TD data-label="Konten">{total === null ? <span className="text-slate-400">—</span> : <Badge>{total} item</Badge>}</TD>
+                <TD data-label="Status">
                   <StatusBadge status={m.verificationStatus} />
                 </TD>
-                <TD className="text-slate-500">{formatDate(m.createdAt)}</TD>
+                <TD data-label="Dibuat" className="text-slate-500">{formatDate(m.createdAt)}</TD>
               </TR>
             );
           })}

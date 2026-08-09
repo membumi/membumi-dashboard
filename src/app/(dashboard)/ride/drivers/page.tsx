@@ -23,7 +23,7 @@ export default async function DriversPage() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <Table layout="scroll" stickyFirstColumn minWidth="64rem">
             <THead>
               <TR>
                 <TH>Nama</TH>
@@ -42,15 +42,15 @@ export default async function DriversPage() {
               {drivers.length === 0 && <EmptyRow colSpan={10} />}
               {drivers.map((d) => (
                 <TR key={d.id}>
-                  <TD className="font-medium">{d.name}</TD>
-                  <TD>{d.fullname ?? "—"}</TD>
-                  <TD className="text-slate-500">{d.phone ?? "—"}</TD>
-                  <TD>{d.vehicleModel}</TD>
-                  <TD>{d.plateNumber}</TD>
-                  <TD className="capitalize">{d.type}</TD>
-                  <TD>★ {d.rating}</TD>
-                  <TD>{d.totalTrips}</TD>
-                  <TD><StatusBadge status={d.verificationStatus} /></TD>
+                  <TD data-label="Nama" className="font-medium">{d.name}</TD>
+                  <TD data-label="Nama Lengkap">{d.fullname ?? "—"}</TD>
+                  <TD data-label="No. Telepon" className="text-slate-500">{d.phone ?? "—"}</TD>
+                  <TD data-label="Kendaraan">{d.vehicleModel}</TD>
+                  <TD data-label="Plat">{d.plateNumber}</TD>
+                  <TD data-label="Tipe" className="capitalize">{d.type}</TD>
+                  <TD data-label="Rating">★ {d.rating}</TD>
+                  <TD data-label="Trip">{d.totalTrips}</TD>
+                  <TD data-label="Status"><StatusBadge status={d.verificationStatus} /></TD>
                   <TD>
                     <div className="flex items-center gap-1">
                       <Link href={`/ride/drivers/${d.id}`}>

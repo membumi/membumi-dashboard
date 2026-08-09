@@ -92,7 +92,7 @@ export default async function SupportPage({
           {tickets.length === 0 && <EmptyRow colSpan={5} label="Tidak ada tiket" />}
           {tickets.map((t) => (
             <TR key={t.id}>
-              <TD>
+              <TD data-label="Subjek">
                 <Link href={`/support/${t.id}`} className="font-medium text-emerald-700">
                   {t.subject ?? "(tanpa subjek)"}
                 </Link>
@@ -102,16 +102,16 @@ export default async function SupportPage({
                   </span>
                 )}
               </TD>
-              <TD>{t.category ? TICKET_CATEGORY_LABEL[t.category as TicketCategory] : "-"}</TD>
-              <TD>
+              <TD data-label="Kategori">{t.category ? TICKET_CATEGORY_LABEL[t.category as TicketCategory] : "-"}</TD>
+              <TD data-label="Status">
                 <Badge tone={TICKET_STATUS_TONE[t.status] as "yellow" | "blue" | "green" | "default"}>
                   {TICKET_STATUS_LABEL[t.status]}
                 </Badge>
               </TD>
-              <TD className="max-w-xs truncate text-slate-500">
+              <TD data-label="Pesan terakhir" className="max-w-xs truncate text-slate-500">
                 {t.lastMessage?.text ?? "-"}
               </TD>
-              <TD className="text-slate-500">{formatDateTime(t.updatedAt)}</TD>
+              <TD data-label="Diperbarui" className="text-slate-500">{formatDateTime(t.updatedAt)}</TD>
             </TR>
           ))}
         </TBody>

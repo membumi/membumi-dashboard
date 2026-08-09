@@ -24,7 +24,7 @@ export default async function FoodSettingsPage() {
           <CardTitle>Biaya Pengiriman</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={updateFoodFareConfig} className="grid grid-cols-2 gap-3">
+          <form action={updateFoodFareConfig} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label>Biaya Dasar Pengiriman</Label>
               <Input

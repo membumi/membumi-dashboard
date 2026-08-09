@@ -57,10 +57,10 @@ export default async function RestaurantDetailPage({ params }: { params: Promise
               {menu.length === 0 && <EmptyRow colSpan={5} />}
               {menu.map((m) => (
                 <TR key={m.id}>
-                  <TD className="font-medium">{m.name}</TD>
-                  <TD>{m.category}</TD>
-                  <TD>{formatRupiah(m.price)}</TD>
-                  <TD>{m.available ? <Badge tone="green">Ya</Badge> : <Badge tone="red">Tidak</Badge>}</TD>
+                  <TD data-label="Nama" className="font-medium">{m.name}</TD>
+                  <TD data-label="Kategori">{m.category}</TD>
+                  <TD data-label="Harga">{formatRupiah(m.price)}</TD>
+                  <TD data-label="Tersedia">{m.available ? <Badge tone="green">Ya</Badge> : <Badge tone="red">Tidak</Badge>}</TD>
                   <TD className="text-right">
                     <ConfirmDelete action={deleteMenuItem} id={m.id} fields={{ restaurantId: restaurant.id }} label="Hapus menu ini?" />
                   </TD>

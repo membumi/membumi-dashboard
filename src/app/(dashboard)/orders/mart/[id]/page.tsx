@@ -59,10 +59,10 @@ export default async function MartOrderDetailPage({
                 {order.items.length === 0 && <EmptyRow colSpan={4} />}
                 {order.items.map((i, idx) => (
                   <TR key={`${i.productId}-${idx}`}>
-                    <TD className="font-medium">{i.name}</TD>
-                    <TD className="text-slate-500">{formatRupiah(i.price)}</TD>
-                    <TD className="text-slate-500">×{i.quantity}</TD>
-                    <TD className="text-right">{formatRupiah(i.price * i.quantity)}</TD>
+                    <TD data-label="Produk" className="font-medium">{i.name}</TD>
+                    <TD data-label="Harga" className="text-slate-500">{formatRupiah(i.price)}</TD>
+                    <TD data-label="Qty" className="text-slate-500">×{i.quantity}</TD>
+                    <TD data-label="Subtotal" className="text-right">{formatRupiah(i.price * i.quantity)}</TD>
                   </TR>
                 ))}
               </TBody>

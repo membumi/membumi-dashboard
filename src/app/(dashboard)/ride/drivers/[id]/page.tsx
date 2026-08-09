@@ -86,7 +86,7 @@ export default async function DriverDetailPage({
           <CardTitle>Identitas & Kendaraan</CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             <Field label="Nama Lengkap (KTP)" value={driver.fullname} />
             <Field label="NIK" value={driver.nik} />
             <Field label="Nama Akun" value={driver.name} />
@@ -116,7 +116,7 @@ export default async function DriverDetailPage({
           <CardTitle>Dokumen</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {DOCUMENTS.map(({ label, key }) => {
               const url = driver[key] as string | null | undefined;
               return (

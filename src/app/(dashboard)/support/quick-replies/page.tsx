@@ -34,7 +34,7 @@ export default async function QuickRepliesPage() {
           {quickReplies.length === 0 && <EmptyRow colSpan={4} label="Belum ada template" />}
           {quickReplies.map((q) => (
             <TR key={q.id}>
-              <TD>
+              <TD data-label="Judul">
                 <Link
                   href={`/support/quick-replies/${q.id}`}
                   className="font-medium text-emerald-700"
@@ -42,14 +42,14 @@ export default async function QuickRepliesPage() {
                   {q.title}
                 </Link>
               </TD>
-              <TD>
+              <TD data-label="Kategori">
                 {q.category ? (
                   <Badge tone="blue">{TICKET_CATEGORY_LABEL[q.category as TicketCategory]}</Badge>
                 ) : (
                   "-"
                 )}
               </TD>
-              <TD className="max-w-md truncate text-slate-500">{q.body}</TD>
+              <TD data-label="Isi" className="max-w-md truncate text-slate-500">{q.body}</TD>
               <TD>
                 <ConfirmDelete
                   action={deleteQuickReply}

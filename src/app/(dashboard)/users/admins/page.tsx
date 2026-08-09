@@ -89,11 +89,11 @@ export default async function AdminsPage() {
           {admins.length === 0 && <EmptyRow colSpan={6} />}
           {admins.map((a) => (
             <TR key={a.id}>
-              <TD className="font-medium">{a.name}</TD>
-              <TD>{a.email}</TD>
-              <TD><Badge tone="purple">{a.role}</Badge></TD>
-              <TD>{a.active ? <Badge tone="green">Aktif</Badge> : <Badge tone="red">Nonaktif</Badge>}</TD>
-              <TD className="text-slate-500">{formatDate(a.createdAt)}</TD>
+              <TD data-label="Nama" className="font-medium">{a.name}</TD>
+              <TD data-label="Email">{a.email}</TD>
+              <TD data-label="Role"><Badge tone="purple">{a.role}</Badge></TD>
+              <TD data-label="Status">{a.active ? <Badge tone="green">Aktif</Badge> : <Badge tone="red">Nonaktif</Badge>}</TD>
+              <TD data-label="Dibuat" className="text-slate-500">{formatDate(a.createdAt)}</TD>
               <TD>
                 <div className="flex items-center gap-1">
                   <form action={toggleAdminActive}>

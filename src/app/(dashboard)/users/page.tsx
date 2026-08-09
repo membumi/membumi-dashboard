@@ -34,11 +34,11 @@ export default async function UsersPage() {
           {users.length === 0 && <EmptyRow colSpan={6} />}
           {users.map((u) => (
             <TR key={u.id}>
-              <TD className="font-medium">{u.name}</TD>
-              <TD>{u.phone}</TD>
-              <TD className="text-slate-500">{u.email ?? "—"}</TD>
-              <TD>{u.isVerified ? <Badge tone="green">Terverifikasi</Badge> : <Badge tone="yellow">Belum</Badge>}</TD>
-              <TD className="text-slate-500">{formatDate(u.createdAt)}</TD>
+              <TD data-label="Nama" className="font-medium">{u.name}</TD>
+              <TD data-label="No. Telepon">{u.phone}</TD>
+              <TD data-label="Email" className="text-slate-500">{u.email ?? "—"}</TD>
+              <TD data-label="Verifikasi">{u.isVerified ? <Badge tone="green">Terverifikasi</Badge> : <Badge tone="yellow">Belum</Badge>}</TD>
+              <TD data-label="Bergabung" className="text-slate-500">{formatDate(u.createdAt)}</TD>
               <TD className="text-right">
                 <form action={toggleUserVerified}>
                   <input type="hidden" name="id" value={u.id} />

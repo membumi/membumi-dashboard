@@ -57,7 +57,7 @@ export default async function FoodOrderDetailPage({
                 {order.items.length === 0 && <EmptyRow colSpan={4} />}
                 {order.items.map((i, idx) => (
                   <TR key={`${i.menuItemId}-${idx}`}>
-                    <TD className="font-medium">
+                    <TD data-label="Menu" className="font-medium">
                       {i.name}
                       {i.notes && (
                         <span className="block text-xs font-normal text-slate-400">
@@ -65,9 +65,9 @@ export default async function FoodOrderDetailPage({
                         </span>
                       )}
                     </TD>
-                    <TD className="text-slate-500">{formatRupiah(i.price)}</TD>
-                    <TD className="text-slate-500">×{i.quantity}</TD>
-                    <TD className="text-right">{formatRupiah(i.price * i.quantity)}</TD>
+                    <TD data-label="Harga" className="text-slate-500">{formatRupiah(i.price)}</TD>
+                    <TD data-label="Qty" className="text-slate-500">×{i.quantity}</TD>
+                    <TD data-label="Subtotal" className="text-right">{formatRupiah(i.price * i.quantity)}</TD>
                   </TR>
                 ))}
               </TBody>

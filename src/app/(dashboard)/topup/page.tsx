@@ -124,29 +124,29 @@ export default async function TopupPage({
           {requests.length === 0 && <EmptyRow colSpan={8} />}
           {requests.map((r) => (
             <TR key={r.id}>
-              <TD>
+              <TD data-label="Pengguna">
                 <div className="font-medium text-slate-900">{r.user?.name ?? "—"}</div>
                 <div className="text-xs text-slate-500">{r.user?.phone ?? r.id.slice(0, 8)}</div>
               </TD>
-              <TD className="font-medium text-emerald-600">{formatRupiah(r.amount)}</TD>
-              <TD>
+              <TD data-label="Jumlah" className="font-medium text-emerald-600">{formatRupiah(r.amount)}</TD>
+              <TD data-label="Sumber">
                 {(() => {
                   const s = sumberOf(r);
                   return <Badge tone={s.tone}>{s.label}</Badge>;
                 })()}
               </TD>
-              <TD>
+              <TD data-label="Bukti">
                 {r.proofUrl ? (
                   <ImagePreview url={r.proofUrl} label="Bukti transfer" />
                 ) : (
                   <span className="text-slate-400">—</span>
                 )}
               </TD>
-              <TD>
+              <TD data-label="Status">
                 <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>
               </TD>
-              <TD className="text-slate-500">{r.note ?? "—"}</TD>
-              <TD className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
+              <TD data-label="Catatan" className="text-slate-500">{r.note ?? "—"}</TD>
+              <TD data-label="Waktu" className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
               <TD>
                 {r.status === "PENDING" ? (
                   <ReviewActions id={r.id} amountLabel={formatRupiah(r.amount)} />

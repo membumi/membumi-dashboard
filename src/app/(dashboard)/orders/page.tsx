@@ -35,13 +35,14 @@ export default async function OrdersPage({
     <div>
       <PageHeader title="Pesanan & Transaksi" description="Monitoring lintas layanan." />
 
-      <div className="mb-5 flex gap-1 border-b border-slate-200">
+      {/* Bleeds to the edges on mobile so the strip scrolls instead of wrapping. */}
+      <div className="-mx-4 mb-5 flex gap-1 overflow-x-auto border-b border-slate-200 px-4 no-scrollbar sm:mx-0 sm:px-0">
         {TABS.map((t) => (
           <Link
             key={t.key}
             href={`/orders?tab=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
             className={cn(
-              "border-b-2 px-4 py-2 text-sm font-medium",
+              "whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium",
               tab === t.key
                 ? "border-emerald-600 text-emerald-700"
                 : "border-transparent text-slate-500 hover:text-slate-700"
@@ -52,9 +53,14 @@ export default async function OrdersPage({
         ))}
       </div>
 
-      <form method="get" className="mb-4 flex items-center gap-2">
+      <form method="get" className="mb-4 flex flex-wrap items-center gap-2">
         <input type="hidden" name="tab" value={tab} />
-        <Input name="q" placeholder="Cari ID pesanan…" defaultValue={q} className="h-9 w-64" />
+        <Input
+          name="q"
+          placeholder="Cari ID pesanan…"
+          defaultValue={q}
+          className="min-w-0 flex-1 sm:w-64 sm:flex-none"
+        />
         <Button type="submit" size="sm" variant="secondary">Cari</Button>
         {q && (
           <Link
@@ -97,13 +103,13 @@ async function BookingsTab({ q }: { q?: string }) {
         {bookings.length === 0 && <EmptyRow colSpan={8} />}
         {bookings.map((b) => (
           <TR key={b.id}>
-            <TD className="whitespace-nowrap text-slate-500">{formatDateTime(b.createdAt)}</TD>
-            <TD className="font-mono text-xs">{b.voucherCode}</TD>
-            <TD className="font-mono text-xs text-slate-500">{b.hotelId.slice(0, 8)}</TD>
-            <TD>{b.guestCount} org</TD>
-            <TD className="text-slate-500">{formatDateTime(b.checkIn)}</TD>
-            <TD>{formatRupiah(b.totalPrice)}</TD>
-            <TD>
+            <TD data-label="Waktu" className="whitespace-nowrap text-slate-500">{formatDateTime(b.createdAt)}</TD>
+            <TD data-label="Voucher" className="font-mono text-xs">{b.voucherCode}</TD>
+            <TD data-label="Hotel" className="font-mono text-xs text-slate-500">{b.hotelId.slice(0, 8)}</TD>
+            <TD data-label="Tamu">{b.guestCount} org</TD>
+            <TD data-label="Check-in" className="text-slate-500">{formatDateTime(b.checkIn)}</TD>
+            <TD data-label="Total">{formatRupiah(b.totalPrice)}</TD>
+            <TD data-label="Status">
               <StatusBadge
                 status={b.status}
                 label={BOOKING_STATUS_LABEL[b.status as keyof typeof BOOKING_STATUS_LABEL] ?? b.status}
@@ -151,11 +157,11 @@ async function TripsTab({ q }: { q?: string }) {
         {regs.length === 0 && <EmptyRow colSpan={5} />}
         {regs.map((r) => (
           <TR key={r.id}>
-            <TD className="font-medium">{r.tripTitle ?? r.tripId.slice(0, 8)}</TD>
-            <TD>{r.participants} org</TD>
-            <TD>{formatRupiah(r.totalPrice)}</TD>
-            <TD><StatusBadge status={r.status} /></TD>
-            <TD className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
+            <TD data-label="Trip" className="font-medium">{r.tripTitle ?? r.tripId.slice(0, 8)}</TD>
+            <TD data-label="Peserta">{r.participants} org</TD>
+            <TD data-label="Total">{formatRupiah(r.totalPrice)}</TD>
+            <TD data-label="Status"><StatusBadge status={r.status} /></TD>
+            <TD data-label="Tanggal" className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
           </TR>
         ))}
       </TBody>
@@ -185,16 +191,16 @@ async function MartTab({ q }: { q?: string }) {
         {orders.length === 0 && <EmptyRow colSpan={7} />}
         {orders.map((o) => (
           <TR key={o.id}>
-            <TD className="whitespace-nowrap text-slate-500">{formatDateTime(o.createdAt)}</TD>
-            <TD className="max-w-xs truncate">
+            <TD data-label="Waktu" className="whitespace-nowrap text-slate-500">{formatDateTime(o.createdAt)}</TD>
+            <TD data-label="Item" className="max-w-xs truncate">
               <Link href={`/orders/mart/${o.id}`} className="text-emerald-700 hover:underline">
                 {o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}
               </Link>
             </TD>
-            <TD className="text-slate-500">{o.deliveryAddress ?? "—"}</TD>
-            <TD className="text-slate-500">{formatRupiah(o.serviceFee ?? 0)}</TD>
-            <TD>{formatRupiah(o.total)}</TD>
-            <TD><StatusBadge status={o.status} /></TD>
+            <TD data-label="Alamat" className="text-slate-500">{o.deliveryAddress ?? "—"}</TD>
+            <TD data-label="Biaya Layanan" className="text-slate-500">{formatRupiah(o.serviceFee ?? 0)}</TD>
+            <TD data-label="Total">{formatRupiah(o.total)}</TD>
+            <TD data-label="Status"><StatusBadge status={o.status} /></TD>
             <TD>
               <form action={updateShipment} className="flex items-center gap-1">
                 <input type="hidden" name="id" value={o.id} />
@@ -235,16 +241,16 @@ async function FoodTab({ q }: { q?: string }) {
         {orders.length === 0 && <EmptyRow colSpan={7} />}
         {orders.map((o) => (
           <TR key={o.id}>
-            <TD className="whitespace-nowrap text-slate-500">{formatDateTime(o.createdAt)}</TD>
-            <TD className="font-medium">
+            <TD data-label="Waktu" className="whitespace-nowrap text-slate-500">{formatDateTime(o.createdAt)}</TD>
+            <TD data-label="Restoran" className="font-medium">
               <Link href={`/orders/food/${o.id}`} className="text-emerald-700 hover:underline">
                 {o.restaurantName}
               </Link>
             </TD>
-            <TD className="max-w-xs truncate text-slate-500">{o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}</TD>
-            <TD className="text-slate-500">{formatRupiah(o.serviceFee)}</TD>
-            <TD>{formatRupiah(o.total)}</TD>
-            <TD><StatusBadge status={o.status} /></TD>
+            <TD data-label="Item" className="max-w-xs truncate text-slate-500">{o.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}</TD>
+            <TD data-label="Biaya Layanan" className="text-slate-500">{formatRupiah(o.serviceFee)}</TD>
+            <TD data-label="Total">{formatRupiah(o.total)}</TD>
+            <TD data-label="Status"><StatusBadge status={o.status} /></TD>
             <TD>
               <form action={updateFoodStatus} className="flex items-center gap-1">
                 <input type="hidden" name="id" value={o.id} />

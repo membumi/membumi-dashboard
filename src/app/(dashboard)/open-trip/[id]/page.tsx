@@ -79,11 +79,11 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
               {registrations.length === 0 && <EmptyRow colSpan={5} />}
               {registrations.map((r) => (
                 <TR key={r.id}>
-                  <TD className="font-mono text-xs">{r.id.slice(0, 8)}</TD>
-                  <TD>{r.participants} org</TD>
-                  <TD>{formatRupiah(r.totalPrice)}</TD>
-                  <TD className="text-slate-500">{r.status}</TD>
-                  <TD className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
+                  <TD data-label="ID" className="font-mono text-xs">{r.id.slice(0, 8)}</TD>
+                  <TD data-label="Peserta">{r.participants} org</TD>
+                  <TD data-label="Total">{formatRupiah(r.totalPrice)}</TD>
+                  <TD data-label="Status" className="text-slate-500">{r.status}</TD>
+                  <TD data-label="Tanggal" className="text-slate-500">{formatDateTime(r.createdAt)}</TD>
                 </TR>
               ))}
             </TBody>

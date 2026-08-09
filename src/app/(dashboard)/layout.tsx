@@ -12,11 +12,17 @@ export default async function DashboardLayout({
   if (!admin) redirect("/login");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    // h-dvh, not h-screen: mobile browser chrome makes 100vh taller than the
+    // visible viewport, which clips the shell.
+    <div className="flex h-dvh overflow-hidden bg-slate-50">
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* min-w-0 lets wide tables scroll inside <main> instead of stretching
+          this column — flex items default to min-width:auto. */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar name={admin.name} role={admin.role} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-safe sm:p-5 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

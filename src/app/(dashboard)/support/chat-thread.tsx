@@ -77,7 +77,7 @@ export function ChatThread({
   }, [messages]);
 
   return (
-    <div className="flex h-[28rem] flex-col gap-2 overflow-y-auto rounded-md border border-slate-200 bg-slate-50 p-4">
+    <div className="flex h-[55dvh] min-h-[18rem] flex-col gap-2 overflow-y-auto overscroll-contain rounded-md border border-slate-200 bg-slate-50 p-4 sm:h-[28rem]">
       {messages.length === 0 && (
         <p className="m-auto text-sm text-slate-400">Belum ada pesan</p>
       )}
@@ -87,7 +87,7 @@ export function ChatThread({
           <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
             <div
               className={cn(
-                "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
+                "max-w-[85%] rounded-2xl px-3 py-2 text-sm sm:max-w-[75%]",
                 mine
                   ? "rounded-br-sm bg-emerald-600 text-white"
                   : "rounded-bl-sm border border-slate-200 bg-white text-slate-800"
@@ -95,7 +95,7 @@ export function ChatThread({
             >
               {m.type === "image" && m.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={m.imageUrl} alt="lampiran" className="max-w-[200px] rounded" />
+                <img src={m.imageUrl} alt="lampiran" className="max-w-full rounded sm:max-w-[200px]" />
               ) : (
                 <p className="whitespace-pre-wrap break-words">{m.text}</p>
               )}
