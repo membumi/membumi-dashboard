@@ -6,15 +6,23 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { StatusBadge, Badge } from "@/components/ui/badge";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
-import { RIDE_TYPES } from "@/lib/constants";
+import { RIDE_STATUSES, RIDE_TYPES } from "@/lib/constants";
 import { updateFareConfig } from "@/server/actions/ride";
 
-export default async function RidePage() {
+export default async function RidePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status: statusParam } = await searchParams;
+  const status = RIDE_STATUSES.includes(statusParam as never) ? statusParam : undefined;
+
   const [{ items: fares }, { items: rides }] = await Promise.all([
     apiGetPaged<FareConfig>("/admin/fare-config"),
-    apiGetPaged<Ride>("/admin/rides", { limit: 20 }),
+    apiGetPaged<Ride>("/admin/rides", { limit: 20, ...(status ? { status } : {}) }),
   ]);
   const fareByType = Object.fromEntries(fares.map((f) => [f.type, f]));
 
@@ -67,7 +75,22 @@ export default async function RidePage() {
 
       {/* Rides monitoring */}
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-slate-700">Perjalanan Terbaru</h2>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-700">Perjalanan Terbaru</h2>
+          <form method="get" className="flex flex-wrap items-center gap-2">
+            <Select name="status" defaultValue={status ?? ""} className="w-44">
+              <option value="">Semua status</option>
+              {RIDE_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s.replace(/_/g, " ")}
+                </option>
+              ))}
+            </Select>
+            <Button type="submit" size="sm" variant="secondary">
+              Filter
+            </Button>
+          </form>
+        </div>
         <Table>
           <THead>
             <TR>

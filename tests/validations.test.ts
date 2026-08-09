@@ -14,6 +14,9 @@ import {
   promoSchema,
   adminUserSchema,
   withdrawalApproveSchema,
+  pushSubscriptionSchema,
+  pushPreferencesSchema,
+  pushUnsubscribeSchema,
 } from "@/lib/validations";
 
 describe("Penginapan — hotelSchema (UC-01)", () => {
@@ -181,5 +184,55 @@ describe("Auth — adminUserSchema (Users UC-02)", () => {
   });
   it("rejects short password (< 8)", () => {
     expect(adminUserSchema.safeParse({ email: "a@b.com", name: "Adm", role: "ADMIN", password: "123" }).success).toBe(false);
+  });
+});
+
+describe("Web Push — pushSubscriptionSchema", () => {
+  const valid = {
+    endpoint: "https://fcm.googleapis.com/fcm/send/abc-123",
+    p256dh: "BEl62iUYgUivxIkv69yViEuiBIa-Ib9",
+    auth: "tBHItJI5svbpez7KI4CCXg",
+  };
+
+  it("accepts a well-formed https subscription", () => {
+    expect(pushSubscriptionSchema.safeParse(valid).success).toBe(true);
+    expect(pushSubscriptionSchema.safeParse({ ...valid, userAgent: "Chrome/1.0" }).success).toBe(
+      true
+    );
+  });
+  it("rejects a plaintext endpoint", () => {
+    expect(pushSubscriptionSchema.safeParse({ ...valid, endpoint: "http://p.example" }).success).toBe(
+      false
+    );
+  });
+  it("rejects a missing auth secret", () => {
+    expect(pushSubscriptionSchema.safeParse({ ...valid, auth: undefined }).success).toBe(false);
+  });
+  it("rejects a key that isn't base64url", () => {
+    // "+" and "/" belong to standard base64, not the URL-safe alphabet.
+    expect(pushSubscriptionSchema.safeParse({ ...valid, p256dh: "abc+def/gh" }).success).toBe(false);
+  });
+  it("rejects an over-long endpoint", () => {
+    const long = `https://push.example/${"x".repeat(2100)}`;
+    expect(pushSubscriptionSchema.safeParse({ ...valid, endpoint: long }).success).toBe(false);
+  });
+});
+
+describe("Web Push — pushPreferencesSchema", () => {
+  it("accepts any subset of the known topics", () => {
+    expect(pushPreferencesSchema.safeParse({ topics: [] }).success).toBe(true);
+    expect(pushPreferencesSchema.safeParse({ topics: ["topup", "support"] }).success).toBe(true);
+  });
+  it("rejects an unknown topic", () => {
+    expect(pushPreferencesSchema.safeParse({ topics: ["topup", "bogus"] }).success).toBe(false);
+  });
+});
+
+describe("Web Push — pushUnsubscribeSchema", () => {
+  it("accepts a URL endpoint", () => {
+    expect(pushUnsubscribeSchema.safeParse({ endpoint: "https://p.example/a" }).success).toBe(true);
+  });
+  it("rejects a non-URL endpoint", () => {
+    expect(pushUnsubscribeSchema.safeParse({ endpoint: "not-a-url" }).success).toBe(false);
   });
 });

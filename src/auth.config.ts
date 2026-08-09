@@ -5,6 +5,13 @@ import { refreshAccessToken } from "@/lib/refresh-token";
 // clock skew and in-flight latency (access token lives ~15m, refresh ~30d).
 const REFRESH_SKEW_MS = 60_000;
 
+// PWA entry points. The browser fetches the manifest ANONYMOUSLY in production
+// (Next only sets crossOrigin="use-credentials" on Vercel previews), and a
+// service worker served as an HTML login page fails its MIME check — so both
+// must resolve without a redirect. `src/proxy.ts` already excludes them from
+// the matcher; this is the backstop if that regex is ever edited.
+const PUBLIC_FILES = new Set(["/manifest.webmanifest", "/sw.js"]);
+
 // Edge-safe config (no Node-only deps). Used by middleware and extended in
 // src/auth.ts with the Credentials provider that calls the NestJS backend.
 export const authConfig = {
@@ -23,6 +30,10 @@ export const authConfig = {
 
       // Public: NextAuth's own endpoints.
       if (isAuthApi) return true;
+
+      if (PUBLIC_FILES.has(nextUrl.pathname) || nextUrl.pathname.startsWith("/icons/")) {
+        return true;
+      }
 
       if (isOnLogin) {
         if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));

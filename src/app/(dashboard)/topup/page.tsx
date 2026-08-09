@@ -4,12 +4,13 @@ import { apiGetPaged } from "@/lib/api-client";
 import type { TopupRequest, TopupRequestStatus } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
 import { hasRole } from "@/lib/constants";
-import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
+import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ImagePreview } from "@/components/ui/image-preview";
+import { FilterChip } from "@/components/ui/filter-chip";
 import { ReviewActions } from "./review-actions";
 
 const STATUSES: TopupRequestStatus[] = ["PENDING", "APPROVED", "REJECTED"];
@@ -173,18 +174,3 @@ function hrefWith(params: { status?: TopupRequestStatus; sumber?: SumberKey }): 
   return s ? `/topup?${s}` : "/topup";
 }
 
-function FilterChip({ label, href, active }: { label: string; href: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "rounded-full border px-3 py-1 text-xs font-medium",
-        active
-          ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 text-slate-600 hover:bg-slate-50"
-      )}
-    >
-      {label}
-    </Link>
-  );
-}

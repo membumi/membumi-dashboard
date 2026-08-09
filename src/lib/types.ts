@@ -4,6 +4,7 @@
 
 import type {
   AdminRole,
+  CounterTopic,
   VerificationStatus,
   DiscountType,
   PromoService,
@@ -545,6 +546,47 @@ export interface Overview {
     pending: number;
     daily: { date: string; amount: number }[];
   };
+}
+
+// ── Monitoring counters — GET /admin/stats/counters ────────────────────────
+/** Work still waiting on a human, per topic. Not "new today" — these fall to 0. */
+export type NeedsActionCounters = Record<CounterTopic, number>;
+
+/** The socket payload emitted on the `/admin` namespace as `admin:event`. */
+export interface AdminAlertEvent {
+  topic: CounterTopic;
+  id: string;
+  title: string;
+  amount?: number | null;
+  createdAt: string;
+  url: string;
+  counters: NeedsActionCounters;
+}
+
+// ── Web Push (VAPID) — /admin/push/* ───────────────────────────────────────
+export interface PushPublicKey {
+  publicKey: string;
+  /** False when the backend has no VAPID keys set; the UI stays hidden. */
+  configured: boolean;
+}
+
+/** A browser PushSubscription reduced to what the backend stores. */
+export interface PushSubscriptionPayload {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  userAgent?: string;
+}
+
+/** Per-admin opt-in per topic. `true` = this admin wants push for that topic. */
+export interface PushPreferences {
+  endpoint?: string;
+  topics: Record<CounterTopic, boolean>;
+}
+
+export interface PushSendResult {
+  sent: number;
+  failed: number;
 }
 
 // ── Customer Support (chat) — api-contract §11A ─────────────────────────────

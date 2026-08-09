@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Service worker: runs in a worker global scope (self/clients/registration)
+    // that the shared browser/React config doesn't declare.
+    "public/sw.js",
   ]),
 ]);
 

@@ -7,10 +7,22 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
+import { FilterChip } from "@/components/ui/filter-chip";
+import { VERIFICATION_STATUSES, VERIFICATION_STATUS_LABEL } from "@/lib/constants";
 import { verifyDriver, deleteDriver } from "@/server/actions/ride";
 
-export default async function DriversPage() {
-  const { items: drivers } = await apiGetPaged<Driver>("/admin/drivers", { limit: 100 });
+export default async function DriversPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status: statusParam } = await searchParams;
+  const status = VERIFICATION_STATUSES.includes(statusParam as never) ? statusParam : undefined;
+
+  const { items: drivers } = await apiGetPaged<Driver>("/admin/drivers", {
+    limit: 100,
+    ...(status ? { status } : {}),
+  });
 
   return (
     <div className="space-y-6">
@@ -20,6 +32,18 @@ export default async function DriversPage() {
         actionLabel="Tambah Driver"
         actionHref="/ride/drivers/new"
       />
+
+      <div className="flex flex-wrap gap-2">
+        <FilterChip href="/ride/drivers" label="Semua" active={!status} />
+        {VERIFICATION_STATUSES.map((s) => (
+          <FilterChip
+            key={s}
+            href={`/ride/drivers?status=${s}`}
+            label={VERIFICATION_STATUS_LABEL[s]}
+            active={status === s}
+          />
+        ))}
+      </div>
 
       <Card>
         <CardContent className="p-0">

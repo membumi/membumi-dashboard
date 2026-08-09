@@ -6,7 +6,6 @@ import {
   UtensilsCrossed,
   Bike,
   Users,
-  Store,
   AlertTriangle,
   HandCoins,
 } from "lucide-react";
@@ -15,6 +14,7 @@ import type { Overview } from "@/lib/types";
 import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
+import { MonitoringCards } from "@/components/monitoring-cards";
 import { RevenueChart } from "./revenue-chart";
 import { TopupChart } from "./topup-chart";
 
@@ -57,10 +57,9 @@ export default async function OverviewPage() {
     { label: "Total Topup Manual", value: formatRupiah(ov.manualTopup.total), icon: HandCoins, href: "/topup" },
   ];
 
+  // Merchant / driver / topup queues now live in <MonitoringCards />, which
+  // reads the dedicated counters endpoint; only stock is left here.
   const actions = [
-    { label: "Merchant menunggu verifikasi", count: ov.pending.merchants, href: "/merchants", icon: Store },
-    { label: "Driver menunggu verifikasi", count: ov.pending.drivers, href: "/ride", icon: Bike },
-    { label: "Topup menunggu konfirmasi", count: ov.manualTopup.pending, href: "/topup", icon: HandCoins },
     { label: "Produk stok menipis (< 5)", count: ov.lowStock, href: "/mart", icon: AlertTriangle },
   ].filter((a) => a.count > 0);
 
@@ -87,6 +86,8 @@ export default async function OverviewPage() {
           );
         })}
       </div>
+
+      <MonitoringCards />
 
       {actions.length > 0 && (
         <div className="grid gap-3 md:grid-cols-3">

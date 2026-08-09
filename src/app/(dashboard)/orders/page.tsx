@@ -12,7 +12,9 @@ import {
   BOOKING_STATUS_LABEL,
   SHIPMENT_STATUSES,
   FOOD_ORDER_STATUSES,
+  FOOD_ORDER_FILTER_STATUSES,
 } from "@/lib/constants";
+import { FilterChip } from "@/components/ui/filter-chip";
 import { updateBookingStatus } from "@/server/actions/hotels";
 import { updateShipment } from "@/server/actions/mart";
 import { updateFoodStatus } from "@/server/actions/food";
@@ -27,9 +29,14 @@ const TABS = [
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; q?: string }>;
+  searchParams: Promise<{ tab?: string; q?: string; status?: string }>;
 }) {
-  const { tab = "bookings", q = "" } = await searchParams;
+  const { tab = "bookings", q = "", status: statusParam } = await searchParams;
+  // Only the food tab honours `?status=` today — it is the deep-link target of
+  // the MiFood monitoring card.
+  const foodStatus = FOOD_ORDER_FILTER_STATUSES.includes(statusParam as never)
+    ? statusParam
+    : undefined;
 
   return (
     <div>
@@ -75,7 +82,7 @@ export default async function OrdersPage({
       {tab === "bookings" && <BookingsTab q={q} />}
       {tab === "trips" && <TripsTab q={q} />}
       {tab === "mart" && <MartTab q={q} />}
-      {tab === "food" && <FoodTab q={q} />}
+      {tab === "food" && <FoodTab q={q} status={foodStatus} />}
     </div>
   );
 }
@@ -219,13 +226,30 @@ async function MartTab({ q }: { q?: string }) {
   );
 }
 
-async function FoodTab({ q }: { q?: string }) {
+async function FoodTab({ q, status }: { q?: string; status?: string }) {
   const { items: orders } = await apiGetPaged<FoodOrder>("/admin/food-orders", {
     limit: 100,
     ...(q ? { search: q } : {}),
+    ...(status ? { status } : {}),
   });
   return (
-    <Table>
+    <>
+      <div className="mb-3 flex flex-wrap gap-2">
+        <FilterChip
+          href={`/orders?tab=food${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+          label="Semua"
+          active={!status}
+        />
+        {FOOD_ORDER_FILTER_STATUSES.map((s) => (
+          <FilterChip
+            key={s}
+            href={`/orders?tab=food&status=${s}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+            label={s}
+            active={status === s}
+          />
+        ))}
+      </div>
+      <Table>
       <THead>
         <TR>
           <TH>Waktu</TH>
@@ -263,6 +287,7 @@ async function FoodTab({ q }: { q?: string }) {
           </TR>
         ))}
       </TBody>
-    </Table>
+      </Table>
+    </>
   );
 }
