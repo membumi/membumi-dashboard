@@ -271,6 +271,23 @@ export const quickReplySchema = z.object({
   category: z.enum(TICKET_CATEGORIES).optional(),
 });
 
+/**
+ * Pindah saldo antar-dompet POV milik ORANG YANG SAMA. Sumbernya selalu dompet
+ * USER (tidak dikirim dari form) sehingga fitur ini hanya bisa MENGISI deposit
+ * driver/merchant — jalan keluar dari deposit tetap hanya lewat penarikan.
+ */
+export const walletTransferSchema = z.object({
+  userId: z.string().uuid(),
+  to: z.enum(["driver", "merchant"]),
+  amount: z.coerce.number().int().min(10000).max(100_000_000),
+  note: z
+    .string()
+    .max(280)
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  clientRequestId: z.string().uuid().optional(),
+});
+
 export const manualTopupSchema = z.object({
   userId: z.string().uuid(),
   recipientType: z.enum(["user", "driver", "merchant"]),

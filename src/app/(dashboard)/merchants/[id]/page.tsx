@@ -67,7 +67,12 @@ export default async function MerchantDetailPage({
       </Card>
 
       {merchant.userId && (
-        <WalletBalancesCard userId={merchant.userId} show={["USER", "MERCHANT"]} />
+        <WalletBalancesCard
+          userId={merchant.userId}
+          show={["USER", "MERCHANT"]}
+          transferTo="merchant"
+          returnTo={`/merchants/${merchant.id}`}
+        />
       )}
 
       <div>

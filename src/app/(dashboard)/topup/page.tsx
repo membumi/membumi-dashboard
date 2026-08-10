@@ -87,9 +87,17 @@ export default async function TopupPage({
             />
           ))}
         </div>
-        <Link href="/topup/manual" className={buttonVariants({ size: "sm" })}>
-          Topup Manual
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/topup/transfer"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            Pindah Saldo
+          </Link>
+          <Link href="/topup/manual" className={buttonVariants({ size: "sm" })}>
+            Topup Manual
+          </Link>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-1.5">

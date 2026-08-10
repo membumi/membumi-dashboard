@@ -376,6 +376,22 @@ export interface PovBalances {
   balances: Record<WalletType, number>;
 }
 
+/** Tujuan pindah saldo. Sumbernya selalu dompet USER, dikunci di backend. */
+export type TransferTarget = "driver" | "merchant";
+
+/** Hasil POST /admin/wallet/transfer — saldo kedua sisi sudah final. */
+export interface WalletTransfer {
+  id: string;
+  userId: string;
+  fromType: WalletType;
+  toType: WalletType;
+  amount: number;
+  note: string | null;
+  createdAt: string;
+  fromBalance: number;
+  toBalance: number;
+}
+
 export interface WalletTransaction {
   id: string;
   type: string; // topUp | ride | food | mart | hotel | trip | driver_earning | driver_payout | refund

@@ -78,7 +78,12 @@ export default async function DriverDetailPage({
       </Card>
 
       {driver.userId && (
-        <WalletBalancesCard userId={driver.userId} show={["USER", "DRIVER"]} />
+        <WalletBalancesCard
+          userId={driver.userId}
+          show={["USER", "DRIVER"]}
+          transferTo="driver"
+          returnTo={`/ride/drivers/${driver.id}`}
+        />
       )}
 
       <Card>

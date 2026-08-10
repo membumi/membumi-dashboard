@@ -17,6 +17,7 @@ import {
   pushSubscriptionSchema,
   pushPreferencesSchema,
   pushUnsubscribeSchema,
+  walletTransferSchema,
 } from "@/lib/validations";
 
 describe("Penginapan — hotelSchema (UC-01)", () => {
@@ -234,5 +235,50 @@ describe("Web Push — pushUnsubscribeSchema", () => {
   });
   it("rejects a non-URL endpoint", () => {
     expect(pushUnsubscribeSchema.safeParse({ endpoint: "not-a-url" }).success).toBe(false);
+  });
+});
+
+describe("Pindah saldo — walletTransferSchema", () => {
+  const uuid = "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed";
+  const base = { userId: uuid, to: "merchant", amount: "50000" };
+
+  it("menerima input valid dan meng-coerce nominal dari string form", () => {
+    const parsed = walletTransferSchema.safeParse(base);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.amount).toBe(50000);
+  });
+
+  it("menerima tujuan driver", () => {
+    expect(walletTransferSchema.safeParse({ ...base, to: "driver" }).success).toBe(true);
+  });
+
+  it("menolak tujuan 'user' — arah dikunci satu arah ke dompet deposit", () => {
+    expect(walletTransferSchema.safeParse({ ...base, to: "user" }).success).toBe(false);
+  });
+
+  it("menolak nominal di bawah minimum", () => {
+    expect(walletTransferSchema.safeParse({ ...base, amount: "9999" }).success).toBe(false);
+  });
+
+  it("menolak nominal di atas batas (kolom ledger int4)", () => {
+    expect(walletTransferSchema.safeParse({ ...base, amount: "100000001" }).success).toBe(false);
+  });
+
+  it("menolak nominal pecahan", () => {
+    expect(walletTransferSchema.safeParse({ ...base, amount: "10000.5" }).success).toBe(false);
+  });
+
+  it("menolak userId yang bukan uuid", () => {
+    expect(walletTransferSchema.safeParse({ ...base, userId: "abc" }).success).toBe(false);
+  });
+
+  it("membuang catatan kosong menjadi undefined", () => {
+    const parsed = walletTransferSchema.safeParse({ ...base, note: "" });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.note).toBeUndefined();
+  });
+
+  it("menolak catatan yang melebihi 280 karakter", () => {
+    expect(walletTransferSchema.safeParse({ ...base, note: "x".repeat(281) }).success).toBe(false);
   });
 });
