@@ -54,3 +54,4 @@ tests/
 | | Topup: bukti transfer diunggah user (app) & ditampilkan di dashboard | UI (di luar unit test) |
 | | Pindah saldo (UC-04): tujuan hanya driver/merchant, batas nominal, catatan | `validations` walletTransferSchema |
 | | Pindah saldo (UC-04): role ADMIN, payload API, returnTo aman, revalidate | `actions` wallet-actions |
+| | Pindah saldo (UC-04): guard saldo kurang & penerima tak layak → pesan di form, bukan error page | `actions` wallet-actions |

@@ -1,20 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TransferTarget, WalletType } from "@/lib/types";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { formatRupiah } from "@/lib/utils";
 import { transferWallet } from "@/server/actions/wallet";
 
-export type TransferOption = { userId: string; label: string };
-
-const TARGET_LABEL: Record<TransferTarget, string> = {
-  driver: "Driver",
-  merchant: "Mitra UMKM",
-};
+const MIN_AMOUNT = 10_000;
+const MAX_AMOUNT = 100_000_000;
 
 const WALLET_LABEL: Record<WalletType, string> = {
   USER: "Saldo Pengguna",
@@ -22,124 +18,90 @@ const WALLET_LABEL: Record<WalletType, string> = {
   MERCHANT: "Saldo Merchant",
 };
 
+export type TransferRecipient = {
+  userId: string;
+  to: TransferTarget;
+  label: string;
+  balances: Record<WalletType, number>;
+};
+
+/**
+ * Langkah 2 — nominal, dengan saldo sumber & tujuan selalu terpampang.
+ * Saldo di sini adalah snapshot saat halaman dirender; guard yang mengikat tetap
+ * `INSUFFICIENT_BALANCE` dari backend, yang muncul sebagai pesan di form ini.
+ */
 export function TransferForm({
-  drivers,
-  merchants,
+  recipient,
   clientRequestId,
   returnTo,
-  locked,
 }: {
-  drivers: TransferOption[];
-  merchants: TransferOption[];
+  recipient: TransferRecipient;
   clientRequestId: string;
   returnTo?: string;
-  /** Datang dari halaman detail: penerima sudah pasti, saldo saat ini diketahui. */
-  locked?: { userId: string; to: TransferTarget; label: string; balances: Record<WalletType, number> };
 }) {
   const router = useRouter();
-  const [target, setTarget] = useState<TransferTarget>(locked?.to ?? "merchant");
+  const [state, formAction] = useActionState(transferWallet, undefined);
+  const [amountInput, setAmountInput] = useState("");
 
-  const options = useMemo<Record<TransferTarget, TransferOption[]>>(
-    () => ({ driver: drivers, merchant: merchants }),
-    [drivers, merchants]
-  );
-  const current = locked ? [] : options[target];
-  const destinationWallet: WalletType = target === "driver" ? "DRIVER" : "MERCHANT";
+  const destination: WalletType = recipient.to === "driver" ? "DRIVER" : "MERCHANT";
+  const available = recipient.balances.USER;
+  const amount = Number(amountInput);
+  const valid = Number.isFinite(amount) && amount > 0;
+  const tooLow = valid && amount < MIN_AMOUNT;
+  const tooHigh = valid && amount > MAX_AMOUNT;
+  const insufficient = valid && amount > available;
+  const blocked = !valid || tooLow || tooHigh || insufficient;
 
   return (
     <Card>
       <CardContent className="pt-6">
         <form
           action={(fd) => {
-            const amount = Number(fd.get("amount"));
-            const label =
-              locked?.label ??
-              current.find((o) => o.userId === fd.get("userId"))?.label ??
-              "akun ini";
-            // Satu arah dan tanpa pembatalan — konfirmasi sekaligus memperlihatkan
-            // saldo sesudahnya supaya salah nominal ketahuan sebelum dieksekusi.
-            const after = locked
-              ? `\n\nSaldo Pengguna: ${formatRupiah(locked.balances.USER)} → ${formatRupiah(
-                  locked.balances.USER - amount
-                )}\n${WALLET_LABEL[destinationWallet]}: ${formatRupiah(
-                  locked.balances[destinationWallet]
-                )} → ${formatRupiah(locked.balances[destinationWallet] + amount)}`
-              : "";
+            if (blocked) return;
             if (
               !confirm(
                 `Pindahkan ${formatRupiah(amount)} dari Saldo Pengguna ke ${
-                  WALLET_LABEL[destinationWallet]
-                } milik ${label}?${after}\n\nPerpindahan ini tidak bisa dibatalkan.`
+                  WALLET_LABEL[destination]
+                } milik ${recipient.label}?\n\n` +
+                  `Saldo Pengguna: ${formatRupiah(available)} → ${formatRupiah(
+                    available - amount,
+                  )}\n` +
+                  `${WALLET_LABEL[destination]}: ${formatRupiah(
+                    recipient.balances[destination],
+                  )} → ${formatRupiah(recipient.balances[destination] + amount)}\n\n` +
+                  `Perpindahan ini tidak bisa dibatalkan.`,
               )
             ) {
               return;
             }
-            transferWallet(fd);
+            formAction(fd);
           }}
           className="grid max-w-lg gap-4"
         >
+          <input type="hidden" name="userId" value={recipient.userId} />
+          <input type="hidden" name="to" value={recipient.to} />
           <input type="hidden" name="clientRequestId" value={clientRequestId} />
           {returnTo && <input type="hidden" name="returnTo" value={returnTo} />}
 
-          {locked ? (
-            <>
-              <input type="hidden" name="userId" value={locked.userId} />
-              <input type="hidden" name="to" value={locked.to} />
-              <div>
-                <Label htmlFor="locked-recipient">Penerima</Label>
-                <Input id="locked-recipient" value={locked.label} readOnly disabled />
-              </div>
-              <dl className="grid grid-cols-2 gap-4 rounded-md bg-slate-50 p-4">
-                <div>
-                  <dt className="text-xs text-slate-400">Saldo Pengguna (sumber)</dt>
-                  <dd className="text-base font-semibold text-slate-800">
-                    {formatRupiah(locked.balances.USER)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-slate-400">
-                    {WALLET_LABEL[destinationWallet]} (tujuan)
-                  </dt>
-                  <dd className="text-base font-semibold text-emerald-600">
-                    {formatRupiah(locked.balances[destinationWallet])}
-                  </dd>
-                </div>
-              </dl>
-            </>
-          ) : (
-            <>
-              <div>
-                <Label htmlFor="to">Dompet Tujuan</Label>
-                <Select
-                  id="to"
-                  name="to"
-                  value={target}
-                  onChange={(e) => setTarget(e.target.value as TransferTarget)}
-                >
-                  {(Object.keys(TARGET_LABEL) as TransferTarget[]).map((t) => (
-                    <option key={t} value={t}>
-                      {TARGET_LABEL[t]}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+          <div>
+            <Label htmlFor="recipient">Penerima</Label>
+            <Input id="recipient" value={recipient.label} readOnly disabled />
+          </div>
 
-              <div>
-                <Label htmlFor="userId">Pemilik Akun</Label>
-                <Select id="userId" name="userId" required key={target}>
-                  {current.length === 0 ? (
-                    <option value="">Tidak ada {TARGET_LABEL[target].toLowerCase()}</option>
-                  ) : (
-                    current.map((o) => (
-                      <option key={o.userId} value={o.userId}>
-                        {o.label}
-                      </option>
-                    ))
-                  )}
-                </Select>
-              </div>
-            </>
-          )}
+          <dl className="grid grid-cols-2 gap-4 rounded-md bg-slate-50 p-4">
+            <div>
+              <dt className="text-xs text-slate-400">Saldo Pengguna (sumber)</dt>
+              <dd className="text-base font-semibold text-slate-800">
+                {formatRupiah(available)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">{WALLET_LABEL[destination]} (tujuan)</dt>
+              <dd className="text-base font-semibold text-emerald-600">
+                {formatRupiah(recipient.balances[destination])}
+              </dd>
+            </div>
+          </dl>
 
           <div>
             <Label htmlFor="amount">Nominal (Rp)</Label>
@@ -147,12 +109,37 @@ export function TransferForm({
               id="amount"
               name="amount"
               type="number"
-              min={10000}
-              max={100000000}
+              min={MIN_AMOUNT}
+              max={Math.min(MAX_AMOUNT, available)}
               step={1000}
               required
               placeholder="50000"
+              value={amountInput}
+              onChange={(e) => setAmountInput(e.target.value)}
+              aria-invalid={insufficient || tooLow || tooHigh}
             />
+            {insufficient ? (
+              <p className="mt-1 text-sm text-red-600">
+                Melebihi saldo pengguna — tersedia {formatRupiah(available)}.
+              </p>
+            ) : tooLow ? (
+              <p className="mt-1 text-sm text-red-600">
+                Minimal {formatRupiah(MIN_AMOUNT)} per perpindahan.
+              </p>
+            ) : tooHigh ? (
+              <p className="mt-1 text-sm text-red-600">
+                Maksimal {formatRupiah(MAX_AMOUNT)} per perpindahan.
+              </p>
+            ) : valid ? (
+              <p className="mt-1 text-sm text-slate-500">
+                Sisa Saldo Pengguna setelah pindah: {formatRupiah(available - amount)}
+              </p>
+            ) : available < MIN_AMOUNT ? (
+              <p className="mt-1 text-sm text-red-600">
+                Saldo pengguna {formatRupiah(available)} — di bawah minimal perpindahan, tidak ada
+                yang bisa dipindahkan.
+              </p>
+            ) : null}
           </div>
 
           <div>
@@ -160,8 +147,10 @@ export function TransferForm({
             <Input id="note" name="note" maxLength={280} placeholder="mis. isi deposit komisi" />
           </div>
 
+          {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+
           <div className="flex items-center gap-2">
-            <SubmitButton disabled={!locked && current.length === 0}>Pindahkan Saldo</SubmitButton>
+            <SubmitButton disabled={blocked}>Pindahkan Saldo</SubmitButton>
             <button
               type="button"
               onClick={() => router.push(returnTo ?? "/topup")}
