@@ -10,6 +10,7 @@ import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { RIDE_STATUSES, RIDE_TYPES } from "@/lib/constants";
+import { rideServiceFee } from "@/lib/orders";
 import { updateFareConfig } from "@/server/actions/ride";
 
 export default async function RidePage({
@@ -114,7 +115,7 @@ export default async function RidePage({
                 </TD>
                 <TD data-label="Rute" className="text-slate-600">{r.pickup.address} → {r.destination.address}</TD>
                 <TD data-label="Tarif">{formatRupiah(r.fare.amount)}</TD>
-                <TD data-label="Biaya Layanan" className="text-slate-500">{formatRupiah(r.serviceFee ?? 0)}</TD>
+                <TD data-label="Biaya Layanan" className="text-slate-500">{formatRupiah(rideServiceFee(r))}</TD>
                 <TD data-label="Driver">{r.driver?.name ?? "—"}</TD>
                 <TD data-label="Status"><StatusBadge status={r.status} /></TD>
                 <TD data-label="Waktu" className="text-slate-500">{formatDateTime(r.createdAt)}</TD>

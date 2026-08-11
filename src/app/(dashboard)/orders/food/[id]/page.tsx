@@ -12,6 +12,8 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PaymentBreakdown } from "@/components/ui/payment-breakdown";
+import { MapsLinkButton, MapsRouteButton } from "@/components/ui/maps-link";
+import { SupportTicketsCard } from "@/components/orders/support-tickets-card";
 
 export default async function FoodOrderDetailPage({
   params,
@@ -92,6 +94,66 @@ export default async function FoodOrderDetailPage({
               <CardTitle>Status & Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
+              {/* Pemesan & driver di atas — ini yang dicari admin saat tracing keluhan. */}
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-slate-500">Pemesan</span>
+                <span className="text-right text-slate-800">
+                  {order.recipientName ?? "—"}
+                  {order.recipientPhone && (
+                    <span className="block text-xs text-slate-400">{order.recipientPhone}</span>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-slate-500">Driver</span>
+                <span className="text-right text-slate-800">
+                  {order.courier?.name ?? (order.courierId ? "—" : "Belum ada kurir")}
+                  {order.courier?.plate && (
+                    <span className="block text-xs text-slate-400">
+                      {order.courier.plate}
+                      {order.courier.vehicle ? ` · ${order.courier.vehicle}` : ""}
+                    </span>
+                  )}
+                  {order.courier?.phone && (
+                    <span className="block text-xs text-slate-400">{order.courier.phone}</span>
+                  )}
+                  {/* Backend lama hanya mengirim id — tampilkan supaya tetap bisa dilacak. */}
+                  {!order.courier && order.courierId && (
+                    <span className="block font-mono text-xs text-slate-400">
+                      {order.courierId}
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-4 border-t border-slate-100 pt-3">
+                <span className="text-slate-500">Alamat Antar</span>
+                <span className="flex flex-col items-end gap-2 text-right text-slate-800">
+                  {order.deliveryAddress ?? "—"}
+                  {/* Pin koordinat kalau ada; kalau tidak, cari alamatnya di Maps. */}
+                  <MapsLinkButton
+                    lat={order.deliveryLat}
+                    lng={order.deliveryLng}
+                    address={order.deliveryAddress}
+                  />
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-slate-500">Restoran</span>
+                <span className="flex flex-col items-end gap-2 text-right text-slate-800">
+                  {order.restaurantName}
+                  <MapsLinkButton
+                    lat={order.restaurantLat}
+                    lng={order.restaurantLng}
+                    address={order.restaurantName}
+                  />
+                </span>
+              </div>
+              {/* Hanya muncul saat kedua ujung punya koordinat (order baru). */}
+              <MapsRouteButton
+                from={{ lat: order.restaurantLat, lng: order.restaurantLng }}
+                to={{ lat: order.deliveryLat, lng: order.deliveryLng }}
+                label="Rute Resto → Pengantaran"
+              />
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Status</span>
                 <StatusBadge status={order.status} />
@@ -99,10 +161,6 @@ export default async function FoodOrderDetailPage({
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Metode Bayar</span>
                 <span className="text-slate-800">{order.paymentMethod}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500">Kurir</span>
-                <span className="text-slate-800">{order.courierId ?? "—"}</span>
               </div>
 
               <form action={updateFoodStatus} className="flex items-center gap-2 border-t border-slate-200 pt-4">
@@ -120,6 +178,8 @@ export default async function FoodOrderDetailPage({
               </form>
             </CardContent>
           </Card>
+
+          <SupportTicketsCard orderId={order.id} />
         </div>
       </div>
     </div>

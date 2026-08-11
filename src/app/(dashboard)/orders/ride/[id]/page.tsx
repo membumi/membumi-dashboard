@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { rideById } from "@/server/queries";
 import { formatDateTime } from "@/lib/utils";
+import { RIDE_TYPE_LABEL } from "@/lib/constants";
+import { rideServiceFee } from "@/lib/orders";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, Badge } from "@/components/ui/badge";
 import { PaymentBreakdown } from "@/components/ui/payment-breakdown";
-
-// motor → MiRide, mobil → MiCar (branding SuperApp.id).
-const RIDE_LABEL: Record<string, string> = { motor: "MiRide", mobil: "MiCar" };
+import { MapsLinkButton, MapsRouteButton } from "@/components/ui/maps-link";
+import { SupportTicketsCard } from "@/components/orders/support-tickets-card";
 
 export default async function RideDetailPage({
   params,
@@ -20,17 +21,17 @@ export default async function RideDetailPage({
   const ride = await rideById(id);
   if (!ride) notFound();
 
-  const label = RIDE_LABEL[ride.type] ?? ride.type;
-  const serviceFee = ride.serviceFee ?? 0;
+  const label = RIDE_TYPE_LABEL[ride.type] ?? ride.type;
+  const serviceFee = rideServiceFee(ride);
 
   return (
     <div className="space-y-6">
       <Link
-        href="/ride"
+        href="/orders?tab=ride"
         className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
       >
         <ArrowLeft className="h-4 w-4" />
-        Kembali ke Ride &amp; Driver
+        Kembali ke Pesanan &amp; Transaksi
       </Link>
 
       <PageHeader
@@ -46,19 +47,27 @@ export default async function RideDetailPage({
           <CardContent className="space-y-4 text-sm">
             <div className="flex items-start justify-between gap-4">
               <span className="text-slate-500">Jemput</span>
-              <span className="text-right text-slate-800">{ride.pickup.address}</span>
+              <span className="flex flex-col items-end gap-2 text-right text-slate-800">
+                {ride.pickup.address}
+                <MapsLinkButton lat={ride.pickup.lat} lng={ride.pickup.lng} />
+              </span>
             </div>
             <div className="flex items-start justify-between gap-4">
               <span className="text-slate-500">Tujuan</span>
-              <span className="text-right text-slate-800">{ride.destination.address}</span>
+              <span className="flex flex-col items-end gap-2 text-right text-slate-800">
+                {ride.destination.address}
+                <MapsLinkButton lat={ride.destination.lat} lng={ride.destination.lng} />
+              </span>
             </div>
+            <MapsRouteButton from={ride.pickup} to={ride.destination} />
             <div className="flex items-center justify-between border-t border-slate-100 pt-3">
               <span className="text-slate-500">Jarak</span>
               <span className="text-slate-800">{(ride.fare.distance / 1000).toFixed(1)} km</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Estimasi Durasi</span>
-              <span className="text-slate-800">{Math.round(ride.fare.duration / 60)} mnt</span>
+              {/* `fare.duration` sudah dalam menit (RideEntity.durationMin). */}
+              <span className="text-slate-800">{ride.fare.duration} mnt</span>
             </div>
           </CardContent>
         </Card>
@@ -85,12 +94,34 @@ export default async function RideDetailPage({
                 <span className="text-slate-500">Status</span>
                 <StatusBadge status={ride.status} />
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-slate-500">Pemesan</span>
+                <span className="text-right text-slate-800">
+                  {ride.passenger?.name ?? "—"}
+                  {ride.passenger?.phone && (
+                    <span className="block text-xs text-slate-400">{ride.passenger.phone}</span>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-4">
                 <span className="text-slate-500">Driver</span>
-                <span className="text-slate-800">{ride.driver?.name ?? "—"}</span>
+                <span className="text-right text-slate-800">
+                  {ride.driver?.name ?? "—"}
+                  {ride.driver?.plate && (
+                    <span className="block text-xs text-slate-400">
+                      {ride.driver.plate}
+                      {ride.driver.vehicle ? ` · ${ride.driver.vehicle}` : ""}
+                    </span>
+                  )}
+                  {ride.driver?.phone && (
+                    <span className="block text-xs text-slate-400">{ride.driver.phone}</span>
+                  )}
+                </span>
               </div>
             </CardContent>
           </Card>
+
+          <SupportTicketsCard orderId={ride.id} />
         </div>
       </div>
     </div>

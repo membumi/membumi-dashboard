@@ -23,7 +23,7 @@ export const EMPTY_COUNTERS: NeedsActionCounters = {
  * Mirrors `DEEP_LINK` in the backend's admin-alerts module.
  */
 export const COUNTER_TOPIC_HREF: Record<CounterTopic, string> = {
-  miride: "/ride?status=searching",
+  miride: "/orders?tab=ride&status=searching",
   mifood: "/orders?tab=food&status=pending",
   misend: "/kirim-barang?status=searching",
   topup: "/topup?status=PENDING",

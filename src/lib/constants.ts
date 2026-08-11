@@ -97,6 +97,9 @@ export type FoodOrderFilterStatus = (typeof FOOD_ORDER_FILTER_STATUSES)[number];
 export const RIDE_TYPES = ["motor", "mobil"] as const;
 export type RideType = (typeof RIDE_TYPES)[number];
 
+/** Branding SuperApp.id per tipe kendaraan: motor → MiRide, mobil → MiCar. */
+export const RIDE_TYPE_LABEL: Record<string, string> = { motor: "MiRide", mobil: "MiCar" };
+
 // ── Ride status — backend RideStatus (snake_case lowercase) ────────────────
 export const RIDE_STATUSES = [
   "searching",

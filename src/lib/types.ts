@@ -247,6 +247,8 @@ export interface FoodOrderItem {
 
 export interface FoodOrder {
   id: string;
+  /** Pemesan — kunci untuk menautkan order ↔ user ↔ tiket support. */
+  userId?: string;
   restaurantId: string;
   restaurantName: string;
   status: string; // confirmed | preparing | pickedUp | delivering | delivered | cancelled
@@ -254,9 +256,26 @@ export interface FoodOrder {
   subtotal: number;
   deliveryFee: number;
   serviceFee: number;
+  discount?: number;
+  promoCode?: string | null;
   total: number;
   paymentMethod: string;
+  deliveryAddress?: string | null;
+  /**
+   * Koordinat titik antar & restoran, di-snapshot saat order dibuat. Nullable —
+   * order lama (sebelum kolomnya ada) tidak punya, jadi UI harus bisa jatuh ke
+   * pencarian alamat teks.
+   */
+  deliveryLat?: number | null;
+  deliveryLng?: number | null;
+  restaurantLat?: number | null;
+  restaurantLng?: number | null;
+  /** Nama & telepon pemesan, di-resolve backend dari user (nullable). */
+  recipientName?: string | null;
+  recipientPhone?: string | null;
   courierId?: string | null;
+  /** Kurir yang ditugaskan, sudah ter-resolve. `courierId` saja = kurir belum di-resolve. */
+  courier?: DriverSummary | null;
   createdAt: string;
 }
 
@@ -295,16 +314,45 @@ export interface FareConfig {
   avgSpeedKmh: number;
 }
 
+/** Driver/kurir ringkas seperti dikirim backend (`DriverResponseDto`). */
+export interface DriverSummary {
+  id: string;
+  name: string;
+  photoUrl?: string | null;
+  plate?: string;
+  vehicle?: string;
+  rating?: number;
+  phone?: string | null;
+}
+
+/** Pemesan ringkas seperti dikirim backend (`PassengerResponseDto`). */
+export interface PassengerSummary {
+  id: string;
+  name: string;
+  photoUrl?: string | null;
+  phone?: string | null;
+}
+
 export interface Ride {
   id: string;
   type: string;
   status: string;
   pickup: { lat: number; lng: number; address: string; name?: string | null };
   destination: { lat: number; lng: number; address: string; name?: string | null };
-  fare: { amount: number; distance: number; duration: number; currency: string };
-  /** Biaya jasa aplikasi (flat, dari ServiceFeeConfig). Ditambahkan ke atas `fare.amount`. */
+  fare: {
+    amount: number;
+    /** Meter. */
+    distance: number;
+    /** Menit (bukan detik) — `RideEntity.durationMin`. */
+    duration: number;
+    currency: string;
+    /** Biaya jasa aplikasi (flat, dari ServiceFeeConfig). Di atas `amount`. */
+    serviceFee?: number;
+  };
+  /** @deprecated backend mengirimnya di `fare.serviceFee`; dipertahankan sebagai fallback. */
   serviceFee?: number;
-  driver: { id: string; name: string } | null;
+  driver: DriverSummary | null;
+  passenger?: PassengerSummary | null;
   createdAt: string;
 }
 
@@ -606,8 +654,18 @@ export interface PushSendResult {
 }
 
 // ── Customer Support (chat) — api-contract §11A ─────────────────────────────
-export type ChatRole = "user" | "driver" | "agent";
+export type ChatRole = "user" | "driver" | "agent" | "merchant";
 export type ChatMessageType = "text" | "image" | "system";
+
+/** Backend `ConversationType` — tiket support hanyalah salah satu jenis room. */
+export type ConversationType =
+  | "ride"
+  | "support"
+  | "food"
+  | "mart"
+  | "delivery"
+  | "driverMerchant"
+  | "merchantUser";
 
 export interface ChatParticipant {
   userId: string;
@@ -631,10 +689,19 @@ export interface ChatMessage {
 /** A support ticket is a `type:"support"` conversation. */
 export interface SupportTicket {
   id: string;
-  type: "ride" | "support";
+  type: ConversationType;
   status: TicketStatus;
   participants: ChatParticipant[];
   userId: string | null;
+  /**
+   * Tautan ke order/ride. Hanya terisi pada room yang dibuat otomatis per order —
+   * tiket `type:"support"` selalu `null`, jadi jembatan order ↔ chat adalah `userId`.
+   */
+  rideId?: string | null;
+  foodOrderId?: string | null;
+  deliveryId?: string | null;
+  orderId?: string | null;
+  orderKind?: "food" | "mart" | null;
   subject: string | null;
   category: TicketCategory | null;
   priority: TicketPriority | null;

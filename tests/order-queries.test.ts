@@ -21,7 +21,13 @@ vi.mock("@/lib/api-client", () => ({
   ApiError,
 }));
 
-import { foodOrderById, martOrderById, rideById, deliveryById } from "@/server/queries";
+import {
+  foodOrderById,
+  martOrderById,
+  rideById,
+  deliveryById,
+  supportTicketsByOrder,
+} from "@/server/queries";
 
 const order = { id: "o1", serviceFee: 2000, total: 52000 };
 
@@ -79,5 +85,61 @@ describe.each([
     apiGetPagedMock.mockResolvedValue({ items: [order], meta: null });
     expect(await fn("o1")).toEqual(order);
     expect(apiGetPagedMock).toHaveBeenCalledWith(path, { limit: 100 });
+  });
+});
+
+describe("supportTicketsByOrder — chats about one order", () => {
+  const ticket = (over: Record<string, unknown> = {}) => ({
+    id: "t1",
+    userId: "u1",
+    orderId: "order-1",
+    orderKind: "food",
+    status: "open",
+    ...over,
+  });
+
+  it("asks the backend to filter by order id", async () => {
+    apiGetPagedMock.mockResolvedValue({ items: [ticket()], meta: null });
+
+    const res = await supportTicketsByOrder("order-1");
+
+    expect(res).toHaveLength(1);
+    expect(apiGetPagedMock).toHaveBeenCalledWith("/admin/support/tickets", {
+      orderId: "order-1",
+      limit: 100,
+    });
+  });
+
+  /**
+   * The backend's ValidationPipe runs `whitelist: true`, so a deployment without
+   * the `orderId` param silently drops it and returns the entire queue. Without
+   * the local re-filter this card would show tickets from unrelated orders.
+   */
+  it("drops tickets for other orders when the backend ignored the filter", async () => {
+    apiGetPagedMock.mockResolvedValue({
+      items: [
+        ticket({ id: "mine" }),
+        ticket({ id: "other-order", orderId: "order-2" }),
+        // A general ticket (not filed about any order) must not show up either.
+        ticket({ id: "no-order", orderId: null, orderKind: null }),
+      ],
+      meta: null,
+    });
+
+    const res = await supportTicketsByOrder("order-1");
+
+    expect(res.map((t) => t.id)).toEqual(["mine"]);
+  });
+
+  it("returns [] when the customer never chatted about this order", async () => {
+    apiGetPagedMock.mockResolvedValue({ items: [], meta: null });
+
+    expect(await supportTicketsByOrder("order-1")).toEqual([]);
+  });
+
+  it("returns [] instead of taking the order page down when support fails", async () => {
+    apiGetPagedMock.mockRejectedValue(new ApiError("boom", 500));
+
+    expect(await supportTicketsByOrder("order-1")).toEqual([]);
   });
 });
