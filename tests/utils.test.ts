@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { formatRupiah, discountPercent } from "@/lib/utils";
+import {
+  formatRupiah,
+  discountPercent,
+  mapsUrl,
+  mapsDirectionsUrl,
+  mapsSearchUrl,
+} from "@/lib/utils";
 import {
   hasRole,
   toAdminRole,
@@ -71,5 +77,80 @@ describe("constants — role mapping (NestJS lowercase ↔ dashboard uppercase)"
     expect(toApiRole("SUPER_ADMIN")).toBe("super_admin");
     expect(toApiRole("ADMIN")).toBe("admin");
     expect(toApiRole("OPERATOR")).toBe("operator");
+  });
+});
+
+// Returning null (rather than a 0,0 URL) is what lets the detail pages drop the
+// "Buka di Maps" button instead of dropping a pin in the Gulf of Guinea.
+describe("utils — mapsUrl", () => {
+  it("builds a Google Maps pin URL for a real coordinate", () => {
+    expect(mapsUrl(-6.2, 106.8)).toBe(
+      "https://www.google.com/maps/search/?api=1&query=-6.2,106.8"
+    );
+  });
+
+  it("returns null when either axis is missing", () => {
+    expect(mapsUrl(undefined, 106.8)).toBeNull();
+    expect(mapsUrl(-6.2, undefined)).toBeNull();
+    expect(mapsUrl(null, null)).toBeNull();
+    expect(mapsUrl()).toBeNull();
+  });
+
+  it("returns null for the null island (a backend 0-default, not a location)", () => {
+    expect(mapsUrl(0, 0)).toBeNull();
+  });
+
+  it("still plots a genuine coordinate that has one zero axis", () => {
+    expect(mapsUrl(0, 106.8)).toContain("query=0,106.8");
+    expect(mapsUrl(-6.2, 0)).toContain("query=-6.2,0");
+  });
+
+  it("returns null for non-finite values", () => {
+    expect(mapsUrl(NaN, 106.8)).toBeNull();
+    expect(mapsUrl(-6.2, Infinity)).toBeNull();
+  });
+});
+
+// MiFood's lat/lng columns are nullable and empty for pre-existing orders, so the
+// address-text fallback is the only shortcut those rows can offer.
+describe("utils — mapsSearchUrl", () => {
+  it("builds a text search URL from an address", () => {
+    expect(mapsSearchUrl("Jl. Sudirman No. 1, Jakarta Pusat")).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Jl.%20Sudirman%20No.%201%2C%20Jakarta%20Pusat"
+    );
+  });
+
+  it("percent-encodes characters that would break the query", () => {
+    expect(mapsSearchUrl("Blk. A & B #5")).toContain("query=Blk.%20A%20%26%20B%20%235");
+  });
+
+  it("returns null for missing or blank input", () => {
+    expect(mapsSearchUrl(undefined)).toBeNull();
+    expect(mapsSearchUrl(null)).toBeNull();
+    expect(mapsSearchUrl("")).toBeNull();
+    expect(mapsSearchUrl("   ")).toBeNull();
+  });
+
+  it("trims surrounding whitespace before encoding", () => {
+    expect(mapsSearchUrl("  Warteg Bahari  ")).toBe(
+      "https://www.google.com/maps/search/?api=1&query=Warteg%20Bahari"
+    );
+  });
+});
+
+describe("utils — mapsDirectionsUrl", () => {
+  const pickup = { lat: -6.2, lng: 106.8 };
+  const destination = { lat: -6.25, lng: 106.83 };
+
+  it("builds an origin → destination route URL", () => {
+    expect(mapsDirectionsUrl(pickup, destination)).toBe(
+      "https://www.google.com/maps/dir/?api=1&origin=-6.2,106.8&destination=-6.25,106.83"
+    );
+  });
+
+  it("returns null unless both ends are plottable", () => {
+    expect(mapsDirectionsUrl(pickup, { lat: 0, lng: 0 })).toBeNull();
+    expect(mapsDirectionsUrl({ lat: null, lng: null }, destination)).toBeNull();
+    expect(mapsDirectionsUrl({}, {})).toBeNull();
   });
 });

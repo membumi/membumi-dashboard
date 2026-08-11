@@ -11,6 +11,7 @@ import type {
   Delivery,
   PushPreferences,
   PushPublicKey,
+  SupportTicket,
 } from "@/lib/types";
 
 /** Verified merchants as {id, businessName} options for catalog selectors. */
@@ -79,6 +80,29 @@ export function rideById(id: string): Promise<Ride | null> {
 /** One delivery (MiSend) for the order-detail page. */
 export function deliveryById(id: string): Promise<Delivery | null> {
   return orderById<Delivery>("/admin/deliveries", id);
+}
+
+/**
+ * Support tickets filed *about* one order — the "Chat Support" card on an
+ * order-detail page. Scoped by order id, not by customer: a customer's other
+ * tickets are about other orders and only add noise when tracing one order.
+ *
+ * The result is filtered again here on purpose: the backend validation pipe runs
+ * with `whitelist: true`, so a deployment without the `orderId` param silently
+ * *drops* it and returns the whole queue instead of erroring. Without the local
+ * filter this card would quietly show unrelated tickets.
+ */
+export async function supportTicketsByOrder(orderId: string): Promise<SupportTicket[]> {
+  try {
+    const { items } = await apiGetPaged<SupportTicket>("/admin/support/tickets", {
+      orderId,
+      limit: 100,
+    });
+    return items.filter((t) => t.orderId === orderId);
+  } catch {
+    // A dead support module must not take the order-detail page down with it.
+    return [];
+  }
 }
 
 /**

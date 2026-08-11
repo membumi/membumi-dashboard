@@ -14,6 +14,7 @@ import {
   toMonitoringCards,
   totalNeedsAction,
 } from "@/lib/monitoring";
+import { resolveOrderTab } from "@/lib/orders";
 
 const full = {
   miride: 1,
@@ -108,6 +109,22 @@ describe("COUNTER_TOPIC_HREF", () => {
 
   it("covers every topic exactly once", () => {
     expect(Object.keys(COUNTER_TOPIC_HREF).sort()).toEqual([...COUNTER_TOPICS].sort());
+  });
+
+  /**
+   * The two `/orders` deep links also carry `?tab=`, which the page validates
+   * against `ORDER_TABS` — an unknown tab silently falls back to the default and
+   * would land the operator on the wrong list.
+   */
+  it.each([
+    ["miride", "ride"],
+    ["mifood", "food"],
+  ] as const)("%s deep-links to the %s orders tab", (topic, expectedTab) => {
+    const [path, query] = COUNTER_TOPIC_HREF[topic].split("?");
+    expect(path).toBe("/orders");
+    const tab = new URLSearchParams(query).get("tab");
+    expect(tab).toBe(expectedTab);
+    expect(resolveOrderTab(tab ?? undefined)).toBe(expectedTab);
   });
 });
 

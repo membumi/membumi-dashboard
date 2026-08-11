@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { apiGetPaged } from "@/lib/api-client";
-import type { Booking, Registration, MartOrder, FoodOrder } from "@/lib/types";
+import type { Booking, Registration, MartOrder, FoodOrder, Ride } from "@/lib/types";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
-import { StatusBadge } from "@/components/ui/badge";
+import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,30 +13,30 @@ import {
   SHIPMENT_STATUSES,
   FOOD_ORDER_STATUSES,
   FOOD_ORDER_FILTER_STATUSES,
+  RIDE_STATUSES,
+  RIDE_TYPE_LABEL,
 } from "@/lib/constants";
+import {
+  ORDER_TABS,
+  TAB_SUPPORTS_SEARCH,
+  resolveOrderTab,
+  resolveTabStatus,
+  rideServiceFee,
+} from "@/lib/orders";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { updateBookingStatus } from "@/server/actions/hotels";
 import { updateShipment } from "@/server/actions/mart";
 import { updateFoodStatus } from "@/server/actions/food";
-
-const TABS = [
-  { key: "bookings", label: "Booking Hotel" },
-  { key: "trips", label: "Registrasi Trip" },
-  { key: "mart", label: "Order Mart" },
-  { key: "food", label: "Order Food" },
-] as const;
 
 export default async function OrdersPage({
   searchParams,
 }: {
   searchParams: Promise<{ tab?: string; q?: string; status?: string }>;
 }) {
-  const { tab = "bookings", q = "", status: statusParam } = await searchParams;
-  // Only the food tab honours `?status=` today — it is the deep-link target of
-  // the MiFood monitoring card.
-  const foodStatus = FOOD_ORDER_FILTER_STATUSES.includes(statusParam as never)
-    ? statusParam
-    : undefined;
+  const { tab: tabParam, q = "", status: statusParam } = await searchParams;
+  const tab = resolveOrderTab(tabParam);
+  // Validated per tab — each service has its own status enum.
+  const status = resolveTabStatus(tab, statusParam);
 
   return (
     <div>
@@ -44,7 +44,7 @@ export default async function OrdersPage({
 
       {/* Bleeds to the edges on mobile so the strip scrolls instead of wrapping. */}
       <div className="-mx-4 mb-5 flex gap-1 overflow-x-auto border-b border-slate-200 px-4 no-scrollbar sm:mx-0 sm:px-0">
-        {TABS.map((t) => (
+        {ORDER_TABS.map((t) => (
           <Link
             key={t.key}
             href={`/orders?tab=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
@@ -60,29 +60,32 @@ export default async function OrdersPage({
         ))}
       </div>
 
-      <form method="get" className="mb-4 flex flex-wrap items-center gap-2">
-        <input type="hidden" name="tab" value={tab} />
-        <Input
-          name="q"
-          placeholder="Cari ID pesanan…"
-          defaultValue={q}
-          className="min-w-0 flex-1 sm:w-64 sm:flex-none"
-        />
-        <Button type="submit" size="sm" variant="secondary">Cari</Button>
-        {q && (
-          <Link
-            href={`/orders?tab=${tab}`}
-            className="text-sm text-slate-500 hover:text-slate-700"
-          >
-            Reset
-          </Link>
-        )}
-      </form>
+      {TAB_SUPPORTS_SEARCH[tab] && (
+        <form method="get" className="mb-4 flex flex-wrap items-center gap-2">
+          <input type="hidden" name="tab" value={tab} />
+          <Input
+            name="q"
+            placeholder="Cari ID pesanan…"
+            defaultValue={q}
+            className="min-w-0 flex-1 sm:w-64 sm:flex-none"
+          />
+          <Button type="submit" size="sm" variant="secondary">Cari</Button>
+          {q && (
+            <Link
+              href={`/orders?tab=${tab}`}
+              className="text-sm text-slate-500 hover:text-slate-700"
+            >
+              Reset
+            </Link>
+          )}
+        </form>
+      )}
 
       {tab === "bookings" && <BookingsTab q={q} />}
       {tab === "trips" && <TripsTab q={q} />}
       {tab === "mart" && <MartTab q={q} />}
-      {tab === "food" && <FoodTab q={q} status={foodStatus} />}
+      {tab === "food" && <FoodTab q={q} status={status} />}
+      {tab === "ride" && <RideTab status={status} />}
     </div>
   );
 }
@@ -223,6 +226,66 @@ async function MartTab({ q }: { q?: string }) {
         ))}
       </TBody>
     </Table>
+  );
+}
+
+async function RideTab({ status }: { status?: string }) {
+  // `/admin/rides` supports `status` but has no `search` param, hence no `q` here.
+  const { items: rides } = await apiGetPaged<Ride>("/admin/rides", {
+    limit: 100,
+    ...(status ? { status } : {}),
+  });
+  return (
+    <>
+      <div className="mb-3 flex flex-wrap gap-2">
+        <FilterChip href="/orders?tab=ride" label="Semua" active={!status} />
+        {RIDE_STATUSES.map((s) => (
+          <FilterChip
+            key={s}
+            href={`/orders?tab=ride&status=${s}`}
+            label={s.replace(/_/g, " ")}
+            active={status === s}
+          />
+        ))}
+      </div>
+      <Table>
+        <THead>
+          <TR>
+            <TH>Waktu</TH>
+            <TH>Layanan</TH>
+            <TH>Pemesan</TH>
+            <TH>Driver</TH>
+            <TH>Rute</TH>
+            <TH>Tarif</TH>
+            <TH>Biaya Layanan</TH>
+            <TH>Status</TH>
+          </TR>
+        </THead>
+        <TBody>
+          {rides.length === 0 && <EmptyRow colSpan={8} />}
+          {rides.map((r) => (
+            <TR key={r.id}>
+              <TD data-label="Waktu" className="whitespace-nowrap text-slate-500">{formatDateTime(r.createdAt)}</TD>
+              <TD data-label="Layanan">
+                <Link href={`/orders/ride/${r.id}`} className="hover:underline">
+                  <Badge>{RIDE_TYPE_LABEL[r.type] ?? r.type}</Badge>
+                </Link>
+              </TD>
+              <TD data-label="Pemesan">{r.passenger?.name ?? "—"}</TD>
+              <TD data-label="Driver">{r.driver?.name ?? "—"}</TD>
+              <TD data-label="Rute" className="max-w-xs truncate text-slate-500">
+                {r.pickup.address} → {r.destination.address}
+              </TD>
+              <TD data-label="Tarif">{formatRupiah(r.fare.amount)}</TD>
+              <TD data-label="Biaya Layanan" className="text-slate-500">
+                {formatRupiah(rideServiceFee(r))}
+              </TD>
+              <TD data-label="Status"><StatusBadge status={r.status} /></TD>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
+    </>
   );
 }
 
