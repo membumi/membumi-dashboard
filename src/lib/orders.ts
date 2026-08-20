@@ -1,4 +1,9 @@
-import { FOOD_ORDER_FILTER_STATUSES, RIDE_STATUSES } from "@/lib/constants";
+import {
+  DRIVER_ACTIVITY_TYPES,
+  FOOD_ORDER_FILTER_STATUSES,
+  RIDE_STATUSES,
+  type DriverActivityType,
+} from "@/lib/constants";
 import type { Ride } from "@/lib/types";
 
 /**
@@ -59,3 +64,44 @@ export const TAB_SUPPORTS_SEARCH: Record<OrderTabKey, boolean> = {
   bookings: true,
   trips: true,
 };
+
+// ── Log aktivitas driver (/ride/drivers/activity) ───────────────────────────
+
+export interface DriverActivityFilters {
+  driverId?: string;
+  type?: DriverActivityType;
+  dateFrom?: string;
+  dateTo?: string;
+  page: number;
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * `searchParams` → filter tervalidasi. Nilai asing dibuang (bukan diteruskan)
+ * supaya backend tidak menerima 400 dari tanggal/tipe yang tidak dikenal.
+ */
+export function parseActivityFilters(params: {
+  driverId?: string;
+  type?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: string;
+}): DriverActivityFilters {
+  const page = Number.parseInt(params.page ?? "1", 10);
+  return {
+    driverId: params.driverId || undefined,
+    type: DRIVER_ACTIVITY_TYPES.includes(params.type as never)
+      ? (params.type as DriverActivityType)
+      : undefined,
+    dateFrom: params.dateFrom && ISO_DATE.test(params.dateFrom) ? params.dateFrom : undefined,
+    dateTo: params.dateTo && ISO_DATE.test(params.dateTo) ? params.dateTo : undefined,
+    page: Number.isFinite(page) && page > 0 ? page : 1,
+  };
+}
+
+/** Persentase progres challenge, dibulatkan dan dijepit ke 0–100. */
+export function challengeProgress(count: number, target: number): number {
+  if (target <= 0) return 0;
+  return Math.min(100, Math.max(0, Math.round((count / target) * 100)));
+}

@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
 import { WalletBalancesCard } from "@/components/wallet-balances-card";
+import { DriverChallengeCard } from "@/components/driver-challenge-card";
 import { verifyDriver, deleteDriver } from "@/server/actions/ride";
 
 const DOCUMENTS: { label: string; key: keyof Driver }[] = [
@@ -85,6 +86,8 @@ export default async function DriverDetailPage({
           returnTo={`/ride/drivers/${driver.id}`}
         />
       )}
+
+      <DriverChallengeCard driverId={driver.id} />
 
       <Card>
         <CardHeader>

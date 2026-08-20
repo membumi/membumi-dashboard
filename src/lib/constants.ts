@@ -257,3 +257,15 @@ export function hasRole(role: string | undefined, min: AdminRole): boolean {
   if (!role) return false;
   return (ROLE_LEVEL[role as AdminRole] ?? 0) >= ROLE_LEVEL[min];
 }
+
+// ── Log aktivitas driver (lintas layanan) ──────────────────────────────────
+// `mart` = leg kurir MiLokal di tabel deliveries backend; `delivery` = MiSend.
+export const DRIVER_ACTIVITY_TYPES = ["ride", "delivery", "mart", "food"] as const;
+export type DriverActivityType = (typeof DRIVER_ACTIVITY_TYPES)[number];
+
+export const DRIVER_ACTIVITY_TYPE_LABEL: Record<DriverActivityType, string> = {
+  ride: "Ride",
+  delivery: "Kirim Barang",
+  mart: "Mart",
+  food: "Food",
+};
