@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { VERIFICATION_STATUSES, VERIFICATION_STATUS_LABEL } from "@/lib/constants";
@@ -33,16 +33,21 @@ export default async function DriversPage({
         actionHref="/ride/drivers/new"
       />
 
-      <div className="flex flex-wrap gap-2">
-        <FilterChip href="/ride/drivers" label="Semua" active={!status} />
-        {VERIFICATION_STATUSES.map((s) => (
-          <FilterChip
-            key={s}
-            href={`/ride/drivers?status=${s}`}
-            label={VERIFICATION_STATUS_LABEL[s]}
-            active={status === s}
-          />
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          <FilterChip href="/ride/drivers" label="Semua" active={!status} />
+          {VERIFICATION_STATUSES.map((s) => (
+            <FilterChip
+              key={s}
+              href={`/ride/drivers?status=${s}`}
+              label={VERIFICATION_STATUS_LABEL[s]}
+              active={status === s}
+            />
+          ))}
+        </div>
+        <Link href="/ride/drivers/activity" className={buttonVariants({ variant: "outline", size: "sm" })}>
+          Log Aktivitas
+        </Link>
       </div>
 
       <Card>

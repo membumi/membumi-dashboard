@@ -11,6 +11,7 @@ import type {
   TicketStatus,
   TicketCategory,
   TicketPriority,
+  DriverActivityType,
 } from "@/lib/constants";
 
 // ── Auth / accounts ────────────────────────────────────────────────────────
@@ -735,4 +736,41 @@ export interface QuickReply {
   title: string;
   body: string;
   category: TicketCategory | null;
+}
+
+// ── Log aktivitas & challenge driver ────────────────────────────────────────
+
+export interface DriverActivityRow {
+  id: string;
+  orderType: DriverActivityType;
+  driverId: string;
+  driverName: string;
+  plateNumber: string | null;
+  status: string;
+  /** Sisi driver: rides.fare / deliveries.fare / food delivery_fee. */
+  amount: number;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface ChallengeDay {
+  date: string; // YYYY-MM-DD (Asia/Jakarta)
+  count: number;
+  achieved: boolean;
+}
+
+export interface ChallengeWeek {
+  start: string; // dipotong batas bulan — tidak pernah lintas bulan
+  end: string;
+  count: number;
+  achieved: boolean;
+}
+
+export interface DriverChallengeSummary {
+  month: string;
+  timezone: string;
+  daily: { target: number; reward: number; days: ChallengeDay[] };
+  weekly: { target: number; reward: number; weeks: ChallengeWeek[] };
+  monthly: { target: number; reward: number; count: number; achieved: boolean };
+  totals: { daysAchieved: number; weeksAchieved: number; rewardTotal: number };
 }

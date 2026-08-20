@@ -55,3 +55,7 @@ tests/
 | | Pindah saldo (UC-04): tujuan hanya driver/merchant, batas nominal, catatan | `validations` walletTransferSchema |
 | | Pindah saldo (UC-04): role ADMIN, payload API, returnTo aman, revalidate | `actions` wallet-actions |
 | | Pindah saldo (UC-04): guard saldo kurang & penerima tak layak → pesan di form, bukan error page | `actions` wallet-actions |
+| **Driver Activity** | Filter log aktivitas: tipe/tanggal asing dibuang, page jatuh ke 1 | `driver-activity` parseActivityFilters |
+| | Label layanan lengkap untuk semua tipe (ride/delivery/mart/food) | `driver-activity` DRIVER_ACTIVITY_TYPE_LABEL |
+| | Challenge: persen progres dijepit 0–100 (reward flat) | `driver-activity` challengeProgress |
+| | Aturan hitung challenge (5/40/180, minggu dipotong batas bulan, Asia/Jakarta) | unit test backend (`ojol-super-app-backend` `src/modules/driver-activity/*.spec.ts`) |
