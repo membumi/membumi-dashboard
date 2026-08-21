@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { apiGetPaged } from "@/lib/api-client";
+import { ApiError, apiGetPaged } from "@/lib/api-client";
 import type { Driver, DriverActivityRow } from "@/lib/types";
 import {
   DRIVER_ACTIVITY_TYPES,
@@ -40,25 +40,33 @@ export default async function DriverActivityPage({
     dateTo: filters.dateTo,
   };
 
-  const empty = { items: [] as DriverActivityRow[], meta: null };
-  // Fetch halaman tabel + dataset export sekali jalan; degradasi ke kosong bila
-  // endpoint backend belum ter-deploy (konvensi .catch di dashboard).
-  const [{ items: rows, meta }, { items: exportRows }, { items: drivers }] = await Promise.all([
-    apiGetPaged<DriverActivityRow>("/admin/driver-activity", {
-      ...baseQuery,
-      page: filters.page,
-      limit: PER_PAGE,
-    }).catch(() => empty),
-    apiGetPaged<DriverActivityRow>("/admin/driver-activity", {
-      ...baseQuery,
-      page: 1,
-      limit: EXPORT_LIMIT,
-    }).catch(() => empty),
+  // Fetch halaman tabel + dataset export sekali jalan. Kegagalan backend tidak
+  // boleh menyamar jadi "Belum ada data" — bawa pesannya supaya banner
+  // peringatan tampil (mis. backend mati, atau versi lama tanpa endpoint → 404).
+  const fetchActivity = (page: number, limit: number) =>
+    apiGetPaged<DriverActivityRow>("/admin/driver-activity", { ...baseQuery, page, limit }).then(
+      (r) => ({ ...r, error: null as string | null }),
+      (e: unknown) => ({
+        items: [] as DriverActivityRow[],
+        meta: null,
+        error:
+          e instanceof ApiError && e.status === 404
+            ? "Backend yang berjalan belum punya endpoint log aktivitas (/admin/driver-activity) — deploy/jalankan versi backend yang memuat modul driver-activity."
+            : "Log aktivitas gagal dimuat dari backend — pastikan backend berjalan dan API_URL menunjuk ke alamat yang benar.",
+      }),
+    );
+
+  const [pageResult, exportResult, { items: drivers }] = await Promise.all([
+    fetchActivity(filters.page, PER_PAGE),
+    fetchActivity(1, EXPORT_LIMIT),
     apiGetPaged<Driver>("/admin/drivers", { limit: 100 }).catch(() => ({
       items: [] as Driver[],
       meta: null,
     })),
   ]);
+  const { items: rows, meta } = pageResult;
+  const exportRows = exportResult.items;
+  const loadError = pageResult.error ?? exportResult.error;
 
   const buildHref = (page: number, type = filters.type) => {
     const sp = new URLSearchParams();
@@ -142,6 +150,11 @@ export default async function DriverActivityPage({
           </div>
         </CardHeader>
         <CardContent className="p-0">
+          {loadError && (
+            <p className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              {loadError}
+            </p>
+          )}
           <Table layout="scroll" stickyFirstColumn minWidth="64rem">
             <THead>
               <TR>
