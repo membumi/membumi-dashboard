@@ -17,6 +17,16 @@ interface CampaignAnalytics {
   revenue: number;
   totalCost: number;
   estimatedRoi: number | null;
+  promo?: {
+    uses: number;
+    pendingUses: number;
+    subsidyUsed: number;
+    subsidyReserved: number;
+    budget: number | null;
+    budgetRemaining: number;
+    active: boolean;
+    pausedReason: string | null;
+  } | null;
 }
 
 export default async function CampaignDetailPage({
@@ -36,13 +46,25 @@ export default async function CampaignDetailPage({
 
   const info: [string, React.ReactNode][] = [
     ["Merchant", campaign.merchant?.businessName ?? campaign.merchantName ?? "—"],
+    ["Tipe", campaign.type === "ADS_PROMO" ? "ADS + PROMO" : campaign.type],
     ["Paket", campaign.adPackageCode ?? "—"],
     [
       "Add-on",
       campaign.adAddons?.length ? campaign.adAddons.map((a) => a.name).join(", ") : "—",
     ],
     ["Periode", `${formatDate(campaign.startsAt)} – ${formatDate(campaign.endsAt)}`],
-    ["Nilai Ads", formatRupiah(campaign.adsPrice)],
+    ["Nilai Ads", campaign.adsPrice > 0 ? formatRupiah(campaign.adsPrice) : "—"],
+    ...(campaign.promoBudgetFunded > 0
+      ? ([
+          ["Budget Promo", formatRupiah(campaign.promoBudgetFunded)],
+          ...(campaign.promoCreditApplied > 0
+            ? ([["Dari Kredit Promo", formatRupiah(campaign.promoCreditApplied)]] as [
+                string,
+                React.ReactNode,
+              ][])
+            : []),
+        ] as [string, React.ReactNode][])
+      : []),
     ["Dibayar", campaign.paidAt ? formatDateTime(campaign.paidAt) : "—"],
     ["Objective", campaign.objective ?? "—"],
   ];
@@ -86,6 +108,13 @@ export default async function CampaignDetailPage({
                     "Estimated ROI",
                     analytics.estimatedRoi === null ? "—" : `${analytics.estimatedRoi}%`,
                   ],
+                  ...(analytics.promo
+                    ? [
+                        ["Promo Terpakai", `${analytics.promo.uses}x`],
+                        ["Subsidi Terpakai", formatRupiah(analytics.promo.subsidyUsed)],
+                        ["Sisa Budget", formatRupiah(analytics.promo.budgetRemaining)],
+                      ]
+                    : []),
                 ].map(([label, value]) => (
                   <div key={String(label)}>
                     <dt className="text-xs text-slate-500">{label}</dt>
@@ -99,6 +128,70 @@ export default async function CampaignDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {campaign.promo && (
+        <Card className="mt-4">
+          <CardContent className="pt-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-900">Promo Campaign</h3>
+              <StatusBadge
+                status={
+                  campaign.promo.pausedReason === "BUDGET_EXHAUSTED"
+                    ? "BUDGET_EXHAUSTED"
+                    : campaign.promo.active
+                      ? "ACTIVE"
+                      : "PAUSED"
+                }
+              />
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+              {(
+                [
+                  ["Kode", campaign.promo.code],
+                  [
+                    "Jenis",
+                    campaign.promo.discountType === "FREE_SHIPPING"
+                      ? `Gratis ongkir hingga ${formatRupiah(campaign.promo.maxDiscount ?? 0)}`
+                      : campaign.promo.discountType === "PERCENT"
+                        ? `${campaign.promo.value}%${campaign.promo.maxDiscount ? ` (maks ${formatRupiah(campaign.promo.maxDiscount)})` : ""}`
+                        : formatRupiah(campaign.promo.value),
+                  ],
+                  ["Min. Order", formatRupiah(campaign.promo.minSpend)],
+                  [
+                    "Terpakai",
+                    `${campaign.promo.usedCount}${campaign.promo.usageLimit ? ` / ${campaign.promo.usageLimit}` : ""}x`,
+                  ],
+                  [
+                    "Budget",
+                    `${formatRupiah(campaign.promo.budgetUsed)} / ${formatRupiah(campaign.promo.budget ?? 0)}`,
+                  ],
+                  ["Ditahan (order aktif)", formatRupiah(campaign.promo.budgetReserved)],
+                ] as [string, React.ReactNode][]
+              ).map(([label, value]) => (
+                <div key={String(label)}>
+                  <dt className="text-xs text-slate-500">{label}</dt>
+                  <dd className="font-medium text-slate-900">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            {campaign.promo.budget ? (
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-emerald-500"
+                  style={{
+                    width: `${Math.min(
+                      ((campaign.promo.budgetUsed + campaign.promo.budgetReserved) /
+                        campaign.promo.budget) *
+                        100,
+                      100,
+                    )}%`,
+                  }}
+                />
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      )}
 
       <h3 className="mb-2 mt-6 text-sm font-semibold text-slate-900">Booking Slot</h3>
       <Table>

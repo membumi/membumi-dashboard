@@ -589,6 +589,14 @@ export interface Promo {
   expiresAt?: string;
   active: boolean;
   createdAt: string;
+  // Membumi Ads Fase B — merchant-funded promos (unset for platform promos)
+  merchantId?: string;
+  campaignId?: string;
+  fundedBy?: "PLATFORM" | "MERCHANT" | "COFUNDED";
+  budget?: number;
+  budgetUsed?: number;
+  budgetReserved?: number;
+  pausedReason?: string;
 }
 
 // ── Overview (admin stats — backend gap 4) ─────────────────────────────────
@@ -863,7 +871,9 @@ export interface Campaign {
   adAddons: { code: string; name: string; price: number }[] | null;
   adsPrice: number;
   promoBudgetFunded: number;
+  promoCreditApplied: number;
   totalPrice: number;
+  promo?: CampaignPromoSummary | null;
   rejectedReason: string | null;
   paidAt: string | null;
   activatedAt: string | null;
@@ -878,6 +888,38 @@ export interface Campaign {
     phoneNumber: string;
     imageUrl: string | null;
   } | null;
+}
+
+export interface CampaignPromoSummary {
+  id: string;
+  title: string;
+  code: string;
+  discountType: string;
+  value: number;
+  minSpend: number;
+  maxDiscount: number | null;
+  usageLimit: number | null;
+  perUserLimit: number;
+  usedCount: number;
+  budget: number | null;
+  budgetUsed: number;
+  budgetReserved: number;
+  active: boolean;
+  pausedReason: string | null;
+}
+
+export interface CampaignLedgerEntry {
+  id: string;
+  campaignId: string | null;
+  merchantId: string;
+  ledger: "ADS_REVENUE" | "PROMO_BUDGET";
+  entryType: string;
+  direction: "CREDIT" | "DEBIT";
+  amount: number;
+  referenceType: string;
+  referenceId: string;
+  description: string | null;
+  createdAt: string;
 }
 
 export interface CampaignAuditLog {
@@ -903,6 +945,7 @@ export interface CampaignAnalyticsOverview {
   };
   adsRevenue: { gross: number; refunds: number; net: number };
   traffic: { impressions: number; clicks: number };
+  promoBudget?: { funded: number; spent: number; outstanding: number };
 }
 
 export interface AdInventoryCalendar {
