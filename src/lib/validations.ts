@@ -324,3 +324,56 @@ export const pushUnsubscribeSchema = z.object({
 export const pushPreferencesSchema = z.object({
   topics: z.array(z.enum(COUNTER_TOPICS)),
 });
+
+// ── Membumi Ads (Ads & Campaign) ────────────────────────────────────────────
+
+const adCode = z
+  .string()
+  .min(2)
+  .max(40)
+  .regex(/^[A-Z0-9_]+$/, "Kode huruf besar/angka/underscore");
+
+export const adPackageSchema = z.object({
+  code: adCode,
+  name: z.string().min(2).max(60),
+  description: z.string().max(300).optional(),
+  price: z.coerce.number().int().min(0),
+  durationDays: z.coerce.number().int().min(1),
+  entitlements: z
+    .array(z.object({ placement: adCode, slots: z.coerce.number().int().min(1) }))
+    .max(10),
+  badge: z.string().max(30).optional(),
+  active: z.boolean(),
+  sortOrder: z.coerce.number().int().min(0),
+});
+
+export const adAddonSchema = z.object({
+  code: adCode,
+  name: z.string().min(2).max(60),
+  description: z.string().max(300).optional(),
+  price: z.coerce.number().int().min(0),
+  placementCode: adCode.optional(),
+  durationDays: z.coerce.number().int().min(1).optional(),
+  active: z.boolean(),
+  sortOrder: z.coerce.number().int().min(0),
+});
+
+export const adPlacementSchema = z.object({
+  code: adCode,
+  name: z.string().min(2).max(60),
+  description: z.string().max(300).optional(),
+  kind: z.enum(["FEATURED", "BANNER", "LISTING"]),
+  context: z.string().max(60).optional(),
+  maxSlots: z.coerce.number().int().min(1),
+  rotationStrategy: z.enum(["ROUND_ROBIN", "WEIGHTED"]),
+  active: z.boolean(),
+});
+
+/** Reject wajib beralasan — dilihat merchant & tercatat di audit log. */
+export const rejectCampaignSchema = z.object({
+  reason: z.string().min(3, "Alasan penolakan wajib diisi").max(300),
+});
+
+export const bookingPrioritySchema = z.object({
+  priority: z.coerce.number().int().min(0).max(1000),
+});
