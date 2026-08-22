@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { apiPatch, apiPost, apiPut } from "@/lib/api-client";
+import { apiDelete, apiPatch, apiPost, apiPut } from "@/lib/api-client";
 import { bool, str, strOrUndef } from "@/lib/form";
 import { requireRole } from "@/lib/session";
 import {
   adAddonSchema,
+  adHouseCreativeSchema,
   adPackageSchema,
   adPlacementSchema,
   bookingPrioritySchema,
@@ -147,4 +148,42 @@ export async function setBookingPriority(fd: FormData) {
   const { priority } = bookingPrioritySchema.parse({ priority: str(fd, "priority") || 0 });
   await apiPatch(`/admin/ads/bookings/${str(fd, "id")}/priority`, { priority });
   revalidatePath("/ads");
+}
+
+// ── Materi bawaan Membumi (house ads) ────────────────────────────────────────
+
+function parseHouseAd(fd: FormData) {
+  return adHouseCreativeSchema.parse({
+    placementCode: str(fd, "placementCode").toUpperCase(),
+    title: str(fd, "title"),
+    subtitle: strOrUndef(fd, "subtitle"),
+    imageUrl: str(fd, "imageUrl"),
+    targetType: str(fd, "targetType") || "NONE",
+    targetId: strOrUndef(fd, "targetId"),
+    sortOrder: str(fd, "sortOrder") || 0,
+    active: bool(fd, "active"),
+    startsAt: strOrUndef(fd, "startsAt"),
+    endsAt: strOrUndef(fd, "endsAt"),
+  });
+}
+
+export async function createHouseAd(fd: FormData) {
+  await requireRole("ADMIN");
+  await apiPost("/admin/ads/house", parseHouseAd(fd));
+  revalidatePath("/ads/default");
+  redirect("/ads/default");
+}
+
+export async function updateHouseAd(fd: FormData) {
+  await requireRole("ADMIN");
+  await apiPut(`/admin/ads/house/${str(fd, "id")}`, parseHouseAd(fd));
+  revalidatePath("/ads/default");
+  redirect("/ads/default");
+}
+
+export async function deleteHouseAd(fd: FormData) {
+  await requireRole("ADMIN");
+  await apiDelete(`/admin/ads/house/${str(fd, "id")}`);
+  revalidatePath("/ads/default");
+  redirect("/ads/default");
 }

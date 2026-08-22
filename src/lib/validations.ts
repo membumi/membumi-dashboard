@@ -369,6 +369,28 @@ export const adPlacementSchema = z.object({
   active: z.boolean(),
 });
 
+/**
+ * Materi bawaan Membumi. `targetId` wajib begitu tujuannya bukan NONE — banner
+ * yang bisa ditekan tapi tanpa tujuan akan terasa rusak di aplikasi.
+ */
+export const adHouseCreativeSchema = z
+  .object({
+    placementCode: adCode,
+    title: z.string().min(2).max(80),
+    subtitle: z.string().max(120).optional(),
+    imageUrl: z.string().min(1, "Materi gambar wajib diunggah"),
+    targetType: z.enum(["NONE", "MERCHANT", "RESTAURANT", "MART_PRODUCT", "URL"]),
+    targetId: z.string().max(300).optional(),
+    sortOrder: z.coerce.number().int().min(0),
+    active: z.boolean(),
+    startsAt: z.string().optional(),
+    endsAt: z.string().optional(),
+  })
+  .refine((v) => v.targetType === "NONE" || !!v.targetId, {
+    path: ["targetId"],
+    message: "Tujuan wajib diisi bila jenis tujuan bukan NONE",
+  });
+
 /** Reject wajib beralasan — dilihat merchant & tercatat di audit log. */
 export const rejectCampaignSchema = z.object({
   reason: z.string().min(3, "Alasan penolakan wajib diisi").max(300),

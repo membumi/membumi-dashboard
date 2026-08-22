@@ -1,18 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { authMock, apiPostMock, apiPutMock, apiPatchMock } = vi.hoisted(() => ({
-  authMock: vi.fn(),
-  apiPostMock: vi.fn(),
-  apiPutMock: vi.fn(),
-  apiPatchMock: vi.fn(),
-}));
+const { authMock, apiPostMock, apiPutMock, apiPatchMock, apiDeleteMock } = vi.hoisted(
+  () => ({
+    authMock: vi.fn(),
+    apiPostMock: vi.fn(),
+    apiPutMock: vi.fn(),
+    apiPatchMock: vi.fn(),
+    apiDeleteMock: vi.fn(),
+  }),
+);
 
 vi.mock("@/auth", () => ({ auth: authMock }));
 vi.mock("@/lib/api-client", () => ({
   apiPost: apiPostMock,
   apiPut: apiPutMock,
   apiPatch: apiPatchMock,
-  apiDelete: vi.fn(),
+  apiDelete: apiDeleteMock,
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
@@ -21,8 +24,11 @@ import {
   approveCampaign,
   cancelCampaign,
   createAdPackage,
+  createHouseAd,
+  deleteHouseAd,
   rejectCampaign,
   setBookingPriority,
+  updateHouseAd,
 } from "@/server/actions/ads";
 
 function fd(obj: Record<string, string | string[]>): FormData {
@@ -39,6 +45,7 @@ beforeEach(() => {
   apiPostMock.mockReset().mockResolvedValue({});
   apiPutMock.mockReset().mockResolvedValue({});
   apiPatchMock.mockReset().mockResolvedValue({});
+  apiDeleteMock.mockReset().mockResolvedValue({});
   authMock.mockResolvedValue({ user: { role: "ADMIN" } });
 });
 
@@ -105,5 +112,49 @@ describe("ads actions — inventory", () => {
   it("setBookingPriority PATCHes the priority", async () => {
     await setBookingPriority(fd({ id: "b1", priority: "10" }));
     expect(apiPatchMock).toHaveBeenCalledWith("/admin/ads/bookings/b1/priority", { priority: 10 });
+  });
+});
+
+describe("ads actions — materi bawaan Membumi", () => {
+  const base = {
+    placementCode: "home_banner",
+    title: "Promo Membumi",
+    imageUrl: "https://cdn/house.jpg",
+    targetType: "NONE",
+    sortOrder: "0",
+    active: "on",
+  };
+
+  it("membuat materi bawaan dengan kode penempatan huruf besar", async () => {
+    await createHouseAd(fd(base));
+    expect(apiPostMock).toHaveBeenCalledWith(
+      "/admin/ads/house",
+      expect.objectContaining({
+        placementCode: "HOME_BANNER",
+        title: "Promo Membumi",
+        targetType: "NONE",
+        active: true,
+      }),
+    );
+  });
+
+  it("menolak tujuan tanpa targetId (banner bisa ditekan tapi tak ke mana-mana)", async () => {
+    await expect(
+      createHouseAd(fd({ ...base, targetType: "MERCHANT" })),
+    ).rejects.toThrow();
+    expect(apiPostMock).not.toHaveBeenCalled();
+  });
+
+  it("menyimpan perubahan ke id yang benar", async () => {
+    await updateHouseAd(fd({ ...base, id: "h-1" }));
+    expect(apiPutMock).toHaveBeenCalledWith(
+      "/admin/ads/house/h-1",
+      expect.objectContaining({ placementCode: "HOME_BANNER" }),
+    );
+  });
+
+  it("menghapus materi bawaan", async () => {
+    await deleteHouseAd(fd({ id: "h-1" }));
+    expect(apiDeleteMock).toHaveBeenCalledWith("/admin/ads/house/h-1");
   });
 });
