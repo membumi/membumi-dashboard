@@ -52,7 +52,9 @@ export function ReviewActions({
             variant="destructive"
             disabled={pending}
             onClick={() => {
-              const reason = prompt("Alasan penolakan (wajib) — dana akan dikembalikan:");
+              const reason = prompt(
+                "Alasan penolakan (wajib) — dana DITAHAN; merchant bisa perbaiki & ajukan ulang gratis, atau membatalkan untuk refund:"
+              );
               if (reason === null) return;
               if (!reason.trim()) {
                 alert("Alasan penolakan wajib diisi.");

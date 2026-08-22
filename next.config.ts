@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Izinkan akses dev server dari perangkat lain di jaringan lokal (testing via LAN).
+  allowedDevOrigins: ["192.168.1.112"],
   // `headers()` is checked before the filesystem, so these also cover /public.
   async headers() {
     return [
