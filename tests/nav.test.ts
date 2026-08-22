@@ -39,7 +39,7 @@ describe("NAV", () => {
   it("groups every item under a known section", () => {
     const groups = new Set(NAV.map((n) => n.group));
     expect(groups).toEqual(
-      new Set(["Umum", "Konten", "Transportasi", "Monitoring", "Pengelolaan"])
+      new Set(["Umum", "Konten", "Ads & Campaign", "Transportasi", "Monitoring", "Pengelolaan"])
     );
   });
 

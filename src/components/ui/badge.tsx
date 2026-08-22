@@ -55,6 +55,16 @@ const STATUS_TONE: Record<string, keyof typeof TONE> = {
   DRIVER_ARRIVING: "blue",
   CANCELLED: "red",
   REJECTED: "red",
+  // Membumi Ads — campaign & booking lifecycle
+  ACTIVE: "green",
+  APPROVED: "green",
+  SCHEDULED: "blue",
+  PAUSED: "yellow",
+  PENDING_REVIEW: "purple",
+  PENDING_PAYMENT: "yellow",
+  RESERVED: "yellow",
+  RELEASED: "default",
+  BUDGET_EXHAUSTED: "red",
 };
 
 // Normalize API status values (lowercase / camelCase like `onDelivery`,

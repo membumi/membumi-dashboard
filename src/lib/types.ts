@@ -774,3 +774,149 @@ export interface DriverChallengeSummary {
   monthly: { target: number; reward: number; count: number; achieved: boolean };
   totals: { daysAchieved: number; weeksAchieved: number; rewardTotal: number };
 }
+
+// ── Membumi Ads (Ads & Campaign) ────────────────────────────────────────────
+
+export type CampaignStatus =
+  | "DRAFT"
+  | "PENDING_PAYMENT"
+  | "PENDING_REVIEW"
+  | "SCHEDULED"
+  | "ACTIVE"
+  | "PAUSED"
+  | "COMPLETED"
+  | "REJECTED"
+  | "CANCELLED";
+
+export interface AdPackage {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  price: number;
+  durationDays: number;
+  entitlements: { placement: string; slots: number }[];
+  badge: string | null;
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface AdAddon {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  price: number;
+  placementCode: string | null;
+  durationDays: number | null;
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface AdPlacement {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  kind: "FEATURED" | "BANNER" | "LISTING";
+  context: string | null;
+  maxSlots: number;
+  rotationStrategy: "ROUND_ROBIN" | "WEIGHTED";
+  active: boolean;
+}
+
+export interface AdBooking {
+  id: string;
+  placementCode: string;
+  status: string;
+  startsAt: string;
+  endsAt: string;
+  priority: number;
+}
+
+export interface AdCreative {
+  id: string;
+  placementCode: string;
+  imageUrl: string | null;
+  title: string;
+  subtitle: string | null;
+  targetType: string;
+  targetId: string;
+  status: string;
+  rejectedReason: string | null;
+}
+
+export interface Campaign {
+  id: string;
+  merchantId: string;
+  merchantName?: string | null;
+  name: string;
+  description: string | null;
+  type: "ADS" | "PROMO" | "ADS_PROMO";
+  status: CampaignStatus;
+  adsStatus: string | null;
+  promoStatus: string | null;
+  objective: string | null;
+  startsAt: string;
+  endsAt: string;
+  adPackageCode: string | null;
+  adAddons: { code: string; name: string; price: number }[] | null;
+  adsPrice: number;
+  promoBudgetFunded: number;
+  totalPrice: number;
+  rejectedReason: string | null;
+  paidAt: string | null;
+  activatedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  bookings?: AdBooking[];
+  creatives?: AdCreative[];
+  merchant?: {
+    id: string;
+    businessName: string;
+    category: string;
+    phoneNumber: string;
+    imageUrl: string | null;
+  } | null;
+}
+
+export interface CampaignAuditLog {
+  id: string;
+  campaignId: string;
+  actorType: "ADMIN" | "MERCHANT" | "SYSTEM";
+  actorId: string | null;
+  action: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  reason: string | null;
+  createdAt: string;
+}
+
+export interface CampaignAnalyticsOverview {
+  campaigns: {
+    pendingReview: number;
+    scheduled: number;
+    active: number;
+    paused: number;
+    completed: number;
+    byStatus: Record<string, number>;
+  };
+  adsRevenue: { gross: number; refunds: number; net: number };
+  traffic: { impressions: number; clicks: number };
+}
+
+export interface AdInventoryCalendar {
+  month: string;
+  placements: {
+    placement: { id: string; code: string; name: string; maxSlots: number; active: boolean };
+    bookings: {
+      id: string;
+      campaignId: string;
+      merchantId: string;
+      status: string;
+      startsAt: string;
+      endsAt: string;
+      priority: number;
+    }[];
+  }[];
+}

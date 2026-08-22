@@ -18,6 +18,9 @@ import {
   ClipboardCheck,
   Headphones,
   Settings,
+  Megaphone,
+  Tags,
+  LayoutGrid,
 } from "lucide-react";
 
 export type NavItem = {
@@ -40,6 +43,9 @@ export const NAV: NavItem[] = [
   { label: "Daftar Driver", href: "/ride/drivers", icon: Users, group: "Transportasi" },
   { label: "Kirim Barang", href: "/kirim-barang", icon: PackageOpen, group: "Konten" },
   { label: "Promo", href: "/promos", icon: Ticket, group: "Konten" },
+  { label: "Campaign", href: "/ads", icon: Megaphone, group: "Ads & Campaign" },
+  { label: "Paket & Harga", href: "/ads/pricing", icon: Tags, group: "Ads & Campaign" },
+  { label: "Placement & Inventory", href: "/ads/placements", icon: LayoutGrid, group: "Ads & Campaign" },
   { label: "Customer Support", href: "/support", icon: Headphones, group: "Monitoring" },
   { label: "Pesanan & Transaksi", href: "/orders", icon: ClipboardList, group: "Monitoring" },
   { label: "Pembayaran", href: "/payments", icon: Wallet, group: "Monitoring" },
