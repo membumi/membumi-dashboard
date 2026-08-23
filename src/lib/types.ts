@@ -473,6 +473,39 @@ export interface TopupRequest {
   proofUrl?: string | null;
 }
 
+// ── Merchant commission arrears ("Tarik Saldo") ─────────────────────────────
+/** A completed order whose platform commission was never debited (PRD 14 UC-WALLET-09). */
+export interface OutstandingCommission {
+  orderId: string;
+  kind: "food" | "mart";
+  /** MiLokal resi; always null for MiFood, which has no tracking column. */
+  trackingNumber?: string | null;
+  subtotal: number;
+  commissionRate: number;
+  commission: number;
+  completedAt: string;
+}
+
+export interface CommissionCollectionItem {
+  orderId: string | null;
+  /** Null when the id sent is not a completed order of this merchant. */
+  kind: "food" | "mart" | "manual" | null;
+  amount: number;
+  charged: boolean;
+  reason?: "ALREADY_CHARGED" | "NOT_OUTSTANDING" | null;
+}
+
+export interface CommissionCollectionResult {
+  merchantId: string;
+  mode: "order" | "manual";
+  chargedCount: number;
+  skippedCount: number;
+  totalCharged: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  items: CommissionCollectionItem[];
+}
+
 // ── Merchant (UMKM) withdrawals ─────────────────────────────────────────────
 export type WithdrawalStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type WithdrawalDestinationType = "BANK" | "EWALLET";
