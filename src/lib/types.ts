@@ -833,6 +833,25 @@ export interface AdPlacement {
   active: boolean;
 }
 
+/**
+ * Materi bawaan Membumi ("house ad") — tayang di sebuah placement banner hanya
+ * saat tidak ada merchant yang beriklan di sana.
+ */
+export interface AdHouseCreative {
+  id: string;
+  placementCode: string;
+  title: string;
+  subtitle: string | null;
+  imageUrl: string;
+  targetType: "NONE" | "MERCHANT" | "RESTAURANT" | "MART_PRODUCT" | "URL";
+  targetId: string | null;
+  sortOrder: number;
+  active: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+}
+
 export interface AdBooking {
   id: string;
   placementCode: string;

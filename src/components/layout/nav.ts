@@ -21,6 +21,7 @@ import {
   Megaphone,
   Tags,
   LayoutGrid,
+  ImageIcon,
 } from "lucide-react";
 
 export type NavItem = {
@@ -46,6 +47,7 @@ export const NAV: NavItem[] = [
   { label: "Campaign", href: "/ads", icon: Megaphone, group: "Ads & Campaign" },
   { label: "Paket & Harga", href: "/ads/pricing", icon: Tags, group: "Ads & Campaign" },
   { label: "Placement & Inventory", href: "/ads/placements", icon: LayoutGrid, group: "Ads & Campaign" },
+  { label: "Ads Default Membumi", href: "/ads/default", icon: ImageIcon, group: "Ads & Campaign" },
   { label: "Customer Support", href: "/support", icon: Headphones, group: "Monitoring" },
   { label: "Pesanan & Transaksi", href: "/orders", icon: ClipboardList, group: "Monitoring" },
   { label: "Pembayaran", href: "/payments", icon: Wallet, group: "Monitoring" },

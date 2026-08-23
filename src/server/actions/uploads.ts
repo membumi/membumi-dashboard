@@ -11,7 +11,8 @@ export type UploadFolder =
   | "hotels"
   | "trips"
   | "promos"
-  | "withdrawals";
+  | "withdrawals"
+  | "ad-creatives";
 
 export interface PresignedUpload {
   uploadUrl: string;
