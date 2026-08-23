@@ -68,26 +68,24 @@ export const withdrawalApproveSchema = z.object({
   proofUrl: z.string().url().optional().or(z.literal("")),
 });
 
-// Tarik saldo komisi merchant (PRD 14 UC-WALLET-09). Dua mode yang saling
-// eksklusif: pilih order tertunggak (nominal dihitung backend) atau ketik nominal
-// manual. `note` wajib di mode manual — itu satu-satunya keterangan yang dibaca
-// merchant di riwayat keuangannya.
-export const commissionWithdrawSchema = z
-  .object({
-    merchantId: id,
-    orderIds: z.array(id).min(1).optional(),
-    amount: z.coerce.number().int().min(1).max(100_000_000).optional(),
-    note: z.string().max(280).optional(),
-    clientRequestId: z.string().uuid().optional(),
-  })
-  .refine((v) => (v.orderIds != null) !== (v.amount != null), {
-    message: "Pilih order tertunggak atau isi nominal manual, bukan keduanya",
-    path: ["amount"],
-  })
-  .refine((v) => v.amount == null || (v.note != null && v.note.trim().length > 0), {
-    message: "Keterangan wajib diisi untuk penarikan manual",
-    path: ["note"],
-  });
+// Tarik saldo komisi merchant (PRD 14 UC-WALLET-09). Selalu bertumpu pada order
+// tertunggak: nominal tiap baris dihitung backend, dan `amount` HANYA dikirim saat
+// admin mengoreksinya (mis. ada item yang tidak jadi dikirim sehingga subtotal
+// tersimpan kebesaran). Nominal yang tidak disentuh sengaja tidak ikut terkirim —
+// nilainya bisa basi bila rate komisi berubah setelah halaman dirender.
+export const commissionWithdrawSchema = z.object({
+  merchantId: id,
+  orders: z
+    .array(
+      z.object({
+        orderId: id,
+        amount: z.coerce.number().int().min(1).max(100_000_000).optional(),
+      }),
+    )
+    .min(1)
+    .max(50),
+  note: z.string().max(280).optional(),
+});
 
 export const guideSchema = z.object({
   name: z.string().min(2),

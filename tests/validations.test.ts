@@ -288,49 +288,49 @@ describe("commissionWithdrawSchema — tarik saldo komisi merchant", () => {
   const merchantId = "8f1a5a3e-0a4c-4b6f-9c2d-7e5b1d9a4c11";
   const orderId = "1b2c3d4e-5f60-4718-8293-a4b5c6d7e8f9";
 
-  it("menerima mode order dengan satu order terpilih", () => {
-    const parsed = commissionWithdrawSchema.safeParse({ merchantId, orderIds: [orderId] });
+  it("menerima satu order tanpa nominal (dihitung backend)", () => {
+    const parsed = commissionWithdrawSchema.safeParse({ merchantId, orders: [{ orderId }] });
     expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.orders[0].amount).toBeUndefined();
   });
 
-  it("menerima mode manual dengan nominal + keterangan", () => {
+  it("menerima nominal yang dikoreksi per order", () => {
     const parsed = commissionWithdrawSchema.safeParse({
       merchantId,
-      amount: "5000",
-      note: "Komisi order #ABC",
+      orders: [{ orderId, amount: "6000" }],
+      note: "Ada item yang kosong",
     });
     expect(parsed.success).toBe(true);
-    if (parsed.success) expect(parsed.data.amount).toBe(5000);
+    if (parsed.success) expect(parsed.data.orders[0].amount).toBe(6000);
   });
 
   it("menolak daftar order kosong", () => {
-    expect(
-      commissionWithdrawSchema.safeParse({ merchantId, orderIds: [] }).success,
-    ).toBe(false);
+    expect(commissionWithdrawSchema.safeParse({ merchantId, orders: [] }).success).toBe(false);
   });
 
-  it("menolak request tanpa order maupun nominal", () => {
+  it("menolak request tanpa daftar order", () => {
     expect(commissionWithdrawSchema.safeParse({ merchantId }).success).toBe(false);
   });
 
-  it("menolak orderIds dan amount sekaligus (mode harus eksklusif)", () => {
+  it("menolak nominal koreksi nol atau negatif", () => {
     expect(
-      commissionWithdrawSchema.safeParse({
-        merchantId,
-        orderIds: [orderId],
-        amount: "5000",
-        note: "x",
-      }).success,
+      commissionWithdrawSchema.safeParse({ merchantId, orders: [{ orderId, amount: "0" }] }).success,
     ).toBe(false);
-  });
-
-  it("menolak mode manual tanpa keterangan", () => {
-    expect(commissionWithdrawSchema.safeParse({ merchantId, amount: "5000" }).success).toBe(false);
+    expect(
+      commissionWithdrawSchema.safeParse({ merchantId, orders: [{ orderId, amount: "-1" }] })
+        .success,
+    ).toBe(false);
   });
 
   it("menolak nominal di atas batas kolom ledger int4", () => {
     expect(
-      commissionWithdrawSchema.safeParse({ merchantId, amount: "100000001", note: "x" }).success,
+      commissionWithdrawSchema.safeParse({ merchantId, orders: [{ orderId, amount: "100000001" }] })
+        .success,
     ).toBe(false);
+  });
+
+  it("menolak lebih dari 50 order sekali tarik (batas backend)", () => {
+    const orders = Array.from({ length: 51 }, () => ({ orderId }));
+    expect(commissionWithdrawSchema.safeParse({ merchantId, orders }).success).toBe(false);
   });
 });

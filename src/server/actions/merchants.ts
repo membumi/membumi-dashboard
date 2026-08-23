@@ -6,7 +6,7 @@ import { ApiError, apiPost, apiPut, apiPatch, apiDelete } from "@/lib/api-client
 import { requireRole } from "@/lib/session";
 import { commissionWithdrawSchema, merchantSchema, merchantVerifySchema } from "@/lib/validations";
 import type { CommissionCollectionResult } from "@/lib/types";
-import { list, str, strOrUndef } from "@/lib/form";
+import { str, strOrUndef } from "@/lib/form";
 
 function parse(fd: FormData) {
   return merchantSchema.parse({
@@ -66,7 +66,7 @@ function commissionMessage(err: ApiError): string {
     case "INSUFFICIENT_MERCHANT_BALANCE":
       return "Saldo merchant tidak mencukupi. Minta merchant top up dulu, atau kurangi order yang ditarik.";
     case "VALIDATION_ERROR":
-      return "Data penarikan tidak valid. Pilih order tertunggak ATAU isi nominal manual beserta keterangannya.";
+      return "Penarikan ditolak backend — pastikan nominal tiap order tidak melebihi komisi yang tertunggak.";
     case "NOT_FOUND":
       return "Merchant tidak ditemukan.";
     default:
@@ -76,8 +76,11 @@ function commissionMessage(err: ApiError): string {
 
 /**
  * Tarik komisi yang belum sempat terpotong dari saldo merchant (PRD 14 UC-WALLET-09).
- * Mode ditentukan oleh field yang terisi di form; hanya field mode itu yang dikirim,
- * karena backend menolak request yang membawa `orderIds` DAN `amount` sekaligus.
+ * Baris `orders` datang sebagai JSON dari kartu — pasangan id + nominal tidak aman
+ * dikirim sebagai dua array FormData sejajar (pola yang sama dipakai `itinerary` di
+ * actions/trips). Nominal ikut terkirim hanya bila admin mengoreksinya; sisanya
+ * dihitung backend, dan penagihannya tetap berkunci pada `orderId` sehingga
+ * tunggakan order itu lunas walau nominalnya dikoreksi.
  *
  * Mengembalikan pesan alih-alih melempar untuk kegagalan yang WAJAR dilihat admin
  * (saldo merchant kurang) — persis alasan yang sama seperti `transferWallet`: saldo
@@ -89,31 +92,26 @@ export async function collectMerchantCommission(
   fd: FormData,
 ): Promise<CommissionState> {
   await requireRole("ADMIN");
-  const orderIds = list(fd, "orderIds");
-  const amount = strOrUndef(fd, "amount");
+  let orders: unknown = [];
+  try {
+    orders = JSON.parse(str(fd, "orders") || "[]");
+  } catch {
+    orders = [];
+  }
   const parsed = commissionWithdrawSchema.safeParse({
     merchantId: str(fd, "merchantId"),
-    orderIds: orderIds.length ? orderIds : undefined,
-    amount: amount || undefined,
+    orders,
     note: strOrUndef(fd, "note"),
-    clientRequestId: strOrUndef(fd, "clientRequestId"),
   });
   if (!parsed.success) {
-    return { error: "Pilih order tertunggak ATAU isi nominal manual beserta keterangannya." };
+    return { error: "Pilih minimal satu order tertunggak dengan nominal yang valid." };
   }
 
   let result: CommissionCollectionResult;
   try {
     result = await apiPost<CommissionCollectionResult>(
       `/admin/merchants/${parsed.data.merchantId}/commission-withdrawals`,
-      {
-        orderIds: parsed.data.orderIds,
-        amount: parsed.data.amount,
-        note: parsed.data.note,
-        // Idempotency key — only meaningful in manual mode, where there is no order
-        // id to key the debit on.
-        clientRequestId: parsed.data.amount != null ? parsed.data.clientRequestId : undefined,
-      },
+      { orders: parsed.data.orders, note: parsed.data.note },
     );
   } catch (err) {
     if (err instanceof ApiError) return { error: commissionMessage(err) };
@@ -126,9 +124,8 @@ export async function collectMerchantCommission(
   }
   return {
     ok:
-      `Saldo terpotong ${formatIdr(result.totalCharged)}` +
-      (result.mode === "order" ? ` dari ${result.chargedCount} pesanan` : "") +
-      `. Sisa saldo merchant ${formatIdr(result.balanceAfter)}.`,
+      `Saldo terpotong ${formatIdr(result.totalCharged)} dari ${result.chargedCount} pesanan. ` +
+      `Sisa saldo merchant ${formatIdr(result.balanceAfter)}.`,
   };
 }
 
