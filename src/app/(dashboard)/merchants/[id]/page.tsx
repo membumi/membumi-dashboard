@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { apiGet, ApiError } from "@/lib/api-client";
-import type { Merchant } from "@/lib/types";
+import { apiGet, apiGetPaged, ApiError } from "@/lib/api-client";
+import type { Merchant, OutstandingCommission, PovBalances } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MerchantForm } from "../merchant-form";
 import { WalletBalancesCard } from "@/components/wallet-balances-card";
+import { CommissionWithdrawCard } from "./commission-withdraw-card";
 import { updateMerchant, verifyMerchant } from "@/server/actions/merchants";
 
 export default async function MerchantDetailPage({
@@ -23,6 +24,22 @@ export default async function MerchantDetailPage({
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
+  }
+
+  // Komisi yang belum sempat terpotong + saldo MERCHANT untuk kartu Tarik Saldo
+  // (PRD 14 UC-WALLET-09). Fails soft: merchant tanpa akun pemilik menolak endpoint
+  // ini, dan itu bukan alasan halaman ini gagal.
+  let outstanding: OutstandingCommission[] = [];
+  let merchantBalance = 0;
+  if (merchant.userId) {
+    const [arrears, wallets] = await Promise.all([
+      apiGetPaged<OutstandingCommission>(`/admin/merchants/${id}/outstanding-commissions`, {
+        limit: 100,
+      }).catch(() => ({ items: [] as OutstandingCommission[] })),
+      apiGet<PovBalances>(`/admin/wallet/balances/${merchant.userId}`).catch(() => null),
+    ]);
+    outstanding = arrears.items;
+    merchantBalance = wallets?.balances.MERCHANT ?? 0;
   }
 
   // Linked content arrays are a backend gap (docs/dashboard-admin-gaps.md · Gap 2);
@@ -72,6 +89,14 @@ export default async function MerchantDetailPage({
           show={["USER", "MERCHANT"]}
           transferTo="merchant"
           returnTo={`/merchants/${merchant.id}`}
+        />
+      )}
+
+      {merchant.userId && (
+        <CommissionWithdrawCard
+          merchantId={merchant.id}
+          outstanding={outstanding}
+          balance={merchantBalance}
         />
       )}
 
