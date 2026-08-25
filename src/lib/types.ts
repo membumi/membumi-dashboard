@@ -302,6 +302,10 @@ export interface Driver {
   stnkPhotoUrl?: string | null;
   vehiclePhotoUrl?: string | null;
   verificationStatus: VerificationStatus;
+  /** Toggle "mode driver" di aplikasi driver — true saat driver ON (masuk pool order). */
+  isAvailable?: boolean;
+  /** Heartbeat GPS terakhir; null bila driver belum pernah mengirim posisi. */
+  lastSeenAt?: string | null;
   rating: number;
   totalTrips: number;
   createdAt: string;
