@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DRIVER_ACTIVITY_TYPES, DRIVER_ACTIVITY_TYPE_LABEL } from "@/lib/constants";
-import { challengeProgress, parseActivityFilters } from "@/lib/orders";
+import { challengeProgress, driverMode, parseActivityFilters } from "@/lib/orders";
 
 describe("parseActivityFilters", () => {
   it("meneruskan filter yang valid apa adanya", () => {
@@ -63,5 +63,17 @@ describe("DRIVER_ACTIVITY_TYPE_LABEL", () => {
       expect(DRIVER_ACTIVITY_TYPE_LABEL[t]).toBeTruthy();
     }
     expect(DRIVER_ACTIVITY_TYPE_LABEL.delivery).toBe("Kirim Barang");
+  });
+});
+
+describe("driverMode", () => {
+  it("memetakan toggle mode driver ke ON / OFF", () => {
+    expect(driverMode(true)).toBe("ON");
+    expect(driverMode(false)).toBe("OFF");
+  });
+
+  it("membedakan 'belum diketahui' dari OFF saat backend tidak mengirim isAvailable", () => {
+    expect(driverMode(undefined)).toBe("UNKNOWN");
+    expect(driverMode(null)).toBe("UNKNOWN");
   });
 });

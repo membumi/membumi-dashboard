@@ -65,6 +65,10 @@ const STATUS_TONE: Record<string, keyof typeof TONE> = {
   RESERVED: "yellow",
   RELEASED: "default",
   BUDGET_EXHAUSTED: "red",
+  // Mode driver — toggle ON/OFF di aplikasi driver
+  ON: "green",
+  OFF: "default",
+  UNKNOWN: "default",
 };
 
 // Normalize API status values (lowercase / camelCase like `onDelivery`,

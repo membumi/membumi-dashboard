@@ -105,3 +105,17 @@ export function challengeProgress(count: number, target: number): number {
   if (target <= 0) return 0;
   return Math.min(100, Math.max(0, Math.round((count / target) * 100)));
 }
+
+/** Mode driver di daftar driver: ON/OFF, atau UNKNOWN saat backend tak mengirimnya. */
+export type DriverMode = "ON" | "OFF" | "UNKNOWN";
+
+/**
+ * Terjemahkan `isAvailable` (toggle mode driver di aplikasi driver) ke mode yang
+ * ditampilkan. Backend lama tidak mengirim field ini — dibedakan dari OFF supaya
+ * admin tidak salah membaca "belum diketahui" sebagai "driver sedang offline".
+ */
+export function driverMode(isAvailable?: boolean | null): DriverMode {
+  if (isAvailable === true) return "ON";
+  if (isAvailable === false) return "OFF";
+  return "UNKNOWN";
+}

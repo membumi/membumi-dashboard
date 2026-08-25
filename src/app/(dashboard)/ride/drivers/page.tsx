@@ -9,6 +9,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { VERIFICATION_STATUSES, VERIFICATION_STATUS_LABEL } from "@/lib/constants";
+import { driverMode } from "@/lib/orders";
 import { verifyDriver, deleteDriver } from "@/server/actions/ride";
 
 export default async function DriversPage({
@@ -52,7 +53,7 @@ export default async function DriversPage({
 
       <Card>
         <CardContent className="p-0">
-          <Table layout="scroll" stickyFirstColumn minWidth="64rem">
+          <Table layout="scroll" stickyFirstColumn minWidth="68rem">
             <THead>
               <TR>
                 <TH>Nama</TH>
@@ -64,11 +65,12 @@ export default async function DriversPage({
                 <TH>Rating</TH>
                 <TH>Trip</TH>
                 <TH>Status</TH>
+                <TH>Mode Driver</TH>
                 <TH>Aksi</TH>
               </TR>
             </THead>
             <TBody>
-              {drivers.length === 0 && <EmptyRow colSpan={10} />}
+              {drivers.length === 0 && <EmptyRow colSpan={11} />}
               {drivers.map((d) => (
                 <TR key={d.id}>
                   <TD data-label="Nama" className="font-medium">{d.name}</TD>
@@ -80,6 +82,7 @@ export default async function DriversPage({
                   <TD data-label="Rating">★ {d.rating}</TD>
                   <TD data-label="Trip">{d.totalTrips}</TD>
                   <TD data-label="Status"><StatusBadge status={d.verificationStatus} /></TD>
+                  <TD data-label="Mode Driver"><DriverModeCell isAvailable={d.isAvailable} /></TD>
                   <TD>
                     <div className="flex items-center gap-1">
                       <Link href={`/ride/drivers/${d.id}`}>
@@ -110,4 +113,14 @@ export default async function DriversPage({
       </Card>
     </div>
   );
+}
+
+/**
+ * Toggle "mode driver" di aplikasi driver. Backend lama belum mengirim
+ * `isAvailable` — tampilkan "—" alih-alih mengklaim driver sedang OFF.
+ */
+function DriverModeCell({ isAvailable }: { isAvailable?: boolean }) {
+  const mode = driverMode(isAvailable);
+  if (mode === "UNKNOWN") return <span className="text-slate-400">—</span>;
+  return <StatusBadge status={mode} label={mode} />;
 }
