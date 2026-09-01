@@ -11,6 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ConfirmDelete } from "@/components/forms/form-controls";
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Pagination } from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
+import { Input, Label } from "@/components/ui/input";
+import { buildListHref, EXPORT_LIMIT, PER_PAGE } from "@/lib/pagination";
+import { exportRangeSuffix, parseFinanceFilters } from "@/lib/finance";
 import { deleteFinanceRecord } from "@/server/actions/finance";
 import { FinanceForm } from "./finance-form";
 import { CommissionForm } from "./commission-form";
@@ -30,30 +36,47 @@ const EMPTY: FinanceSummary = {
   commissionCollected: { driver: 0, merchant: 0, total: 0 },
 };
 
-const SOURCES = ["manual", "platform"] as const;
-
 export default async function KeuanganPage({
   searchParams,
 }: {
-  searchParams: Promise<{ source?: string }>;
+  searchParams: Promise<{ source?: string; dateFrom?: string; dateTo?: string; page?: string }>;
 }) {
   const me = await getCurrentAdmin();
   if (!hasRole(me?.role, "ADMIN")) {
     redirect("/");
   }
 
-  const { source } = await searchParams;
-  const validSource = (SOURCES as readonly string[]).includes(source ?? "")
-    ? (source as "manual" | "platform")
-    : undefined;
+  const filters = parseFinanceFilters(await searchParams);
+  const validSource = filters.source;
+  const historyQuery = {
+    source: filters.source,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+  };
 
-  const [summary, { items: history }, rates] = await Promise.all([
-    apiGet<FinanceSummary>("/admin/finance/summary").catch(() => EMPTY),
-    apiGetPaged<FinanceEntry>("/admin/finance/history", { source: validSource, limit: 100 }).catch(
+  const fetchHistory = (page: number, limit: number) =>
+    apiGetPaged<FinanceEntry>("/admin/finance/history", { ...historyQuery, page, limit }).catch(
       () => ({ items: [] as FinanceEntry[], meta: null })
-    ),
+    );
+
+  // Dua fetch: satu untuk halaman tabel, satu untuk dataset export. Tanpa ini,
+  // mem-paginasi tabel ke 20 baris akan ikut menyusutkan isi file export.
+  const [summary, { items: history, meta }, exportResult, rates] = await Promise.all([
+    apiGet<FinanceSummary>("/admin/finance/summary").catch(() => EMPTY),
+    fetchHistory(filters.page, PER_PAGE),
+    fetchHistory(1, EXPORT_LIMIT),
     apiGet<CommissionRates>("/admin/finance/commission").catch(() => DEFAULT_RATES),
   ]);
+  const exportRows = exportResult.items;
+
+  // Chip sumber tidak membawa `page` — ganti filter, kembali ke halaman 1.
+  const sourceHref = (source?: string) =>
+    buildListHref("/keuangan", {
+      source,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+    });
+  const pageHref = (page: number) => buildListHref("/keuangan", { ...historyQuery, page });
 
   const cards = [
     { label: "Total", value: summary.total, icon: Wallet, tone: "text-slate-900" },
@@ -183,14 +206,48 @@ export default async function KeuanganPage({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle>Riwayat Transaksi</CardTitle>
             <div className="flex flex-wrap items-center gap-1.5">
-              <FilterChip label="Semua" href="/keuangan" active={!validSource} />
-              <FilterChip label="Manual" href="/keuangan?source=manual" active={validSource === "manual"} />
-              <FilterChip label="Platform" href="/keuangan?source=platform" active={validSource === "platform"} />
-              <ExportButton rows={history} summary={summary} />
+              <FilterChip label="Semua" href={sourceHref()} active={!validSource} />
+              <FilterChip label="Manual" href={sourceHref("manual")} active={validSource === "manual"} />
+              <FilterChip label="Platform" href={sourceHref("platform")} active={validSource === "platform"} />
+              {(meta?.totalItems ?? 0) > EXPORT_LIMIT && (
+                <span className="text-xs text-slate-400">
+                  Export maks. {EXPORT_LIMIT.toLocaleString("id-ID")} baris terbaru — persempit
+                  filter tanggal untuk data lengkap.
+                </span>
+              )}
+              <ExportButton
+                rows={exportRows}
+                summary={summary}
+                rangeSuffix={exportRangeSuffix(filters)}
+              />
             </div>
           </div>
         </CardHeader>
         <CardContent>
+          {/* Filter tanggal: form GET biasa, sama seperti Log Aktivitas Driver. */}
+          <form method="get" className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Sumber dipilih via chip di atas — pertahankan saat submit. */}
+            {filters.source && <input type="hidden" name="source" value={filters.source} />}
+            <div className="space-y-1">
+              <Label htmlFor="fin-from">Dari tanggal</Label>
+              <Input id="fin-from" type="date" name="dateFrom" defaultValue={filters.dateFrom} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="fin-to">Sampai tanggal</Label>
+              <Input id="fin-to" type="date" name="dateTo" defaultValue={filters.dateTo} />
+            </div>
+            <div className="flex items-end gap-2">
+              <Button type="submit" variant="secondary" size="sm">Terapkan</Button>
+              {(filters.dateFrom || filters.dateTo) && (
+                <Link
+                  href={buildListHref("/keuangan", { source: filters.source })}
+                  className="text-sm text-slate-500 hover:text-slate-700"
+                >
+                  Reset
+                </Link>
+              )}
+            </div>
+          </form>
           <Table layout="scroll" stickyFirstColumn minWidth="64rem">
             <THead>
               <TR>
@@ -244,24 +301,18 @@ export default async function KeuanganPage({
               ))}
             </TBody>
           </Table>
+
+          <Pagination
+            page={filters.page}
+            meta={meta}
+            itemsOnPage={history.length}
+            perPage={PER_PAGE}
+            buildHref={pageHref}
+            unit="transaksi"
+            className="px-0"
+          />
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function FilterChip({ label, href, active }: { label: string; href: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "rounded-full border px-3 py-1 text-xs font-medium",
-        active
-          ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 text-slate-600 hover:bg-slate-50"
-      )}
-    >
-      {label}
-    </Link>
   );
 }

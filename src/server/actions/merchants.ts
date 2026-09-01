@@ -52,6 +52,16 @@ export async function verifyMerchant(fd: FormData) {
   revalidatePath("/merchants");
 }
 
+/**
+ * Catat bahwa merchant sudah di-follow-up via WhatsApp. Dicatat di server, bukan
+ * di klien, supaya dua operator tidak mengejar merchant yang sama.
+ */
+export async function markMerchantFollowedUp(id: string) {
+  await requireRole("OPERATOR");
+  await apiPost(`/admin/merchants/${id}/follow-up`);
+  revalidatePath("/merchants");
+}
+
 export async function deleteMerchant(fd: FormData) {
   await requireRole("SUPER_ADMIN");
   await apiDelete(`/admin/merchants/${str(fd, "id")}`);

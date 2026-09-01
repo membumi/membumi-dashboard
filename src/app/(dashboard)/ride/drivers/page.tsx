@@ -6,6 +6,7 @@ import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { WhatsAppButton, WhatsAppLink } from "@/components/ui/wa-link";
 import { ConfirmDelete } from "@/components/forms/form-controls";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { VERIFICATION_STATUSES, VERIFICATION_STATUS_LABEL } from "@/lib/constants";
@@ -75,7 +76,9 @@ export default async function DriversPage({
                 <TR key={d.id}>
                   <TD data-label="Nama" className="font-medium">{d.name}</TD>
                   <TD data-label="Nama Lengkap">{d.fullname ?? "—"}</TD>
-                  <TD data-label="No. Telepon" className="text-slate-500">{d.phone ?? "—"}</TD>
+                  <TD data-label="No. Telepon">
+                    <WhatsAppLink phone={d.whatsappNumber ?? d.phone} />
+                  </TD>
                   <TD data-label="Kendaraan">{d.vehicleModel}</TD>
                   <TD data-label="Plat">{d.plateNumber}</TD>
                   <TD data-label="Tipe" className="capitalize">{d.type}</TD>
@@ -88,6 +91,8 @@ export default async function DriversPage({
                       <Link href={`/ride/drivers/${d.id}`}>
                         <Button type="button" size="sm" variant="ghost">Detail</Button>
                       </Link>
+                      {/* WhatsApp dulu dari nomor WA khusus, jatuh ke telepon biasa. */}
+                      <WhatsAppButton phone={d.whatsappNumber ?? d.phone} label="WA" />
                       {d.verificationStatus !== "VERIFIED" && (
                         <form action={verifyDriver}>
                           <input type="hidden" name="id" value={d.id} />

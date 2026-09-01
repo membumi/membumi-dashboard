@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { apiGet, apiGetPaged } from "@/lib/api-client";
 import type { WalletTransaction } from "@/lib/types";
@@ -10,44 +9,48 @@ import {
   transactionStatusLabel,
   transactionTypeLabel,
 } from "@/lib/constants";
-import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
+import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge, StatusBadge } from "@/components/ui/badge";
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Pagination } from "@/components/ui/pagination";
+import { buildListHref, parsePage, PER_PAGE } from "@/lib/pagination";
 
 export default async function PaymentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; status?: string }>;
+  searchParams: Promise<{ type?: string; status?: string; page?: string }>;
 }) {
   const me = await getCurrentAdmin();
   if (!hasRole(me?.role, "ADMIN")) {
     redirect("/");
   }
 
-  const { type, status } = await searchParams;
+  const { type, status, page: pageParam } = await searchParams;
   const validType =
     type && (TRANSACTION_TYPES as readonly string[]).includes(type) ? type : undefined;
   const validStatus =
     status && (TRANSACTION_STATUSES as readonly string[]).includes(status) ? status : undefined;
 
-  // Preserve the other filter when building a chip's href.
-  const hrefWith = (next: { type?: string; status?: string }) => {
-    const params = new URLSearchParams();
-    const t = "type" in next ? next.type : validType;
-    const s = "status" in next ? next.status : validStatus;
-    if (t) params.set("type", t);
-    if (s) params.set("status", s);
-    const qs = params.toString();
-    return qs ? `/payments?${qs}` : "/payments";
-  };
+  const page = parsePage(pageParam);
 
-  const [{ items: txns }, summary] = await Promise.all([
+  // Preserve the other filter when building a chip's href. Chip tidak membawa
+  // `page` — mengganti filter mengembalikan daftar ke halaman 1.
+  const hrefWith = (next: { type?: string; status?: string; page?: number }) =>
+    buildListHref("/payments", {
+      type: "type" in next ? next.type : validType,
+      status: "status" in next ? next.status : validStatus,
+      page: next.page,
+    });
+
+  const [{ items: txns, meta }, summary] = await Promise.all([
     apiGetPaged<WalletTransaction>("/admin/wallet-transactions", {
       type: validType,
       status: validStatus,
-      limit: 100,
+      page,
+      limit: PER_PAGE,
     }),
     // Summary is a backend gap (Gap 6); fall back to zeros until it ships.
     apiGet<{ credit: number; debit: number }>("/admin/wallet-transactions/summary", {
@@ -133,20 +136,15 @@ export default async function PaymentsPage({
           ))}
         </TBody>
       </Table>
-    </div>
-  );
-}
 
-function FilterChip({ label, href, active }: { label: string; href: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "rounded-full border px-3 py-1 text-xs font-medium",
-        active ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"
-      )}
-    >
-      {label}
-    </Link>
+      <Pagination
+        page={page}
+        meta={meta}
+        itemsOnPage={txns.length}
+        perPage={PER_PAGE}
+        buildHref={(p) => hrefWith({ page: p })}
+        unit="transaksi"
+      />
+    </div>
   );
 }

@@ -8,10 +8,10 @@ import { updateShipment } from "@/server/actions/mart";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
-import { StatusBadge } from "@/components/ui/badge";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PaymentBreakdown } from "@/components/ui/payment-breakdown";
+import { CancellationDetails, OrderStatusBadge } from "@/components/ui/order-status";
 
 export default async function MartOrderDetailPage({
   params,
@@ -87,8 +87,9 @@ export default async function MartOrderDetailPage({
             <CardContent className="space-y-4 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Status</span>
-                <StatusBadge status={order.status} />
+                <OrderStatusBadge order={order} />
               </div>
+              <CancellationDetails order={order} />
               <div className="flex items-start justify-between gap-4">
                 <span className="text-slate-500">Alamat</span>
                 <span className="text-right text-slate-800">{order.deliveryAddress ?? "—"}</span>

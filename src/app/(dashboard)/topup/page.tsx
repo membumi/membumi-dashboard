@@ -11,6 +11,8 @@ import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table
 import { Badge } from "@/components/ui/badge";
 import { ImagePreview } from "@/components/ui/image-preview";
 import { FilterChip } from "@/components/ui/filter-chip";
+import { Pagination } from "@/components/ui/pagination";
+import { buildListHref, parsePage, PER_PAGE } from "@/lib/pagination";
 import { ReviewActions } from "./review-actions";
 
 const STATUSES: TopupRequestStatus[] = ["PENDING", "APPROVED", "REJECTED"];
@@ -46,27 +48,28 @@ function sumberOf(r: TopupRequest): (typeof SUMBER)[number] {
 export default async function TopupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; sumber?: string }>;
+  searchParams: Promise<{ status?: string; sumber?: string; page?: string }>;
 }) {
   const me = await getCurrentAdmin();
   if (!hasRole(me?.role, "ADMIN")) {
     redirect("/");
   }
 
-  const { status, sumber } = await searchParams;
+  const { status, sumber, page: pageParam } = await searchParams;
   const validStatus = STATUSES.includes(status as TopupRequestStatus)
     ? (status as TopupRequestStatus)
     : undefined;
   const validSumber = SUMBER.find((s) => s.key === sumber)?.key;
+  const page = parsePage(pageParam);
 
-  const { items: allRequests } = await apiGetPaged<TopupRequest>("/admin/topup-requests", {
+  // `sumber` difilter di backend (bukan lagi di klien): memotong hasil setelah
+  // fetch akan menghilangkan baris per halaman dan membuat `totalItems` menipu.
+  const { items: requests, meta } = await apiGetPaged<TopupRequest>("/admin/topup-requests", {
     status: validStatus,
-    limit: 100,
+    sumber: validSumber,
+    page,
+    limit: PER_PAGE,
   });
-  // "Sumber" difilter di klien (turunan source × walletType; backend hanya memfilter status).
-  const requests = validSumber
-    ? allRequests.filter((r) => sumberOf(r).key === validSumber)
-    : allRequests;
 
   return (
     <div>
@@ -169,16 +172,32 @@ export default async function TopupPage({
           ))}
         </TBody>
       </Table>
+
+      <Pagination
+        page={page}
+        meta={meta}
+        itemsOnPage={requests.length}
+        perPage={PER_PAGE}
+        buildHref={(p) => hrefWith({ status: validStatus, sumber: validSumber, page: p })}
+        unit="permintaan"
+      />
     </div>
   );
 }
 
-/** Build a /topup URL preserving whichever of status/sumber are provided. */
-function hrefWith(params: { status?: TopupRequestStatus; sumber?: SumberKey }): string {
-  const qs = new URLSearchParams();
-  if (params.status) qs.set("status", params.status);
-  if (params.sumber) qs.set("sumber", params.sumber);
-  const s = qs.toString();
-  return s ? `/topup?${s}` : "/topup";
+/**
+ * URL /topup dengan status/sumber yang diberikan. Chip sengaja tidak membawa
+ * `page`: mengganti filter mengembalikan daftar ke halaman 1.
+ */
+function hrefWith(params: {
+  status?: TopupRequestStatus;
+  sumber?: SumberKey;
+  page?: number;
+}): string {
+  return buildListHref("/topup", {
+    status: params.status,
+    sumber: params.sumber,
+    page: params.page,
+  });
 }
 

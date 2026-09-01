@@ -5,12 +5,15 @@ import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
-import { StatusBadge, Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
+import { OrderStatusBadge } from "@/components/ui/order-status";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
 import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
 import { RIDE_TYPES, DELIVERY_STATUSES, hasRole } from "@/lib/constants";
 import { getCurrentAdmin } from "@/lib/session";
+import { buildListHref, parsePage, PER_PAGE } from "@/lib/pagination";
 import {
   createDeliveryCategory,
   deleteDeliveryCategory,
@@ -18,15 +21,13 @@ import {
   updateDeliveryFareConfig,
 } from "@/server/actions/delivery";
 
-const DELIVERIES_PER_PAGE = 20;
-
 export default async function KirimBarangPage({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string; status?: string }>;
 }) {
   const { page: pageParam, status: statusParam } = await searchParams;
-  const page = Math.max(1, Number(pageParam) || 1);
+  const page = parsePage(pageParam);
   const status = DELIVERY_STATUSES.includes(statusParam as never) ? statusParam : undefined;
 
   const me = await getCurrentAdmin();
@@ -37,17 +38,13 @@ export default async function KirimBarangPage({
     apiGetPaged<PackageCategory>("/admin/delivery-categories"),
     apiGetPaged<Delivery>("/admin/deliveries", {
       page,
-      limit: DELIVERIES_PER_PAGE,
+      limit: PER_PAGE,
       ...(status ? { status } : {}),
     }),
   ]);
   const fareByVehicle = Object.fromEntries(fares.map((f) => [f.vehicle, f]));
 
-  const buildHref = (p: number) =>
-    `/kirim-barang?${new URLSearchParams({
-      page: String(p),
-      ...(status ? { status } : {}),
-    }).toString()}`;
+  const buildHref = (p: number) => buildListHref("/kirim-barang", { status, page: p });
 
   return (
     <div className="space-y-6">
@@ -242,36 +239,22 @@ export default async function KirimBarangPage({
                 <TD data-label="Tarif">{formatRupiah(d.fare.amount)}</TD>
                 <TD data-label="Biaya Layanan" className="text-slate-500">{formatRupiah(d.serviceFee ?? 0)}</TD>
                 <TD data-label="Kurir">{d.courier?.name ?? "—"}</TD>
-                <TD data-label="Status"><StatusBadge status={d.status} /></TD>
+                <TD data-label="Status"><OrderStatusBadge order={d} /></TD>
                 <TD data-label="Waktu" className="text-slate-500">{formatDateTime(d.createdAt)}</TD>
               </TR>
             ))}
           </TBody>
         </Table>
 
-        <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
-          <span>
-            Halaman {meta?.page ?? page}
-            {meta?.totalPages ? ` dari ${meta.totalPages}` : ""}
-            {meta?.totalItems != null ? ` · ${meta.totalItems} pengantaran` : ""}
-          </span>
-          <div className="flex gap-2">
-            {(meta?.hasPrevPage ?? page > 1) ? (
-              <Link href={buildHref(page - 1)} className="rounded-md border border-slate-200 px-3 py-1 hover:bg-slate-50">
-                ← Sebelumnya
-              </Link>
-            ) : (
-              <span className="rounded-md border border-slate-100 px-3 py-1 text-slate-300">← Sebelumnya</span>
-            )}
-            {(meta?.hasNextPage ?? deliveries.length === DELIVERIES_PER_PAGE) ? (
-              <Link href={buildHref(page + 1)} className="rounded-md border border-slate-200 px-3 py-1 hover:bg-slate-50">
-                Berikutnya →
-              </Link>
-            ) : (
-              <span className="rounded-md border border-slate-100 px-3 py-1 text-slate-300">Berikutnya →</span>
-            )}
-          </div>
-        </div>
+        <Pagination
+          page={page}
+          meta={meta}
+          itemsOnPage={deliveries.length}
+          perPage={PER_PAGE}
+          buildHref={buildHref}
+          unit="pengantaran"
+          className="px-0"
+        />
       </div>
 
       <p className="text-sm text-slate-500">

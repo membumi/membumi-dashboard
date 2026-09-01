@@ -123,6 +123,20 @@ export const DELIVERY_STATUSES = [
 ] as const;
 export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
 
+// ── Atribusi pembatalan order ──────────────────────────────────────────────
+// Kontrak bersama dengan `CANCELLED_BY_VALUES` di backend
+// (`src/common/interfaces/cancellation.types.ts`) — ubah di kedua repo.
+export const CANCELLED_BY = ["customer", "merchant", "driver", "system", "admin"] as const;
+export type CancelledBy = (typeof CANCELLED_BY)[number];
+
+export const CANCELLED_BY_LABEL: Record<CancelledBy, string> = {
+  customer: "Pengguna",
+  merchant: "Merchant",
+  driver: "Driver",
+  system: "Sistem",
+  admin: "Admin",
+};
+
 // ── Promos — same values as backend ────────────────────────────────────────
 export const DISCOUNT_TYPES = ["PERCENT", "FIXED", "FREE_SHIPPING"] as const;
 export type DiscountType = (typeof DISCOUNT_TYPES)[number];

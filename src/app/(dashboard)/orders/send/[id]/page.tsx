@@ -5,8 +5,9 @@ import { deliveryById } from "@/server/queries";
 import { formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge, Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { PaymentBreakdown } from "@/components/ui/payment-breakdown";
+import { CancellationDetails, OrderStatusBadge } from "@/components/ui/order-status";
 
 export default async function DeliveryDetailPage({
   params,
@@ -99,8 +100,9 @@ export default async function DeliveryDetailPage({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Status</span>
-                <StatusBadge status={delivery.status} />
+                <OrderStatusBadge order={delivery} />
               </div>
+              <CancellationDetails order={delivery} />
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Kurir</span>
                 <span className="text-slate-800">{delivery.courier?.name ?? "—"}</span>

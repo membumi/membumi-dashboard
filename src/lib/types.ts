@@ -68,6 +68,9 @@ export interface Merchant {
   createdAt: string;
   contentCounts?: MerchantContentCounts; // backend gap 2 (optional)
   content?: MerchantContent; // backend gap 2 (optional)
+  /** Kapan admin terakhir follow-up via WhatsApp; null = belum pernah. */
+  followedUpAt?: string | null;
+  followedUpBy?: string | null;
 }
 
 // ── Hotels ─────────────────────────────────────────────────────────────────
@@ -199,6 +202,14 @@ export interface MartOrderItem {
 export interface MartOrder {
   id: string;
   status: string; // packing | shipped | onDelivery | arrived | cancelled
+  /**
+   * Atribusi pembatalan. Semuanya opsional & bisa null: order yang dibatalkan
+   * sebelum kolomnya ada tidak punya pelaku — tampilkan "Tidak diketahui",
+   * jangan asumsikan pembeli.
+   */
+  cancelledBy?: string | null;
+  cancelReason?: string | null;
+  cancelledAt?: string | null;
   items: MartOrderItem[];
   subtotal?: number;
   deliveryFee?: number;
@@ -253,6 +264,14 @@ export interface FoodOrder {
   restaurantId: string;
   restaurantName: string;
   status: string; // confirmed | preparing | pickedUp | delivering | delivered | cancelled
+  /**
+   * Atribusi pembatalan. Semuanya opsional & bisa null: order yang dibatalkan
+   * sebelum kolomnya ada tidak punya pelaku — tampilkan "Tidak diketahui",
+   * jangan asumsikan pembeli.
+   */
+  cancelledBy?: string | null;
+  cancelReason?: string | null;
+  cancelledAt?: string | null;
   items: FoodOrderItem[];
   subtotal: number;
   deliveryFee: number;
@@ -342,6 +361,14 @@ export interface Ride {
   id: string;
   type: string;
   status: string;
+  /**
+   * Atribusi pembatalan. Semuanya opsional & bisa null: order yang dibatalkan
+   * sebelum kolomnya ada tidak punya pelaku — tampilkan "Tidak diketahui",
+   * jangan asumsikan pembeli.
+   */
+  cancelledBy?: string | null;
+  cancelReason?: string | null;
+  cancelledAt?: string | null;
   pickup: { lat: number; lng: number; address: string; name?: string | null };
   destination: { lat: number; lng: number; address: string; name?: string | null };
   fare: {
@@ -404,6 +431,14 @@ export interface Delivery {
   id: string;
   vehicle: string;
   status: string;
+  /**
+   * Atribusi pembatalan. Semuanya opsional & bisa null: order yang dibatalkan
+   * sebelum kolomnya ada tidak punya pelaku — tampilkan "Tidak diketahui",
+   * jangan asumsikan pembeli.
+   */
+  cancelledBy?: string | null;
+  cancelReason?: string | null;
+  cancelledAt?: string | null;
   pickup: { lat: number; lng: number; address: string; name?: string | null };
   destination: { lat: number; lng: number; address: string; name?: string | null };
   sender: { name: string; phone: string };
@@ -648,6 +683,11 @@ export interface Overview {
   };
   pending: { merchants: number; drivers: number };
   lowStock: number;
+  /**
+   * Merchant VERIFIED yang sudah lewat batas follow-up tapi katalognya masih
+   * kosong. Opsional: backend lama tidak mengirimnya → kartu Overview 0.
+   */
+  merchantsNoContent?: number;
   gmvByService: { hotel: number; trip: number; mart: number; food: number; ride: number };
   gmvTotal: number;
   recent: { kind: string; title: string; amount: number; status: string; createdAt: string }[];

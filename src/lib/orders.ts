@@ -1,7 +1,12 @@
 import {
+  CANCELLED_BY,
+  CANCELLED_BY_LABEL,
+  DELIVERY_STATUSES,
   DRIVER_ACTIVITY_TYPES,
   FOOD_ORDER_FILTER_STATUSES,
   RIDE_STATUSES,
+  SHIPMENT_STATUSES,
+  type CancelledBy,
   type DriverActivityType,
 } from "@/lib/constants";
 import type { Ride } from "@/lib/types";
@@ -13,6 +18,7 @@ import type { Ride } from "@/lib/types";
 export const ORDER_TABS = [
   { key: "food", label: "MiFood" },
   { key: "ride", label: "MiRide" },
+  { key: "send", label: "MiSend" },
   { key: "mart", label: "Order Mart" },
   { key: "bookings", label: "Booking Hotel" },
   { key: "trips", label: "Registrasi Trip" },
@@ -40,6 +46,12 @@ export function resolveTabStatus(tab: OrderTabKey, raw?: string): string | undef
   if (tab === "ride") {
     return RIDE_STATUSES.includes(raw as never) ? raw : undefined;
   }
+  if (tab === "send") {
+    return DELIVERY_STATUSES.includes(raw as never) ? raw : undefined;
+  }
+  if (tab === "mart") {
+    return SHIPMENT_STATUSES.includes(raw as never) ? raw : undefined;
+  }
   return undefined;
 }
 
@@ -60,10 +72,29 @@ export function rideServiceFee(ride: Pick<Ride, "fare" | "serviceFee">): number 
 export const TAB_SUPPORTS_SEARCH: Record<OrderTabKey, boolean> = {
   food: true,
   ride: false,
+  // `/admin/deliveries` tidak punya param `search` — sama seperti `/admin/rides`.
+  send: false,
   mart: true,
   bookings: true,
   trips: true,
 };
+
+// ── Atribusi pembatalan ─────────────────────────────────────────────────────
+
+/**
+ * Label pelaku pembatalan. Sengaja 3-state seperti `driverMode`: order yang
+ * dibatalkan sebelum kolom `cancelled_by` ada tidak punya pelaku, dan menebaknya
+ * sebagai "Pengguna" akan menuduh pembeli atas pembatalan merchant/sistem.
+ */
+export function cancelledByLabel(value?: string | null): string {
+  if (!value) return "Tidak diketahui";
+  return CANCELLED_BY_LABEL[value as CancelledBy] ?? value;
+}
+
+/** `?cancelledBy=` → nilai valid; nilai asing dibuang agar backend tidak 400. */
+export function resolveCancelledBy(raw?: string): CancelledBy | undefined {
+  return CANCELLED_BY.includes(raw as never) ? (raw as CancelledBy) : undefined;
+}
 
 // ── Log aktivitas driver (/ride/drivers/activity) ───────────────────────────
 

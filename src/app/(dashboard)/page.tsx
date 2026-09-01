@@ -8,10 +8,12 @@ import {
   Users,
   AlertTriangle,
   HandCoins,
+  Store,
 } from "lucide-react";
 import { apiGet } from "@/lib/api-client";
 import type { Overview } from "@/lib/types";
 import { formatRupiah, formatDateTime } from "@/lib/utils";
+import { FOLLOW_UP_AFTER_DAYS } from "@/lib/merchants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import { MonitoringCards } from "@/components/monitoring-cards";
@@ -61,6 +63,15 @@ export default async function OverviewPage() {
   // reads the dedicated counters endpoint; only stock is left here.
   const actions = [
     { label: "Produk stok menipis (< 5)", count: ov.lowStock, href: "/mart", icon: AlertTriangle },
+    // Merchant terdaftar & terverifikasi tapi katalognya masih kosong lewat batas
+    // follow-up. Sengaja bukan COUNTER_TOPICS: array itu kontrak bersama socket
+    // /admin + preferensi push backend, dan ini bukan antrean yang perlu push.
+    {
+      label: `Merchant belum isi produk (>${FOLLOW_UP_AFTER_DAYS} hari)`,
+      count: ov.merchantsNoContent ?? 0,
+      href: "/merchants?content=empty",
+      icon: Store,
+    },
   ].filter((a) => a.count > 0);
 
   return (

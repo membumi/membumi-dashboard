@@ -7,9 +7,10 @@ import { RIDE_TYPE_LABEL } from "@/lib/constants";
 import { rideServiceFee } from "@/lib/orders";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge, Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { PaymentBreakdown } from "@/components/ui/payment-breakdown";
 import { MapsLinkButton, MapsRouteButton } from "@/components/ui/maps-link";
+import { CancellationDetails, OrderStatusBadge } from "@/components/ui/order-status";
 import { SupportTicketsCard } from "@/components/orders/support-tickets-card";
 
 export default async function RideDetailPage({
@@ -92,8 +93,9 @@ export default async function RideDetailPage({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Status</span>
-                <StatusBadge status={ride.status} />
+                <OrderStatusBadge order={ride} />
               </div>
+              <CancellationDetails order={ride} />
               <div className="flex items-start justify-between gap-4">
                 <span className="text-slate-500">Pemesan</span>
                 <span className="text-right text-slate-800">

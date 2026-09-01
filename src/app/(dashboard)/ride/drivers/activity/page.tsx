@@ -7,6 +7,7 @@ import {
   type DriverActivityType,
 } from "@/lib/constants";
 import { parseActivityFilters } from "@/lib/orders";
+import { EXPORT_LIMIT, PER_PAGE } from "@/lib/pagination";
 import { formatDateTime, formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,11 +16,8 @@ import { StatusBadge } from "@/components/ui/badge";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { ExportButton } from "./export-button";
-
-const PER_PAGE = 20;
-/** Batas dataset export — di atas ini admin diminta mempersempit filter tanggal. */
-const EXPORT_LIMIT = 1000;
 
 export default async function DriverActivityPage({
   searchParams,
@@ -187,35 +185,14 @@ export default async function DriverActivityPage({
             </TBody>
           </Table>
 
-          <div className="flex items-center justify-between px-4 py-3 text-sm text-slate-500">
-            <span>
-              Halaman {meta?.page ?? filters.page}
-              {meta?.totalPages ? ` dari ${meta.totalPages}` : ""}
-              {meta?.totalItems != null ? ` · ${meta.totalItems} aktivitas` : ""}
-            </span>
-            <div className="flex gap-2">
-              {(meta?.hasPrevPage ?? filters.page > 1) ? (
-                <Link
-                  href={buildHref(filters.page - 1)}
-                  className="rounded-md border border-slate-200 px-3 py-1 hover:bg-slate-50"
-                >
-                  ← Sebelumnya
-                </Link>
-              ) : (
-                <span className="rounded-md border border-slate-100 px-3 py-1 text-slate-300">← Sebelumnya</span>
-              )}
-              {(meta?.hasNextPage ?? rows.length === PER_PAGE) ? (
-                <Link
-                  href={buildHref(filters.page + 1)}
-                  className="rounded-md border border-slate-200 px-3 py-1 hover:bg-slate-50"
-                >
-                  Berikutnya →
-                </Link>
-              ) : (
-                <span className="rounded-md border border-slate-100 px-3 py-1 text-slate-300">Berikutnya →</span>
-              )}
-            </div>
-          </div>
+          <Pagination
+            page={filters.page}
+            meta={meta}
+            itemsOnPage={rows.length}
+            perPage={PER_PAGE}
+            buildHref={buildHref}
+            unit="aktivitas"
+          />
         </CardContent>
       </Card>
     </div>
