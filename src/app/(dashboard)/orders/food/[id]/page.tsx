@@ -8,11 +8,11 @@ import { updateFoodStatus } from "@/server/actions/food";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
-import { StatusBadge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PaymentBreakdown } from "@/components/ui/payment-breakdown";
 import { MapsLinkButton, MapsRouteButton } from "@/components/ui/maps-link";
+import { CancellationDetails, OrderStatusBadge } from "@/components/ui/order-status";
 import { SupportTicketsCard } from "@/components/orders/support-tickets-card";
 
 export default async function FoodOrderDetailPage({
@@ -156,8 +156,9 @@ export default async function FoodOrderDetailPage({
               />
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Status</span>
-                <StatusBadge status={order.status} />
+                <OrderStatusBadge order={order} />
               </div>
+              <CancellationDetails order={order} />
               <div className="flex items-center justify-between">
                 <span className="text-slate-500">Metode Bayar</span>
                 <span className="text-slate-800">{order.paymentMethod}</span>

@@ -81,3 +81,34 @@ export function isExpired(value?: string | null): boolean {
   if (!value) return false;
   return new Date(value).getTime() < Date.now();
 }
+
+/**
+ * Normalise an Indonesian phone number to the bare international form wa.me
+ * expects (`62…`), or null when there is nothing dialable. Backend phone fields
+ * are free text and mix `08…`, `+62…`, `62…`, and separators.
+ */
+export function normalizePhone(raw?: string | null): string | null {
+  if (!raw) return null;
+  let digits = raw.replace(/\D/g, "");
+  if (!digits) return null;
+  // `0…` is the local form; `62…` is already international. A leading `620…`
+  // happens when both prefixes were concatenated by hand.
+  if (digits.startsWith("620")) digits = `62${digits.slice(3)}`;
+  else if (digits.startsWith("0")) digits = `62${digits.slice(1)}`;
+  else if (!digits.startsWith("62")) digits = `62${digits}`;
+  // 62 + at least 8 subscriber digits; anything shorter is a typo, not a number.
+  return digits.length >= 10 ? digits : null;
+}
+
+/**
+ * wa.me chat link for a phone number, or null when the number is unusable so
+ * callers can skip rendering the button (same contract as `mapsUrl`).
+ */
+export function waUrl(phone?: string | null, message?: string | null): string | null {
+  const number = normalizePhone(phone);
+  if (!number) return null;
+  const text = message?.trim();
+  return text
+    ? `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+    : `https://wa.me/${number}`;
+}

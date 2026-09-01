@@ -7,7 +7,10 @@ import {
   resolveOrderTab,
   resolveTabStatus,
   rideServiceFee,
+  cancelledByLabel,
+  resolveCancelledBy,
 } from "@/lib/orders";
+import { CANCELLED_BY, CANCELLED_BY_LABEL } from "@/lib/constants";
 
 describe("ORDER_TABS", () => {
   /** The order is the product decision: MiFood is opened most, MiRide next. */
@@ -15,6 +18,7 @@ describe("ORDER_TABS", () => {
     expect(ORDER_TABS.map((t) => t.key)).toEqual([
       "food",
       "ride",
+      "send",
       "mart",
       "bookings",
       "trips",
@@ -60,6 +64,17 @@ describe("resolveTabStatus", () => {
     expect(resolveTabStatus("ride", "searching")).toBe("searching");
   });
 
+  it("accepts a delivery status on the MiSend tab", () => {
+    expect(resolveTabStatus("send", "picking_up")).toBe("picking_up");
+    expect(resolveTabStatus("send", "in_transit")).toBe("in_transit");
+  });
+
+  /** MiRide and MiSend overlap on some statuses but not all — the rest must not leak. */
+  it("rejects a ride-only status on the MiSend tab and vice versa", () => {
+    expect(resolveTabStatus("send", "in_progress")).toBeUndefined();
+    expect(resolveTabStatus("ride", "in_transit")).toBeUndefined();
+  });
+
   /** Cross-service statuses must not leak — the backend enums are disjoint. */
   it("rejects a status belonging to the other service", () => {
     expect(resolveTabStatus("ride", "pending")).toBeUndefined();
@@ -72,8 +87,14 @@ describe("resolveTabStatus", () => {
     expect(resolveTabStatus("food", undefined)).toBeUndefined();
   });
 
+  /** MiLokal kini punya filter status juga (backend `/admin/mart/orders?status=`). */
+  it("accepts a mart shipment status on the mart tab", () => {
+    expect(resolveTabStatus("mart", "packing")).toBe("packing");
+    expect(resolveTabStatus("mart", "onDelivery")).toBe("onDelivery");
+    expect(resolveTabStatus("mart", "in_progress")).toBeUndefined();
+  });
+
   it("ignores ?status= on tabs that have no status filter", () => {
-    expect(resolveTabStatus("mart", "packing")).toBeUndefined();
     expect(resolveTabStatus("bookings", "CONFIRMED")).toBeUndefined();
     expect(resolveTabStatus("trips", "pending")).toBeUndefined();
   });
@@ -127,5 +148,50 @@ describe("rideServiceFee", () => {
     expect(rideServiceFee({ fare: { amount: 0, serviceFee: 0 }, serviceFee: 5000 } as never)).toBe(
       0,
     );
+  });
+});
+
+describe("cancelledByLabel", () => {
+  it("translates every known actor", () => {
+    expect(cancelledByLabel("customer")).toBe("Pengguna");
+    expect(cancelledByLabel("merchant")).toBe("Merchant");
+    expect(cancelledByLabel("system")).toBe("Sistem");
+    expect(cancelledByLabel("admin")).toBe("Admin");
+    expect(cancelledByLabel("driver")).toBe("Driver");
+  });
+
+  /**
+   * Order yang dibatalkan sebelum kolom `cancelled_by` ada tidak punya pelaku.
+   * Menebaknya sebagai "Pengguna" akan menuduh pembeli atas pembatalan
+   * merchant/sistem — itu sebabnya state ketiga ini eksplisit.
+   */
+  it("reports an unknown actor instead of guessing the customer", () => {
+    expect(cancelledByLabel(null)).toBe("Tidak diketahui");
+    expect(cancelledByLabel(undefined)).toBe("Tidak diketahui");
+    expect(cancelledByLabel("")).toBe("Tidak diketahui");
+  });
+
+  it("falls back to the raw value for an actor the dashboard does not know yet", () => {
+    expect(cancelledByLabel("courier_partner")).toBe("courier_partner");
+  });
+
+  it("has a label for every actor in CANCELLED_BY", () => {
+    for (const by of CANCELLED_BY) {
+      expect(CANCELLED_BY_LABEL[by]).toBeTruthy();
+    }
+    expect(Object.keys(CANCELLED_BY_LABEL)).toHaveLength(CANCELLED_BY.length);
+  });
+});
+
+describe("resolveCancelledBy", () => {
+  it.each(CANCELLED_BY)("keeps the known actor %s", (by) => {
+    expect(resolveCancelledBy(by)).toBe(by);
+  });
+
+  it("drops unknown, empty and undefined values so the backend never 400s", () => {
+    expect(resolveCancelledBy("ngawur")).toBeUndefined();
+    expect(resolveCancelledBy("")).toBeUndefined();
+    expect(resolveCancelledBy(undefined)).toBeUndefined();
+    expect(resolveCancelledBy("CUSTOMER")).toBeUndefined();
   });
 });

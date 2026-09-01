@@ -5,7 +5,10 @@ jadi tidak memerlukan database/server. Jalankan: `npm test`.
 
 ```
 tests/
-├── utils.test.ts          # util murni + hierarki role
+├── utils.test.ts          # util murni + hierarki role + waUrl/normalizePhone
+├── pagination.test.ts     # parsePage / buildListHref (pagination server-side)
+├── merchants-followup.test.ts  # worklist merchant tanpa produk + follow-up WA
+├── finance-filters.test.ts     # filter tanggal Riwayat Transaksi + nama file export
 ├── validations.test.ts    # aturan Zod per fitur (acceptance criteria UC)
 ├── serializers.test.ts    # bentuk JSON untuk app Flutter
 ├── api.test.ts            # business logic route handler /api/v1 (Prisma di-mock)
@@ -55,6 +58,19 @@ tests/
 | | Pindah saldo (UC-04): tujuan hanya driver/merchant, batas nominal, catatan | `validations` walletTransferSchema |
 | | Pindah saldo (UC-04): role ADMIN, payload API, returnTo aman, revalidate | `actions` wallet-actions |
 | | Pindah saldo (UC-04): guard saldo kurang & penerima tak layak → pesan di form, bukan error page | `actions` wallet-actions |
+| **Merchant follow-up** | `needsFollowUp`: katalog kosong ≥3 hari & belum dihubungi (valid, tepat 3 hari, sudah follow-up, konten > 0, counts tak diketahui) | `merchants-followup` |
+| | `parseMerchantFilters` buang status/content asing; `contentQueryParam` → `hasContent` | `merchants-followup` |
+| | `markMerchantFollowedUp` role OPERATOR + endpoint yang dipanggil | `merchants-followup` |
+| **Entrypoint WhatsApp** | `normalizePhone`/`waUrl`: `08…`/`+62…`/`62…`, nomor pendek → null, pesan ter-encode | `utils` |
+| **Pagination** | `parsePage` clamp ≥ 1; `buildListHref` buang nilai kosong & `page=1` | `pagination` |
+| **MiSend di /orders** | tab `send` ada di `ORDER_TABS`; `resolveTabStatus` per layanan (send/mart) | `orders-tabs` |
+| **Tipe pembatalan** | `cancelledByLabel` 3-state (pelaku dikenal / NULL → "Tidak diketahui" / nilai asing) | `orders-tabs` |
+| | `resolveCancelledBy` buang nilai asing; `CANCELLED_BY_LABEL` lengkap | `orders-tabs` |
+| | Backend: `cancelled_by` benar per jalur (customer/merchant/system/admin) | unit test backend (`food-orders`, `mart-orders`, `rides`, `delivery` spec) |
+| | App: alasan diteruskan ke repository; parsing `cancelledBy`/`cancelReason` | unit test app (`test/features/order_history/order_cancellation_test.dart`, `ride_usecases_test.dart`) |
+| **Filter tanggal Keuangan** | `parseFinanceFilters` buang tanggal non-ISO & source asing; `exportRangeSuffix` | `finance-filters` |
+| | Backend: rentang didorong ke kedua sumber pada kolom masing-masing | unit test backend (`finance.service.spec.ts`) |
+| **Filter sumber Topup** | Backend: `sumber` → (`source` × `walletType`), digabung dengan `status` | unit test backend (`topup-request.service.spec.ts`) |
 | **Driver Activity** | Filter log aktivitas: tipe/tanggal asing dibuang, page jatuh ke 1 | `driver-activity` parseActivityFilters |
 | | Label layanan lengkap untuk semua tipe (ride/delivery/mart/food) | `driver-activity` DRIVER_ACTIVITY_TYPE_LABEL |
 | | Challenge: persen progres dijepit 0–100 (reward flat) | `driver-activity` challengeProgress |

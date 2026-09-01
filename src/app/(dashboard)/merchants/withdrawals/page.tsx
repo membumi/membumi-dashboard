@@ -1,14 +1,16 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { apiGetPaged } from "@/lib/api-client";
 import type { AdminWithdrawal, WithdrawalKind, WithdrawalStatus } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
 import { hasRole } from "@/lib/constants";
-import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
+import { formatRupiah, formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ImagePreview } from "@/components/ui/image-preview";
+import { FilterChip } from "@/components/ui/filter-chip";
+import { Pagination } from "@/components/ui/pagination";
+import { buildListHref, parsePage, PER_PAGE } from "@/lib/pagination";
 import { ReviewActions } from "./review-actions";
 
 const STATUSES: WithdrawalStatus[] = ["PENDING", "APPROVED", "REJECTED"];
@@ -40,14 +42,14 @@ const KIND_TONE: Record<WithdrawalKind, "blue" | "purple"> = {
 export default async function WithdrawalsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; kind?: string }>;
+  searchParams: Promise<{ status?: string; kind?: string; page?: string }>;
 }) {
   const me = await getCurrentAdmin();
   if (!hasRole(me?.role, "ADMIN")) {
     redirect("/");
   }
 
-  const { status, kind } = await searchParams;
+  const { status, kind, page: pageParam } = await searchParams;
   const validStatus = STATUSES.includes(status as WithdrawalStatus)
     ? (status as WithdrawalStatus)
     : undefined;
@@ -55,18 +57,24 @@ export default async function WithdrawalsPage({
     ? (kind as WithdrawalKind)
     : undefined;
 
-  const { items: requests } = await apiGetPaged<AdminWithdrawal>(
+  const page = parsePage(pageParam);
+
+  const { items: requests, meta } = await apiGetPaged<AdminWithdrawal>(
     "/admin/finance/withdrawals",
-    { status: validStatus, kind: validKind, limit: 100 },
+    { status: validStatus, kind: validKind, page, limit: PER_PAGE },
   );
 
-  const buildHref = (next: { status?: WithdrawalStatus; kind?: WithdrawalKind }) => {
-    const params = new URLSearchParams();
-    if (next.status) params.set("status", next.status);
-    if (next.kind) params.set("kind", next.kind);
-    const qs = params.toString();
-    return qs ? `/merchants/withdrawals?${qs}` : "/merchants/withdrawals";
-  };
+  // Chip filter tidak membawa `page` — ganti filter, kembali ke halaman 1.
+  const buildHref = (next: {
+    status?: WithdrawalStatus;
+    kind?: WithdrawalKind;
+    page?: number;
+  }) =>
+    buildListHref("/merchants/withdrawals", {
+      status: next.status,
+      kind: next.kind,
+      page: next.page,
+    });
 
   return (
     <div>
@@ -172,22 +180,15 @@ export default async function WithdrawalsPage({
           ))}
         </TBody>
       </Table>
-    </div>
-  );
-}
 
-function FilterChip({ label, href, active }: { label: string; href: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "rounded-full border px-3 py-1 text-xs font-medium",
-        active
-          ? "border-emerald-600 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 text-slate-600 hover:bg-slate-50",
-      )}
-    >
-      {label}
-    </Link>
+      <Pagination
+        page={page}
+        meta={meta}
+        itemsOnPage={requests.length}
+        perPage={PER_PAGE}
+        buildHref={(p) => buildHref({ status: validStatus, kind: validKind, page: p })}
+        unit="permintaan"
+      />
+    </div>
   );
 }

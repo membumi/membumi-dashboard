@@ -5,6 +5,8 @@ import {
   mapsUrl,
   mapsDirectionsUrl,
   mapsSearchUrl,
+  normalizePhone,
+  waUrl,
 } from "@/lib/utils";
 import {
   hasRole,
@@ -152,5 +154,43 @@ describe("utils — mapsDirectionsUrl", () => {
     expect(mapsDirectionsUrl(pickup, { lat: 0, lng: 0 })).toBeNull();
     expect(mapsDirectionsUrl({ lat: null, lng: null }, destination)).toBeNull();
     expect(mapsDirectionsUrl({}, {})).toBeNull();
+  });
+});
+
+describe("utils — normalizePhone (entrypoint WhatsApp)", () => {
+  it("converts the local 0-prefix to 62", () => {
+    expect(normalizePhone("081234567890")).toBe("6281234567890");
+  });
+  it("keeps an already-international number and strips separators", () => {
+    expect(normalizePhone("+62 812-3456-7890")).toBe("6281234567890");
+    expect(normalizePhone("62 812 3456 7890")).toBe("6281234567890");
+  });
+  it("collapses a doubled 62 + 0 prefix", () => {
+    expect(normalizePhone("6208123456789")).toBe("628123456789");
+  });
+  it("rejects blank and too-short numbers", () => {
+    expect(normalizePhone("")).toBeNull();
+    expect(normalizePhone(null)).toBeNull();
+    expect(normalizePhone("abc")).toBeNull();
+    expect(normalizePhone("0812")).toBeNull();
+  });
+});
+
+describe("utils — waUrl", () => {
+  it("builds a wa.me link from a local number", () => {
+    expect(waUrl("081234567890")).toBe("https://wa.me/6281234567890");
+  });
+  it("url-encodes the prefilled message", () => {
+    const url = waUrl("081234567890", "Halo Bu Sri, produk & menu?");
+    expect(url).toContain("?text=");
+    expect(url).toContain("Halo%20Bu%20Sri");
+    expect(url).toContain("%26"); // & must not break the query string
+  });
+  it("omits ?text= for a blank message", () => {
+    expect(waUrl("081234567890", "   ")).toBe("https://wa.me/6281234567890");
+  });
+  it("returns null for an unusable number so callers can skip rendering", () => {
+    expect(waUrl("-")).toBeNull();
+    expect(waUrl(undefined)).toBeNull();
   });
 });

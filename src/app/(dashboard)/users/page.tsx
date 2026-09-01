@@ -6,10 +6,20 @@ import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants, Button } from "@/components/ui/button";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Pagination } from "@/components/ui/pagination";
+import { buildListHref, parsePage, PER_PAGE } from "@/lib/pagination";
 import { toggleUserVerified } from "@/server/actions/users";
 
-export default async function UsersPage() {
-  const { items: users } = await apiGetPaged<AppUser>("/admin/users", { limit: 100 });
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const page = parsePage((await searchParams).page);
+  const { items: users, meta } = await apiGetPaged<AppUser>("/admin/users", {
+    page,
+    limit: PER_PAGE,
+  });
 
   return (
     <div>
@@ -52,6 +62,15 @@ export default async function UsersPage() {
           ))}
         </TBody>
       </Table>
+
+      <Pagination
+        page={page}
+        meta={meta}
+        itemsOnPage={users.length}
+        perPage={PER_PAGE}
+        buildHref={(p) => buildListHref("/users", { page: p })}
+        unit="pengguna"
+      />
     </div>
   );
 }

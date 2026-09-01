@@ -79,7 +79,20 @@ function normalize(status: string): string {
     .toUpperCase();
 }
 
-export function StatusBadge({ status, label }: { status: string; label?: string }) {
+export function StatusBadge({
+  status,
+  label,
+  title,
+}: {
+  status: string;
+  label?: string;
+  /** Tooltip — dipakai untuk membawa alasan pembatalan tanpa melebarkan kolom. */
+  title?: string;
+}) {
   const key = normalize(status);
-  return <Badge tone={STATUS_TONE[key] ?? "default"}>{label ?? key.replace(/_/g, " ")}</Badge>;
+  return (
+    <Badge tone={STATUS_TONE[key] ?? "default"} title={title}>
+      {label ?? key.replace(/_/g, " ")}
+    </Badge>
+  );
 }

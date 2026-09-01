@@ -60,7 +60,16 @@ function buildSummarySheet(summary: FinanceSummary) {
 }
 
 /** Download the transaction history as an Excel (.xlsx) file that Sheets / Excel opens natively. */
-export function ExportButton({ rows, summary }: { rows: FinanceEntry[]; summary?: FinanceSummary }) {
+export function ExportButton({
+  rows,
+  summary,
+  rangeSuffix,
+}: {
+  rows: FinanceEntry[];
+  summary?: FinanceSummary;
+  /** Rentang tanggal aktif, dipakai sebagai imbuhan nama file. */
+  rangeSuffix?: string;
+}) {
   function handleExport() {
     const data = rows.map((e) => ({
       Tanggal: formatDateTime(e.occurredAt),
@@ -82,7 +91,8 @@ export function ExportButton({ rows, summary }: { rows: FinanceEntry[]; summary?
     if (summary) {
       XLSX.utils.book_append_sheet(wb, buildSummarySheet(summary), "Ringkasan");
     }
-    XLSX.writeFile(wb, `riwayat-transaksi-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const suffix = rangeSuffix ?? new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `riwayat-transaksi-${suffix}.xlsx`);
   }
 
   return (

@@ -4,6 +4,7 @@ import type { Driver } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WhatsAppButton, WhatsAppLink } from "@/components/ui/wa-link";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDelete } from "@/components/forms/form-controls";
@@ -49,10 +50,13 @@ export default async function DriverDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={driver.fullname || driver.name}
-        description={`Driver ${driver.type} • Terdaftar ${formatDateTime(driver.createdAt)}`}
-      />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PageHeader
+          title={driver.fullname || driver.name}
+          description={`Driver ${driver.type} • Terdaftar ${formatDateTime(driver.createdAt)}`}
+        />
+        <WhatsAppButton phone={driver.whatsappNumber ?? driver.phone} />
+      </div>
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
@@ -98,8 +102,8 @@ export default async function DriverDetailPage({
             <Field label="Nama Lengkap (KTP)" value={driver.fullname} />
             <Field label="NIK" value={driver.nik} />
             <Field label="Nama Akun" value={driver.name} />
-            <Field label="No. Telepon" value={driver.phone} />
-            <Field label="No. WhatsApp" value={driver.whatsappNumber} />
+            <Field label="No. Telepon" value={<WhatsAppLink phone={driver.phone} />} />
+            <Field label="No. WhatsApp" value={<WhatsAppLink phone={driver.whatsappNumber} />} />
             <Field
               label="Jenis Kelamin"
               value={driver.gender ? GENDER_LABELS[driver.gender] ?? driver.gender : null}
