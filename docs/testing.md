@@ -9,6 +9,7 @@ tests/
 ├── pagination.test.ts     # parsePage / buildListHref (pagination server-side)
 ├── merchants-followup.test.ts  # worklist merchant tanpa produk + follow-up WA
 ├── finance-filters.test.ts     # filter tanggal Riwayat Transaksi + nama file export
+├── report.test.ts         # filter & preset rentang halaman Laporan (WIB), delta periode
 ├── validations.test.ts    # aturan Zod per fitur (acceptance criteria UC)
 ├── serializers.test.ts    # bentuk JSON untuk app Flutter
 ├── api.test.ts            # business logic route handler /api/v1 (Prisma di-mock)
@@ -71,6 +72,11 @@ tests/
 | **Filter tanggal Keuangan** | `parseFinanceFilters` buang tanggal non-ISO & source asing; `exportRangeSuffix` | `finance-filters` |
 | | Backend: rentang didorong ke kedua sumber pada kolom masing-masing | unit test backend (`finance.service.spec.ts`) |
 | **Filter sumber Topup** | Backend: `sumber` → (`source` × `walletType`), digabung dengan `status` | unit test backend (`topup-request.service.spec.ts`) |
+| **Laporan** | `parseReportFilters`: tanggal non-ISO & preset asing dibuang; preset menang atas tanggal manual | `report` |
+| | `resolvePreset` 7d/30d/90d/bulan-ini dihitung pada kalender WIB (kasus 01:00 WIB = hari UTC sebelumnya) | `report` |
+| | `deltaPercent`: naik/turun, pembanding nol → `null` (hindari "+∞%") | `report` |
+| | `exportRangeSuffix` dipakai ulang untuk `ReportFilters` (kompatibilitas struktural) | `report` |
+| | Backend: batas hari WIB, topup pada `reviewed_at`, kategori `null` tetap dihitung, jendela pembanding sama panjang | unit test backend (`admin-report.service.spec.ts`, `date-range-pagination.spec.ts`) |
 | **Driver Activity** | Filter log aktivitas: tipe/tanggal asing dibuang, page jatuh ke 1 | `driver-activity` parseActivityFilters |
 | | Label layanan lengkap untuk semua tipe (ride/delivery/mart/food) | `driver-activity` DRIVER_ACTIVITY_TYPE_LABEL |
 | | Challenge: persen progres dijepit 0–100 (reward flat) | `driver-activity` challengeProgress |

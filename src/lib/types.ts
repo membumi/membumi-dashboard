@@ -1059,3 +1059,67 @@ export interface AdInventoryCalendar {
     }[];
   }[];
 }
+
+/** Layanan yang punya GMV di Laporan — urutan sama dengan `REPORT_SERVICES` backend. */
+export type ReportServiceKey = "ride" | "food" | "mart" | "delivery" | "hotel" | "trip";
+
+/**
+ * Ringkasan lintas fitur dari `GET /admin/stats/report`.
+ *
+ * Angka kumulatif (`total`) berdampingan dengan angka dalam rentang (`created`):
+ * "total pengguna" tidak punya arti di dalam rentang tanggal, yang berarti adalah
+ * berapa yang baru mendaftar. Field `prev*` adalah periode pembanding sama panjang.
+ */
+export interface ReportParty {
+  total: number;
+  created: number;
+  prevCreated: number;
+}
+
+export interface ReportPartner extends ReportParty {
+  verified: number;
+  pending: number;
+}
+
+export interface ReportSummary {
+  range: { dateFrom: string | null; dateTo: string | null; days: number };
+  previous: { dateFrom: string; dateTo: string } | null;
+
+  users: ReportParty;
+  drivers: ReportPartner;
+  merchants: ReportPartner;
+
+  /** Order yang MASUK di rentang, apa pun statusnya — beda dari GMV yang hanya settled. */
+  orders: Record<ReportServiceKey, number> & { total: number };
+  gmv: { byService: Record<ReportServiceKey, number>; total: number; prevTotal: number };
+
+  topup: {
+    approvedAmount: number;
+    approvedCount: number;
+    pendingCount: number;
+    prevApprovedAmount: number;
+  };
+  withdrawals: {
+    driver: { amount: number; count: number };
+    merchant: { amount: number; count: number };
+    total: number;
+    byStatus: Record<string, number>;
+    prevTotal: number;
+  };
+  finance: {
+    income: number;
+    expense: number;
+    net: number;
+    commissionCollected: { driver: number; merchant: number; total: number };
+    serviceFeeTotal: number;
+    prevNet: number;
+  };
+  support: {
+    total: number;
+    byStatus: Record<string, number>;
+    byCategory: { category: string; count: number }[];
+    unassigned: number;
+  };
+
+  trend: { date: string; gmv: number; orders: number }[];
+}
