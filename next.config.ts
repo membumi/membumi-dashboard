@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Izinkan akses dev server dari perangkat lain di jaringan lokal (testing via LAN).
-  allowedDevOrigins: ["192.168.1.112"],
+  // Izinkan akses dev server dari perangkat lain di jaringan lokal (testing via
+  // LAN). Ditulis sebagai rentang, bukan satu IP: Next membalas 403 untuk
+  // /_next/* dari origin yang tidak terdaftar, dan halamannya lalu tampil TANPA
+  // CSS sama sekali — terbaca seperti UI yang rusak, bukan seperti izin yang
+  // kurang. Satu IP hardcoded diam-diam basi begitu lease DHCP berganti.
+  // Hanya berlaku di `next dev`; build produksi mengabaikannya.
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.20.10.*"],
   // `headers()` is checked before the filesystem, so these also cover /public.
   async headers() {
     return [
