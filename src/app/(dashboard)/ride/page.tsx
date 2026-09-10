@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { StatusBadge, Badge } from "@/components/ui/badge";
 import { Input, Label, Select } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { RIDE_STATUSES, RIDE_TYPES } from "@/lib/constants";
@@ -50,15 +51,15 @@ export default async function RidePage({
                   <input type="hidden" name="type" value={type} />
                   <div>
                     <Label>Dasar</Label>
-                    <Input name="baseFare" type="number" min={0} defaultValue={f?.baseFare ?? 0} />
+                    <MoneyInput name="baseFare" min={0} defaultValue={f?.baseFare ?? 0} />
                   </div>
                   <div>
                     <Label>per Km</Label>
-                    <Input name="perKm" type="number" min={0} defaultValue={f?.perKm ?? 0} />
+                    <MoneyInput name="perKm" min={0} defaultValue={f?.perKm ?? 0} />
                   </div>
                   <div>
                     <Label>Tarif Minimum</Label>
-                    <Input name="minFare" type="number" min={0} defaultValue={f?.minFare ?? 0} />
+                    <MoneyInput name="minFare" min={0} defaultValue={f?.minFare ?? 0} />
                   </div>
                   <div>
                     <Label>Kecepatan Rata² (km/jam)</Label>

@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { apiGetPaged, type PageMeta } from "@/lib/api-client";
-import type { Booking, Registration, MartOrder, FoodOrder, Ride, Delivery } from "@/lib/types";
+import type {
+  Booking,
+  Registration,
+  MartOrder,
+  FoodOrder,
+  Ride,
+  Delivery,
+  TitipOrder,
+} from "@/lib/types";
 import { formatRupiah, formatDateTime, cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
@@ -18,6 +26,8 @@ import {
   RIDE_STATUSES,
   RIDE_TYPE_LABEL,
   DELIVERY_STATUSES,
+  TITIP_STATUSES,
+  TITIP_STATUS_LABEL,
   CANCELLED_BY,
   CANCELLED_BY_LABEL,
 } from "@/lib/constants";
@@ -132,6 +142,7 @@ export default async function OrdersPage({
       {tab === "mart" && <MartTab {...shared} />}
       {tab === "food" && <FoodTab {...shared} />}
       {tab === "ride" && <RideTab {...shared} />}
+      {tab === "titip" && <TitipTab {...shared} />}
       {tab === "send" && <SendTab {...shared} />}
     </div>
   );
@@ -431,6 +442,95 @@ async function RideTab(props: TabProps) {
         </TBody>
       </Table>
       <TabPagination {...props} meta={meta} itemsOnPage={rides.length} unit="perjalanan" />
+    </>
+  );
+}
+
+/**
+ * MiTitip (titip belanja).
+ *
+ * Kolomnya berbeda dari vertikal lain karena pertanyaan yang dibawa admin ke
+ * sini juga berbeda: bukan "sudah sampai belum", tapi "kenapa totalnya jadi
+ * segini". Jadi estimasi dan harga sebenarnya ditampilkan berdampingan, batas
+ * belanja ikut ditampilkan (itu yang membatasi talangan driver), dan ada penanda
+ * struk.
+ */
+async function TitipTab(props: TabProps) {
+  const { status, cancelledBy, page } = props;
+  const { items: orders, meta } = await apiGetPaged<TitipOrder>("/admin/titip-orders", {
+    page,
+    limit: PER_PAGE,
+    ...(status ? { status } : {}),
+    ...(cancelledBy ? { cancelledBy } : {}),
+  });
+  return (
+    <>
+      <div className="mb-3 flex flex-wrap gap-2">
+        <FilterChip href={ordersHref({ tab: "titip" })} label="Semua" active={!status} />
+        {TITIP_STATUSES.map((s) => (
+          <FilterChip
+            key={s}
+            href={ordersHref({ tab: "titip", status: s })}
+            label={TITIP_STATUS_LABEL[s]}
+            active={status === s}
+          />
+        ))}
+      </div>
+      {status === "cancelled" && <CancelledByChips tab="titip" cancelledBy={cancelledBy} />}
+      <Table layout="scroll" minWidth="80rem">
+        <THead>
+          <TR>
+            <TH>Waktu</TH>
+            <TH>Pemesan</TH>
+            <TH>Toko</TH>
+            <TH>Barang</TH>
+            <TH>Estimasi</TH>
+            <TH>Aktual</TH>
+            <TH>Batas</TH>
+            <TH>Total</TH>
+            <TH>Struk</TH>
+            <TH>Driver</TH>
+            <TH>Status</TH>
+          </TR>
+        </THead>
+        <TBody>
+          {orders.length === 0 && <EmptyRow colSpan={11} />}
+          {orders.map((o) => (
+            <TR key={o.id}>
+              <TD data-label="Waktu" className="whitespace-nowrap text-slate-500">
+                {formatDateTime(o.createdAt)}
+              </TD>
+              {/* Pemesan = akun yang memesan (seperti MiRide), bukan `recipient`
+                  yang bisa jadi orang lain di alamat tujuan. */}
+              <TD data-label="Pemesan">{o.customer?.name ?? "—"}</TD>
+              <TD data-label="Toko" className="max-w-[14rem] truncate">
+                <Link href={`/orders/titip/${o.id}`} className="hover:underline">
+                  {o.store?.name ?? "—"}
+                </Link>
+              </TD>
+              <TD data-label="Barang" className="text-slate-600">
+                {o.items?.length ?? 0}
+              </TD>
+              <TD data-label="Estimasi" className="text-slate-500">
+                {formatRupiah(o.estimatedSubtotal)}
+              </TD>
+              <TD data-label="Aktual">
+                {o.actualSubtotal == null ? "—" : formatRupiah(o.actualSubtotal)}
+              </TD>
+              <TD data-label="Batas" className="text-slate-500">
+                {formatRupiah(o.maxShoppingAmount)}
+              </TD>
+              <TD data-label="Total">{formatRupiah(o.total)}</TD>
+              <TD data-label="Struk" className="text-slate-500">
+                {o.receiptUrl ? "Ada" : "—"}
+              </TD>
+              <TD data-label="Driver">{o.driver?.name ?? "—"}</TD>
+              <TD data-label="Status"><OrderStatusBadge order={o} /></TD>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
+      <TabPagination {...props} meta={meta} itemsOnPage={orders.length} unit="pesanan" />
     </>
   );
 }

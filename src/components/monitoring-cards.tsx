@@ -7,6 +7,7 @@ import {
   Store,
   Users,
   UtensilsCrossed,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 import { apiGet } from "@/lib/api-client";
@@ -25,6 +26,7 @@ const ICONS: Record<CounterTopic, LucideIcon> = {
   miride: Bike,
   mifood: UtensilsCrossed,
   misend: PackageOpen,
+  mititip: ShoppingBag,
   topup: HandCoins,
   support: Headphones,
   driverRegistration: Users,

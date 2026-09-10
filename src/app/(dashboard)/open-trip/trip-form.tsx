@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, X, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { ImageUploadInput } from "@/components/forms/image-upload";
@@ -72,7 +73,7 @@ export function TripForm({
             </div>
             <div>
               <Label>Harga / orang (Rp)</Label>
-              <Input name="price" type="number" min={1} required defaultValue={trip?.price} />
+              <MoneyInput name="price" min={1} required defaultValue={trip?.price} />
             </div>
             <div>
               <Label>Durasi (hari)</Label>

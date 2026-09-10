@@ -403,6 +403,8 @@ export interface ServiceFeeConfig {
   mart: number;
   hotel: number;
   trip: number;
+  /** MiTitip (titip belanja). MiTitip's other knobs live on /titip/settings. */
+  titip: number;
 }
 
 // ── Kirim Barang (package courier) ──────────────────────────────────────────
@@ -452,6 +454,136 @@ export interface Delivery {
   paymentMethod: string;
   courier: { id: string; name: string } | null;
   createdAt: string;
+}
+
+// ── MiTitip (titip belanja) ────────────────────────────────────────────────
+
+/** Rincian uang satu order MiTitip. Selalu dari backend — jangan dihitung ulang. */
+export interface TitipBreakdown {
+  /** Nilai barang. BUKAN pendapatan Membumi — ini dana yang diteruskan. */
+  goodsAmount: number;
+  deliveryFee: number;
+  jasaTitip: number;
+  serviceFee: number;
+  customerTotal: number;
+  platformRevenue: { jasa: number; ongkir: number; serviceFee: number; total: number };
+  /** Pendapatan driver — TIDAK termasuk penggantian dana belanja. */
+  driverIncome: { jasa: number; ongkir: number; total: number };
+}
+
+export interface TitipItem {
+  id: string;
+  name: string;
+  note?: string | null;
+  unit: string;
+  requestedQty: number;
+  estimatedUnitPrice: number;
+  estimatedLineTotal: number;
+  status: string;
+  createdBy: string;
+  position: number;
+  priority: number;
+  actualQty?: number | null;
+  actualUnitPrice?: number | null;
+  actualLineTotal?: number | null;
+  /** Diisi pada baris pengganti; menunjuk baris yang digantikannya. */
+  substituteForItemId?: string | null;
+  substituteNote?: string | null;
+  photoUrl?: string | null;
+}
+
+/** Satu putaran pengajuan perubahan harga — jejak audit "kenapa segini". */
+export interface TitipRevision {
+  id: string;
+  seq: number;
+  proposedBy: string;
+  basisSubtotal: number;
+  proposedGoodsAmount: number;
+  requiresApproval: boolean;
+  overMax: boolean;
+  postPurchase: boolean;
+  status: string;
+  expiresAt?: string | null;
+  respondedAt?: string | null;
+  createdAt: string;
+}
+
+export interface TitipOrder {
+  id: string;
+  status: string;
+  vehicle: string;
+  store: {
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+    source: string;
+    externalId?: string | null;
+    category?: string | null;
+  };
+  destination: { lat: number; lng: number; address: string; name?: string | null };
+  recipient: { name: string; phone: string };
+  note?: string | null;
+  items: TitipItem[];
+  maxShoppingAmount: number;
+  authorizedPurchaseAmount?: number | null;
+  estimatedSubtotal: number;
+  actualSubtotal?: number | null;
+  breakdown: TitipBreakdown;
+  total: number;
+  authorizedTotal?: number | null;
+  refundAmount?: number | null;
+  distanceM: number;
+  durationMin: number;
+  paymentMethod: string;
+  receiptUrl?: string | null;
+  receiptTotal?: number | null;
+  pendingRevision?: TitipRevision | null;
+  revisionCount: number;
+  driver: { id: string; name: string; plate: string } | null;
+  /**
+   * Akun yang memesan. Beda dari `recipient`, yang berisi nama & telepon
+   * penerima yang diketik pelanggan — sering orang lain (dititipkan ke rumah,
+   * ke kantor). Kolom "Pemesan" memakai yang ini, seperti MiRide.
+   */
+  customer?: PassengerSummary | null;
+  timeline: { status: string; at: string }[];
+  configVersion: number;
+  /**
+   * Atribusi pembatalan. Semuanya opsional & bisa null: order yang dibatalkan
+   * sebelum kolomnya ada tidak punya pelaku — tampilkan "Tidak diketahui".
+   */
+  cancelledBy?: string | null;
+  cancelReason?: string | null;
+  cancelledAt?: string | null;
+  createdAt: string;
+}
+
+/**
+ * Konfigurasi biaya MiTitip. `serviceFee` di sini adalah ECHO dari
+ * `service_fee_config` — sumbernya tetap halaman Biaya Layanan, jangan diedit
+ * dari dua tempat.
+ */
+export interface TitipFeeConfig {
+  jasaRatePercent: number;
+  jasaMinAmount: number;
+  jasaMaxAmount: number;
+  jasaDriverSharePercent: number;
+  ongkirDriverSharePercent: number;
+  maxShoppingAmountCap: number;
+  defaultMaxShoppingMultiplierPct: number;
+  maxDriverCashExposure: number;
+  approvalTimeoutMinutes: number;
+  approvalHardTimeoutMinutes: number;
+  maxRevisionRounds: number;
+  tillToleranceAmount: number;
+  tillTolerancePercent: number;
+  maxPlatformVarianceAbsorption: number;
+  cancellationFeeAtAssigned: number;
+  cancellationFeeAtShoppingPercent: number;
+  recomputeJasaOnCustomerRemoval: boolean;
+  serviceFee: number;
+  configVersion: number;
 }
 
 // ── Payments ───────────────────────────────────────────────────────────────
@@ -610,6 +742,20 @@ export interface FinanceSummary {
     delivery: number;
     trip: number;
     hotel: number;
+    titip: number;
+  };
+  /**
+   * Pendapatan MiTitip dipecah per sumber. Dipisah dari `serviceFeeByService`
+   * karena MiTitip punya tiga sumber pendapatan (jasa, ongkir, biaya layanan),
+   * bukan satu biaya datar — dan `goodsValue` di sini BUKAN pendapatan, hanya
+   * dana yang diteruskan ke toko.
+   */
+  titipRevenue?: {
+    jasa: number;
+    ongkir: number;
+    serviceFee: number;
+    total: number;
+    goodsValue: number;
   };
   /** Total biaya layanan terkumpul — opsional, backend lama tidak mengirim. */
   serviceFeeTotal?: number;

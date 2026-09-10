@@ -14,6 +14,13 @@ describe("getActiveHref", () => {
     expect(getActiveHref("/penginapan/booking")).toBe("/penginapan/booking");
   });
 
+  it("keeps the MiTitip dispute queue distinct from the MiTitip config page", () => {
+    // Both live under /titip, so longest-prefix matching is what stops the
+    // config page lighting up while an admin is in the dispute queue.
+    expect(getActiveHref("/titip")).toBe("/titip");
+    expect(getActiveHref("/titip/sengketa")).toBe("/titip/sengketa");
+  });
+
   it("keeps a detail page under its list entry", () => {
     expect(getActiveHref("/ride/drivers/abc-123")).toBe("/ride/drivers");
     expect(getActiveHref("/merchants/m-1")).toBe("/merchants");

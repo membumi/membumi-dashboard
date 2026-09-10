@@ -8,6 +8,7 @@ import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table
 import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "@/components/ui/order-status";
 import { Input, Label, Select } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
@@ -67,15 +68,15 @@ export default async function KirimBarangPage({
                   <input type="hidden" name="vehicle" value={vehicle} />
                   <div>
                     <Label>Dasar</Label>
-                    <Input name="baseFare" type="number" min={0} defaultValue={f?.baseFare ?? 0} />
+                    <MoneyInput name="baseFare" min={0} defaultValue={f?.baseFare ?? 0} />
                   </div>
                   <div>
                     <Label>per Km</Label>
-                    <Input name="perKm" type="number" min={0} defaultValue={f?.perKm ?? 0} />
+                    <MoneyInput name="perKm" min={0} defaultValue={f?.perKm ?? 0} />
                   </div>
                   <div>
                     <Label>Tarif Minimum</Label>
-                    <Input name="minFare" type="number" min={0} defaultValue={f?.minFare ?? 0} />
+                    <MoneyInput name="minFare" min={0} defaultValue={f?.minFare ?? 0} />
                   </div>
                   <div>
                     <Label>Kecepatan Rata² (km/jam)</Label>
@@ -87,7 +88,7 @@ export default async function KirimBarangPage({
                   </div>
                   <div>
                     <Label>Surcharge per kg lebih</Label>
-                    <Input name="perKgOver" type="number" min={0} defaultValue={f?.perKgOver ?? 2000} />
+                    <MoneyInput name="perKgOver" min={0} defaultValue={f?.perKgOver ?? 2000} />
                   </div>
                   <div className="col-span-2">
                     <SubmitButton variant="secondary" size="sm">Simpan Tarif</SubmitButton>
@@ -124,7 +125,7 @@ export default async function KirimBarangPage({
             </div>
             <div>
               <Label>Flat Fee</Label>
-              <Input name="flatFee" type="number" min={0} defaultValue={0} />
+              <MoneyInput name="flatFee" min={0} defaultValue={0} />
             </div>
             <div className="flex items-center gap-2">
               <input id="add-ins" type="checkbox" name="requiresInsurance" />
@@ -177,7 +178,7 @@ export default async function KirimBarangPage({
                 </div>
                 <div>
                   <Label>Flat Fee</Label>
-                  <Input name="flatFee" type="number" min={0} defaultValue={c.flatFee} />
+                  <MoneyInput name="flatFee" min={0} defaultValue={c.flatFee} />
                 </div>
                 <div className="flex items-end gap-4">
                   <label className="flex items-center gap-2 text-sm">

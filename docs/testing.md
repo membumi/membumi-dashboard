@@ -77,6 +77,20 @@ tests/
 | | `deltaPercent`: naik/turun, pembanding nol → `null` (hindari "+∞%") | `report` |
 | | `exportRangeSuffix` dipakai ulang untuk `ReportFilters` (kompatibilitas struktural) | `report` |
 | | Backend: batas hari WIB, topup pada `reviewed_at`, kategori `null` tetap dihitung, jendela pembanding sama panjang | unit test backend (`admin-report.service.spec.ts`, `date-range-pagination.spec.ts`) |
+| **MiTitip — tarif** | `updateTitipFeeConfig` wajib ADMIN; PATCH **hanya** field yang dikirim (form lama tidak mengosongkan knob baru) | `titip-actions` |
+| | Persen > 100 & nominal negatif ditolak | `titip-actions` + `validations` titipFeeConfigSchema |
+| | Biaya layanan **tidak pernah** ikut di payload tarif — satu angka satu pemilik (`/admin/service-fee-config`) | `titip-actions` |
+| | Biaya layanan `titip` ada di `serviceFeeConfigSchema`; menyimpan layanan lain tidak me-reset `titip` ke 0 | `validations` + manual `/biaya-layanan` |
+| **MiTitip — order** | Tab `titip` ada di `ORDER_TABS` pada posisi ketiga (sebelum `send`); `TAB_SUPPORTS_SEARCH.titip = false` | `orders-tabs` |
+| | `resolveTabStatus("titip", <status layanan lain>)` → `undefined` (status tidak bocor lintas layanan) | `orders-tabs` |
+| | `cancelTitipOrder` wajib ADMIN + alasan tidak boleh kosong | `titip-actions` |
+| | `updateTitipStatus` menolak status vertikal lain (status MiTitip membawa konsekuensi uang) | `titip-actions` |
+| **MiTitip — sengketa** | Keputusan penuh / sebagian (membawa `amount`) / tolak; catatan wajib karena keputusan uang butuh alasan tercatat | `titip-actions` |
+| | Keputusan asing ditolak | `titip-actions` + `validations` titipDisputeSchema |
+| **MiTitip — navigasi** | Entri `/titip` & `/titip/sengketa` memakai grup nav yang sudah ada; `getActiveHref("/titip/sengketa")` bukan `/titip` | `nav` |
+| | Topik monitoring `mititip` lengkap di `COUNTER_TOPICS`/label/href/ikon dan bisa dikirimi push admin | `monitoring` + `push-actions` |
+| **MiTitip — uang** | Backend: tiga contoh hitungan (176rb/9,5rb/16,5rb · 166rb + refund 25rb · 216rb `raiseMaxTo`), tangga toleransi kasir, baris ledger A–E idempoten, `titip_reimbursement` di luar agregat penghasilan | unit test backend (`src/modules/titip/**/*.spec.ts`) |
+| | App: `previewBreakdown()` hanya tampilan dan cocok dengan angka backend | unit test app (`test/features/mititip/titip_pricing_preview_test.dart`) |
 | **Driver Activity** | Filter log aktivitas: tipe/tanggal asing dibuang, page jatuh ke 1 | `driver-activity` parseActivityFilters |
 | | Label layanan lengkap untuk semua tipe (ride/delivery/mart/food) | `driver-activity` DRIVER_ACTIVITY_TYPE_LABEL |
 | | Challenge: persen progres dijepit 0–100 (reward flat) | `driver-activity` challengeProgress |

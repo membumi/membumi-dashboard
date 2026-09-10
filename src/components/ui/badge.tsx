@@ -55,6 +55,16 @@ const STATUS_TONE: Record<string, keyof typeof TONE> = {
   DRIVER_ARRIVING: "blue",
   CANCELLED: "red",
   REJECTED: "red",
+  // MiTitip — without these, `awaiting_customer_approval` and friends render as
+  // a silent grey "default" and lose all urgency in the monitor.
+  HEADING_TO_STORE: "blue",
+  SHOPPING: "blue",
+  AWAITING_CUSTOMER_APPROVAL: "yellow",
+  APPROVED_FOR_PURCHASE: "purple",
+  PURCHASED: "blue",
+  HEADING_TO_CUSTOMER: "blue",
+  CANCELLED_WITH_GOODS: "red",
+  EXPIRED: "red",
   // Membumi Ads — campaign & booking lifecycle
   ACTIVE: "green",
   APPROVED: "green",

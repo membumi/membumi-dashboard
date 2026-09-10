@@ -13,11 +13,16 @@ import {
 import { CANCELLED_BY, CANCELLED_BY_LABEL } from "@/lib/constants";
 
 describe("ORDER_TABS", () => {
-  /** The order is the product decision: MiFood is opened most, MiRide next. */
-  it("puts MiFood first and MiRide second", () => {
+  /**
+   * The order is the product decision: MiFood is opened most, MiRide next, and
+   * MiTitip sits ahead of MiSend because a MiTitip order can be blocked waiting
+   * on a customer while a driver stands in a shop — it needs eyes sooner.
+   */
+  it("puts MiFood first, MiRide second, and MiTitip before MiSend", () => {
     expect(ORDER_TABS.map((t) => t.key)).toEqual([
       "food",
       "ride",
+      "titip",
       "send",
       "mart",
       "bookings",
@@ -57,6 +62,26 @@ describe("resolveTabStatus", () => {
   it("accepts a food status on the food tab", () => {
     expect(resolveTabStatus("food", "pending")).toBe("pending");
     expect(resolveTabStatus("food", "delivering")).toBe("delivering");
+  });
+
+  it("accepts a MiTitip status on the titip tab", () => {
+    expect(resolveTabStatus("titip", "shopping")).toBe("shopping");
+    expect(resolveTabStatus("titip", "awaiting_customer_approval")).toBe(
+      "awaiting_customer_approval",
+    );
+  });
+
+  /**
+   * Cross-service leak guard: passing another vertical's status must not reach
+   * the backend, which would answer 400 or — worse — ignore the filter silently.
+   */
+  it("rejects another service's status on the titip tab", () => {
+    expect(resolveTabStatus("titip", "picking_up")).toBeUndefined();
+    expect(resolveTabStatus("titip", "pending")).toBeUndefined();
+  });
+
+  it("rejects a MiTitip status on the send tab", () => {
+    expect(resolveTabStatus("send", "shopping")).toBeUndefined();
   });
 
   it("accepts a ride status on the ride tab", () => {

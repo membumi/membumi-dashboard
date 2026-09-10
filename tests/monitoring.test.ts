@@ -5,6 +5,7 @@ import {
   FOOD_ORDER_FILTER_STATUSES,
   RIDE_STATUSES,
   TICKET_STATUSES,
+  TITIP_STATUSES,
   VERIFICATION_STATUSES,
 } from "@/lib/constants";
 import {
@@ -20,6 +21,7 @@ const full = {
   miride: 1,
   mifood: 2,
   misend: 3,
+  mititip: 8,
   topup: 4,
   support: 5,
   driverRegistration: 6,
@@ -64,9 +66,9 @@ describe("normalizeCounters", () => {
 });
 
 describe("toMonitoringCards", () => {
-  it("always renders all seven topics, in order", () => {
+  it("always renders every topic, in order", () => {
     const cards = toMonitoringCards(EMPTY_COUNTERS);
-    expect(cards).toHaveLength(7);
+    expect(cards).toHaveLength(COUNTER_TOPICS.length);
     expect(cards.map((c) => c.topic)).toEqual([...COUNTER_TOPICS]);
   });
 
@@ -94,6 +96,7 @@ describe("COUNTER_TOPIC_HREF", () => {
     miride: RIDE_STATUSES,
     mifood: FOOD_ORDER_FILTER_STATUSES,
     misend: DELIVERY_STATUSES,
+    mititip: TITIP_STATUSES,
     topup: ["PENDING", "APPROVED", "REJECTED"],
     support: TICKET_STATUSES,
     driverRegistration: VERIFICATION_STATUSES,
@@ -112,13 +115,14 @@ describe("COUNTER_TOPIC_HREF", () => {
   });
 
   /**
-   * The two `/orders` deep links also carry `?tab=`, which the page validates
+   * The `/orders` deep links also carry `?tab=`, which the page validates
    * against `ORDER_TABS` — an unknown tab silently falls back to the default and
    * would land the operator on the wrong list.
    */
   it.each([
     ["miride", "ride"],
     ["mifood", "food"],
+    ["mititip", "titip"],
   ] as const)("%s deep-links to the %s orders tab", (topic, expectedTab) => {
     const [path, query] = COUNTER_TOPIC_HREF[topic].split("?");
     expect(path).toBe("/orders");
@@ -134,6 +138,6 @@ describe("totalNeedsAction", () => {
   });
 
   it("sums every topic", () => {
-    expect(totalNeedsAction(full)).toBe(28);
+    expect(totalNeedsAction(full)).toBe(36);
   });
 });

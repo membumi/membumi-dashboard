@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input, Label } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
 import { RestaurantForm } from "../restaurant-form";
 import { updateRestaurant, deleteRestaurant, createMenuItem, deleteMenuItem } from "@/server/actions/food";
@@ -78,7 +79,7 @@ export default async function RestaurantDetailPage({ params }: { params: Promise
             </div>
             <div>
               <Label>Harga (Rp)</Label>
-              <Input name="price" type="number" min={1} required />
+              <MoneyInput name="price" min={1} required />
             </div>
             <div>
               <Label>Kategori</Label>

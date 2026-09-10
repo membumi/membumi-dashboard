@@ -123,6 +123,46 @@ export const DELIVERY_STATUSES = [
 ] as const;
 export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
 
+// ── MiTitip (titip belanja) ────────────────────────────────────────────────
+// Kontrak bersama dengan `TITIP_STATUSES` di backend
+// (`src/modules/titip/interfaces/titip.types.ts`) — ubah di kedua repo.
+export const TITIP_STATUSES = [
+  "searching",
+  "driver_assigned",
+  "heading_to_store",
+  "shopping",
+  "awaiting_customer_approval",
+  "approved_for_purchase",
+  "purchased",
+  "heading_to_customer",
+  "completed",
+  "cancelled",
+  "cancelled_with_goods",
+  "expired",
+] as const;
+export type TitipStatus = (typeof TITIP_STATUSES)[number];
+
+/**
+ * MiTitip punya peta label sendiri, tidak seperti MiSend/MiRide yang hanya
+ * menampilkan `status.replace(/_/g, " ")`. Status seperti
+ * `awaiting_customer_approval` dan `approved_for_purchase` tidak terbaca tanpa
+ * label — dan justru dua status itulah yang paling sering ditanyakan admin.
+ */
+export const TITIP_STATUS_LABEL: Record<TitipStatus, string> = {
+  searching: "Mencari driver",
+  driver_assigned: "Driver ditemukan",
+  heading_to_store: "Menuju toko",
+  shopping: "Sedang belanja",
+  awaiting_customer_approval: "Menunggu pelanggan",
+  approved_for_purchase: "Disetujui, bayar di kasir",
+  purchased: "Barang dibeli",
+  heading_to_customer: "Diantar",
+  completed: "Selesai",
+  cancelled: "Dibatalkan",
+  cancelled_with_goods: "Dibatalkan (barang terbeli)",
+  expired: "Tidak ada driver",
+};
+
 // ── Atribusi pembatalan order ──────────────────────────────────────────────
 // Kontrak bersama dengan `CANCELLED_BY_VALUES` di backend
 // (`src/common/interfaces/cancellation.types.ts`) — ubah di kedua repo.
@@ -232,6 +272,7 @@ export const COUNTER_TOPICS = [
   "miride",
   "mifood",
   "misend",
+  "mititip",
   "topup",
   "support",
   "driverRegistration",
@@ -243,6 +284,7 @@ export const COUNTER_TOPIC_LABEL: Record<CounterTopic, string> = {
   miride: "Pesanan MiRide menunggu driver",
   mifood: "Pesanan MiFood perlu diproses",
   misend: "Kirim Barang menunggu driver",
+  mititip: "MiTitip menunggu driver",
   topup: "Topup menunggu konfirmasi",
   support: "Chat support belum ditangani",
   driverRegistration: "Driver menunggu verifikasi",
@@ -254,6 +296,7 @@ export const COUNTER_TOPIC_SHORT_LABEL: Record<CounterTopic, string> = {
   miride: "Pesanan MiRide",
   mifood: "Pesanan MiFood",
   misend: "Pesanan Kirim Barang",
+  mititip: "Pesanan MiTitip",
   topup: "Topup masuk",
   support: "Chat support",
   driverRegistration: "Pendaftaran driver",

@@ -1,7 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
-import { Input, Label } from "@/components/ui/input";
+import { Label } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import type { ServiceFeeConfig } from "@/lib/types";
 import { updateServiceFeeConfig } from "@/server/actions/service-fee";
@@ -13,6 +14,7 @@ const FIELDS: { key: keyof ServiceFeeConfig; label: string }[] = [
   { key: "mart", label: "Mart (Belanja)" },
   { key: "hotel", label: "Penginapan" },
   { key: "trip", label: "Open Trip" },
+  { key: "titip", label: "MiTitip (Titip Belanja)" },
 ];
 
 /** Edit the flat biaya layanan (IDR) charged per feature. */
@@ -30,18 +32,12 @@ export function ServiceFeeForm({ config }: { config: ServiceFeeConfig }) {
             <Label htmlFor={`fee-${f.key}`} className="mb-0">
               {f.label}
             </Label>
-            <div className="relative w-36">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-                Rp
-              </span>
-              <Input
+            <div className="w-36">
+              <MoneyInput
                 id={`fee-${f.key}`}
                 name={f.key}
-                type="number"
                 min={0}
-                step={500}
                 defaultValue={config[f.key]}
-                className="pl-9 text-right"
                 required
               />
             </div>

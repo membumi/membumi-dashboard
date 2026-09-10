@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RecipientType } from "@/lib/types";
 import { Input, Label, Select } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { formatRupiah } from "@/lib/utils";
@@ -87,14 +88,12 @@ export function ManualTopupForm({
 
           <div>
             <Label htmlFor="amount">Nominal (Rp)</Label>
-            <Input
+            <MoneyInput
               id="amount"
               name="amount"
-              type="number"
               min={10000}
-              step={1000}
               required
-              placeholder="50000"
+              placeholder="50.000"
             />
           </div>
 

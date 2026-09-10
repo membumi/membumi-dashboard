@@ -11,8 +11,7 @@ import type {
   Delivery,
   PushPreferences,
   PushPublicKey,
-  SupportTicket,
-} from "@/lib/types";
+  SupportTicket, TitipOrder } from "@/lib/types";
 
 /** Verified merchants as {id, businessName} options for catalog selectors. */
 export async function merchantOptions(): Promise<{ id: string; businessName: string }[]> {
@@ -75,6 +74,11 @@ export function martOrderById(id: string): Promise<MartOrder | null> {
 /** One ride (MiRide / MiCar) for the order-detail page. */
 export function rideById(id: string): Promise<Ride | null> {
   return orderById<Ride>("/admin/rides", id);
+}
+
+/** One MiTitip order for the order-detail page. */
+export function titipOrderById(id: string): Promise<TitipOrder | null> {
+  return orderById<TitipOrder>("/admin/titip-orders", id);
 }
 
 /** One delivery (MiSend) for the order-detail page. */

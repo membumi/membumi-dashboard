@@ -19,6 +19,7 @@ import {
   pushPreferencesSchema,
   pushUnsubscribeSchema,
   walletTransferSchema,
+  serviceFeeConfigSchema,
 } from "@/lib/validations";
 
 describe("Penginapan — hotelSchema (UC-01)", () => {
@@ -332,5 +333,53 @@ describe("commissionWithdrawSchema — tarik saldo komisi merchant", () => {
   it("menolak lebih dari 50 order sekali tarik (batas backend)", () => {
     const orders = Array.from({ length: 51 }, () => ({ orderId }));
     expect(commissionWithdrawSchema.safeParse({ merchantId, orders }).success).toBe(false);
+  });
+});
+
+describe("Biaya Layanan — serviceFeeConfigSchema", () => {
+  const base = {
+    ride: "2000",
+    food: "2000",
+    delivery: "2000",
+    mart: "2000",
+    hotel: "5000",
+    trip: "5000",
+    titip: "1000",
+  };
+
+  it("menerima biaya layanan lengkap tujuh layanan", () => {
+    const parsed = serviceFeeConfigSchema.safeParse(base);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.titip).toBe(1000);
+      expect(parsed.data.ride).toBe(2000);
+    }
+  });
+
+  it("menerima nol (layanan digratiskan)", () => {
+    expect(serviceFeeConfigSchema.safeParse({ ...base, titip: "0" }).success).toBe(true);
+  });
+
+  /**
+   * MiTitip harus ikut terkirim. Backend menulis semua key sekaligus, jadi key
+   * yang hilang dari payload adalah cara paling senyap untuk mereset biaya
+   * layanan sebuah layanan ke nilai yang tidak diinginkan.
+   */
+  it("menolak payload tanpa titip", () => {
+    const withoutTitip: Record<string, string> = { ...base };
+    delete withoutTitip.titip;
+    expect(serviceFeeConfigSchema.safeParse(withoutTitip).success).toBe(false);
+  });
+
+  it("menolak biaya negatif", () => {
+    expect(serviceFeeConfigSchema.safeParse({ ...base, titip: "-1" }).success).toBe(false);
+  });
+
+  it("menolak biaya pecahan (kolom int di backend)", () => {
+    expect(serviceFeeConfigSchema.safeParse({ ...base, titip: "1000.5" }).success).toBe(false);
+  });
+
+  it("menolak nilai bukan angka", () => {
+    expect(serviceFeeConfigSchema.safeParse({ ...base, titip: "gratis" }).success).toBe(false);
   });
 });

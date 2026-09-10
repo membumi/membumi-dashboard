@@ -25,6 +25,7 @@ import {
   sendTestNotification,
   updatePushPreferences,
 } from "@/server/actions/push";
+import { COUNTER_TOPICS } from "@/lib/constants";
 
 const SUBSCRIPTION = {
   endpoint: "https://push.example/abc",
@@ -144,6 +145,7 @@ describe("updatePushPreferences", () => {
         miride: false,
         mifood: false,
         misend: false,
+        mititip: false,
         topup: true,
         support: false,
         driverRegistration: false,
@@ -157,7 +159,7 @@ describe("updatePushPreferences", () => {
 
     const { topics } = apiPatchMock.mock.calls[0][1] as { topics: Record<string, boolean> };
     expect(Object.values(topics).every((v) => v === false)).toBe(true);
-    expect(Object.keys(topics)).toHaveLength(7);
+    expect(Object.keys(topics)).toHaveLength(COUNTER_TOPICS.length);
   });
 
   it("rejects an unknown topic", async () => {

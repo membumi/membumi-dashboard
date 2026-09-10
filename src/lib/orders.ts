@@ -6,6 +6,7 @@ import {
   FOOD_ORDER_FILTER_STATUSES,
   RIDE_STATUSES,
   SHIPMENT_STATUSES,
+  TITIP_STATUSES,
   type CancelledBy,
   type DriverActivityType,
 } from "@/lib/constants";
@@ -18,6 +19,7 @@ import type { Ride } from "@/lib/types";
 export const ORDER_TABS = [
   { key: "food", label: "MiFood" },
   { key: "ride", label: "MiRide" },
+  { key: "titip", label: "MiTitip" },
   { key: "send", label: "MiSend" },
   { key: "mart", label: "Order Mart" },
   { key: "bookings", label: "Booking Hotel" },
@@ -46,6 +48,9 @@ export function resolveTabStatus(tab: OrderTabKey, raw?: string): string | undef
   if (tab === "ride") {
     return RIDE_STATUSES.includes(raw as never) ? raw : undefined;
   }
+  if (tab === "titip") {
+    return TITIP_STATUSES.includes(raw as never) ? raw : undefined;
+  }
   if (tab === "send") {
     return DELIVERY_STATUSES.includes(raw as never) ? raw : undefined;
   }
@@ -72,6 +77,9 @@ export function rideServiceFee(ride: Pick<Ride, "fare" | "serviceFee">): number 
 export const TAB_SUPPORTS_SEARCH: Record<OrderTabKey, boolean> = {
   food: true,
   ride: false,
+  // `/admin/titip-orders` juga tidak punya param `search`. Menampilkan kotak
+  // pencarian yang tidak berfungsi hanya membuat admin menyangka fiturnya rusak.
+  titip: false,
   // `/admin/deliveries` tidak punya param `search` — sama seperti `/admin/rides`.
   send: false,
   mart: true,
