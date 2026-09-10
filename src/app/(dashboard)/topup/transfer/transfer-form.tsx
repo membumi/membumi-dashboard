@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TransferTarget, WalletType } from "@/lib/types";
 import { Input, Label } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { formatRupiah } from "@/lib/utils";
@@ -105,17 +106,16 @@ export function TransferForm({
 
           <div>
             <Label htmlFor="amount">Nominal (Rp)</Label>
-            <Input
+            <MoneyInput
               id="amount"
               name="amount"
-              type="number"
               min={MIN_AMOUNT}
               max={Math.min(MAX_AMOUNT, available)}
-              step={1000}
               required
-              placeholder="50000"
-              value={amountInput}
-              onChange={(e) => setAmountInput(e.target.value)}
+              placeholder="50.000"
+              // The form's own guards (saldo, batas) read the raw digits, so
+              // they keep working on the grouped field.
+              onValueChange={setAmountInput}
               aria-invalid={insufficient || tooLow || tooHigh}
             />
             {insufficient ? (

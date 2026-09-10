@@ -31,7 +31,7 @@ const EMPTY: FinanceSummary = {
   gmvByService: { ride: 0, food: 0, trip: 0, mart: 0 },
   income: 0,
   expense: 0,
-  serviceFeeByService: { ride: 0, food: 0, mart: 0, delivery: 0, trip: 0, hotel: 0 },
+  serviceFeeByService: { ride: 0, food: 0, mart: 0, delivery: 0, trip: 0, hotel: 0, titip: 0 },
   serviceFeeTotal: 0,
   commissionCollected: { driver: 0, merchant: 0, total: 0 },
 };
@@ -96,21 +96,31 @@ export default async function KeuanganPage({
 
   const collected = summary.commissionCollected ?? { driver: 0, merchant: 0, total: 0 };
   const serviceFees =
-    summary.serviceFeeByService ?? { ride: 0, food: 0, mart: 0, delivery: 0, trip: 0, hotel: 0 };
-  const serviceFeeRows = (["ride", "food", "mart", "delivery", "trip", "hotel"] as const).map(
-    (key) => ({
-      key,
-      label: {
-        ride: "Driver (Ride)",
-        food: "Food",
-        mart: "UMKM (Mart)",
-        delivery: "Delivery",
-        trip: "Open Trip",
-        hotel: "Hotel",
-      }[key],
-      value: serviceFees[key],
-    })
-  );
+    summary.serviceFeeByService ?? {
+      ride: 0,
+      food: 0,
+      mart: 0,
+      delivery: 0,
+      trip: 0,
+      hotel: 0,
+      titip: 0,
+    };
+  const serviceFeeRows = (
+    ["ride", "food", "mart", "delivery", "titip", "trip", "hotel"] as const
+  ).map((key) => ({
+    key,
+    label: {
+      ride: "Driver (Ride)",
+      food: "Food",
+      mart: "UMKM (Mart)",
+      delivery: "Delivery",
+      titip: "MiTitip",
+      trip: "Open Trip",
+      hotel: "Hotel",
+    }[key],
+    value: serviceFees[key],
+  }));
+  const titipRevenue = summary.titipRevenue;
 
   return (
     <div className="space-y-6">
@@ -188,6 +198,46 @@ export default async function KeuanganPage({
               </p>
               <CommissionForm rates={rates} />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Pendapatan MiTitip</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {titipRevenue ? (
+              <>
+                <div className="grid gap-3 sm:grid-cols-4">
+                  <Stat label="Jasa MiTitip" value={titipRevenue.jasa} />
+                  <Stat label="Bagian ongkir" value={titipRevenue.ongkir} />
+                  <Stat label="Biaya layanan" value={titipRevenue.serviceFee} />
+                  <Stat label="Total pendapatan" value={titipRevenue.total} strong />
+                </div>
+                {/* Kept on its own row, labelled, and visually separated: this is
+                    money passed through to shops. Folding it into the revenue
+                    figure would inflate the report roughly tenfold, and the
+                    inflated number would be believed. */}
+                <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">
+                      Nilai barang yang diteruskan ke toko
+                    </span>
+                    <span className="font-medium text-slate-700">
+                      {formatRupiah(titipRevenue.goodsValue)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    <strong>Bukan pendapatan Membumi.</strong> Dana ini dibayarkan
+                    ke toko dan diganti ke driver.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <p className="text-slate-500">
+                Backend belum mengirim rincian pendapatan MiTitip untuk periode ini.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -313,6 +363,31 @@ export default async function KeuanganPage({
           />
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: number;
+  strong?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-slate-500">{label}</p>
+      <p
+        className={
+          strong
+            ? "text-lg font-semibold text-emerald-700"
+            : "text-lg font-semibold text-slate-900"
+        }
+      >
+        {formatRupiah(value)}
+      </p>
     </div>
   );
 }

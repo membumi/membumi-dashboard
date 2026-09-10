@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
+  digitsOnly,
+  formatThousands,
   formatRupiah,
   discountPercent,
   mapsUrl,
@@ -16,9 +18,41 @@ import {
   BOOKING_STATUS_LABEL,
 } from "@/lib/constants";
 
+describe("utils — money input helpers", () => {
+  it("keeps only digits, dropping grouping and leading zeros", () => {
+    expect(digitsOnly("Rp 25.000")).toBe("25000");
+    expect(digitsOnly("007")).toBe("7");
+    expect(digitsOnly("")).toBe("");
+  });
+
+  it("groups thousands for display inside the field", () => {
+    expect(formatThousands("25000")).toBe("25.000");
+    expect(formatThousands("2000000")).toBe("2.000.000");
+    // Empty stays empty so a cleared field doesn't snap back to "0".
+    expect(formatThousands("")).toBe("");
+  });
+
+  it("round-trips what the form posts", () => {
+    // The whole reason the grouped text is never submitted: the server parses
+    // with `z.coerce.number()`, and Number("25.000") is 25.
+    const typed = formatThousands("25000");
+    expect(Number(typed)).toBe(25);
+    expect(Number(digitsOnly(typed))).toBe(25000);
+  });
+});
+
 describe("utils — formatRupiah", () => {
   it("formats integers as IDR without decimals", () => {
     expect(formatRupiah(850000)).toMatch(/Rp.?850\.000/);
+  });
+
+  it("separates the symbol with a plain space, not a non-breaking one", () => {
+    // `style: "currency"` puts U+00A0 after "Rp" on Node's ICU and a plain
+    // space on some browsers, so the same call rendered different text on the
+    // server and the client — a hydration mismatch in every Client Component
+    // that formats money.
+    expect(formatRupiah(150000)).toBe("Rp 150.000");
+    expect(formatRupiah(150000)).not.toContain("\u00a0");
   });
   it("renders dash for null/undefined", () => {
     expect(formatRupiah(null)).toBe("-");

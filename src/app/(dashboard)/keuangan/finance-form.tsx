@@ -2,6 +2,7 @@
 
 import { useRef, useTransition } from "react";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { Button } from "@/components/ui/button";
 import { createFinanceRecord } from "@/server/actions/finance";
 
@@ -36,7 +37,7 @@ export function FinanceForm() {
       </div>
       <div>
         <Label htmlFor="fin-amount">Jumlah (Rp)</Label>
-        <Input id="fin-amount" name="amount" type="number" min={1} placeholder="50000" required />
+        <MoneyInput id="fin-amount" name="amount" min={1} placeholder="50.000" required />
       </div>
       <div>
         <Label htmlFor="fin-method">Metode</Label>

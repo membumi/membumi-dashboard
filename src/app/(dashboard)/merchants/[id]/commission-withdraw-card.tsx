@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/forms/form-controls";
-import { formatRupiah } from "@/lib/utils";
+import { digitsOnly, formatRupiah, formatThousands } from "@/lib/utils";
 import type { OutstandingCommission } from "@/lib/types";
 import { collectMerchantCommission } from "@/server/actions/merchants";
 
@@ -126,20 +126,25 @@ export function CommissionWithdrawCard({
                       </p>
                     </div>
                     <div className="w-32 shrink-0 text-right">
+                      {/* Grouped as you type, like every other rupiah field.
+                          `edited` keeps the raw digits, so `amountOf` still
+                          reads a plain number — grouping never reaches the
+                          payload. */}
                       <Input
-                        type="number"
+                        type="text"
                         inputMode="numeric"
-                        min={1}
-                        max={o.commission}
-                        step={1}
-                        value={edited[o.orderId] ?? String(o.commission)}
+                        autoComplete="off"
+                        value={formatThousands(edited[o.orderId] ?? String(o.commission))}
                         disabled={!checked}
                         aria-invalid={bad}
                         aria-label={`Nominal komisi ${label}`}
                         onChange={(e) =>
-                          setEdited((prev) => ({ ...prev, [o.orderId]: e.target.value }))
+                          setEdited((prev) => ({
+                            ...prev,
+                            [o.orderId]: digitsOnly(e.target.value),
+                          }))
                         }
-                        className="text-right"
+                        className="text-right tabular-nums"
                       />
                       <p className={`mt-0.5 text-xs ${bad ? "text-red-600" : "text-slate-400"}`}>
                         {bad

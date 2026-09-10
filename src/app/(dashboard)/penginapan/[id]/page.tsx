@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input, Label } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { ArrayInput } from "@/components/forms/array-input";
 import { SubmitButton, ConfirmDelete } from "@/components/forms/form-controls";
 import { HotelForm } from "../hotel-form";
@@ -77,7 +78,7 @@ export default async function HotelDetailPage({ params }: { params: Promise<{ id
             </div>
             <div>
               <Label>Harga / malam</Label>
-              <Input name="pricePerNight" type="number" min={1} required />
+              <MoneyInput name="pricePerNight" min={1} required />
             </div>
             <div>
               <Label>Kapasitas</Label>

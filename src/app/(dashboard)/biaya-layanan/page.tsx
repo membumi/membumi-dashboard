@@ -14,6 +14,7 @@ const DEFAULTS: ServiceFeeConfig = {
   mart: 2000,
   hotel: 5000,
   trip: 5000,
+  titip: 1000,
 };
 
 export default async function BiayaLayananPage() {

@@ -3,6 +3,7 @@
 import type { AdAddon, AdPlacement } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { SubmitButton } from "@/components/forms/form-controls";
 
 export function AddonForm({
@@ -33,7 +34,7 @@ export function AddonForm({
           </div>
           <div>
             <Label>Harga (Rp)</Label>
-            <Input name="price" type="number" min={0} required defaultValue={addon?.price ?? 0} />
+            <MoneyInput name="price" min={0} required defaultValue={addon?.price ?? 0} />
           </div>
           <div>
             <Label>Placement (kosong = jasa saja, mis. Desain Ads)</Label>

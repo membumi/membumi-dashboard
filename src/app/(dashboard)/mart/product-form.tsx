@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Product, MartCategory } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { ImageUploadInput } from "@/components/forms/image-upload";
@@ -28,11 +29,11 @@ export function ProductForm({
           </div>
           <div>
             <Label>Harga jual (Rp)</Label>
-            <Input name="price" type="number" min={1} required defaultValue={product?.price} />
+            <MoneyInput name="price" min={1} required defaultValue={product?.price} />
           </div>
           <div>
             <Label>Harga asli (opsional, untuk diskon)</Label>
-            <Input name="originalPrice" type="number" min={0} defaultValue={product?.originalPrice ?? ""} />
+            <MoneyInput name="originalPrice" min={0} defaultValue={product?.originalPrice ?? ""} />
           </div>
           <div>
             <Label>Satuan</Label>

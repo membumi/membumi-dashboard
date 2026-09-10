@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Promo } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { ImageUploadInput } from "@/components/forms/image-upload";
@@ -49,13 +50,12 @@ export function PromoForm({
           </div>
           <div>
             <Label>Min. Belanja (Rp)</Label>
-            <Input name="minSpend" type="number" min={0} defaultValue={promo?.minSpend ?? 0} />
+            <MoneyInput name="minSpend" min={0} defaultValue={promo?.minSpend ?? 0} />
           </div>
           <div>
             <Label>Maks. Diskon (Rp, khusus PERCENT)</Label>
-            <Input
+            <MoneyInput
               name="maxDiscount"
-              type="number"
               min={0}
               placeholder="Kosong = tanpa batas"
               defaultValue={promo?.maxDiscount ?? ""}

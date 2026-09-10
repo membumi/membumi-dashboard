@@ -11,6 +11,7 @@ import {
   TICKET_CATEGORIES,
   TICKET_STATUS_ACTIONS,
   VERIFICATION_STATUSES,
+  TITIP_STATUSES,
 } from "@/lib/constants";
 
 // Form field shapes for Server Actions. Field names match the dashboard forms;
@@ -213,6 +214,54 @@ export const foodFareConfigSchema = z.object({
   minDeliveryFee: money,
 });
 
+// ── MiTitip ────────────────────────────────────────────────────────────────
+
+const percent = z.coerce.number().int().min(0).max(100);
+
+/**
+ * Every field optional, deliberately: the backend PATCH is partial, so a form
+ * that predates a knob can never blank it out by saving. Adding a knob here
+ * must stay a non-destructive change.
+ */
+export const titipFeeConfigSchema = z.object({
+  jasaRatePercent: percent.optional(),
+  jasaMinAmount: money.optional(),
+  jasaMaxAmount: money.optional(),
+  jasaDriverSharePercent: percent.optional(),
+  ongkirDriverSharePercent: percent.optional(),
+  maxShoppingAmountCap: money.optional(),
+  defaultMaxShoppingMultiplierPct: z.coerce.number().int().min(100).optional(),
+  maxDriverCashExposure: money.optional(),
+  approvalTimeoutMinutes: z.coerce.number().int().min(1).optional(),
+  approvalHardTimeoutMinutes: z.coerce.number().int().min(1).optional(),
+  maxRevisionRounds: z.coerce.number().int().min(1).optional(),
+  tillToleranceAmount: money.optional(),
+  tillTolerancePercent: percent.optional(),
+  maxPlatformVarianceAbsorption: money.optional(),
+  cancellationFeeAtAssigned: money.optional(),
+  cancellationFeeAtShoppingPercent: percent.optional(),
+  recomputeJasaOnCustomerRemoval: z.coerce.boolean().optional(),
+});
+
+/** Admin decision on a till-variance dispute. */
+export const titipDisputeSchema = z.object({
+  orderId: id,
+  decision: z.enum(["approve_full", "approve_partial", "reject"]),
+  /** Required for `approve_partial` — how much of the overshoot to cover. */
+  amount: money.optional(),
+  note: z.string().min(3),
+});
+
+export const titipStatusSchema = z.object({
+  id,
+  status: z.enum(TITIP_STATUSES),
+});
+
+export const titipCancelSchema = z.object({
+  id,
+  reason: z.string().min(3),
+});
+
 export const serviceFeeConfigSchema = z.object({
   ride: money,
   food: money,
@@ -220,6 +269,7 @@ export const serviceFeeConfigSchema = z.object({
   mart: money,
   hotel: money,
   trip: money,
+  titip: money,
 });
 
 export const deliveryCategorySchema = z.object({

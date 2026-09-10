@@ -3,7 +3,8 @@ import { apiGet } from "@/lib/api-client";
 import type { FoodFareConfig } from "@/lib/types";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input, Label } from "@/components/ui/input";
+import { Label } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { SubmitButton } from "@/components/forms/form-controls";
 import { updateFoodFareConfig } from "@/server/actions/food-settings";
 
@@ -27,27 +28,24 @@ export default async function FoodSettingsPage() {
           <form action={updateFoodFareConfig} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label>Biaya Dasar Pengiriman</Label>
-              <Input
+              <MoneyInput
                 name="baseDeliveryFee"
-                type="number"
                 min={0}
                 defaultValue={config.baseDeliveryFee}
               />
             </div>
             <div>
               <Label>Biaya per Km</Label>
-              <Input
+              <MoneyInput
                 name="deliveryFeePerKm"
-                type="number"
                 min={0}
                 defaultValue={config.deliveryFeePerKm}
               />
             </div>
             <div>
               <Label>Biaya Pengiriman Minimum</Label>
-              <Input
+              <MoneyInput
                 name="minDeliveryFee"
-                type="number"
                 min={0}
                 defaultValue={config.minDeliveryFee}
               />

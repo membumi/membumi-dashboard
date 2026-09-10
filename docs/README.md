@@ -24,6 +24,8 @@ Sebelum migrasi: **Next.js full-stack + PostgreSQL/Prisma** dengan REST API (`/a
 | [prd/08-promo.md](./prd/08-promo.md) | PRD Modul Promo & Banner |
 | [prd/09-payment.md](./prd/09-payment.md) | PRD Modul Payment & Wallet |
 | [prd/10-analytics.md](./prd/10-analytics.md) | PRD Modul Overview & Analytics |
+| [prd/11-penginapan-booking-approval.md](./prd/11-penginapan-booking-approval.md) | PRD Alur Persetujuan Booking Penginapan |
+| [prd/12-mititip.md](./prd/12-mititip.md) | PRD Modul MiTitip (Titip Belanja): monitoring, audit revisi, tarif, sengketa |
 | [testing.md](./testing.md) | Peta unit test (Vitest) → use case per fitur |
 
 ## Konvensi PRD

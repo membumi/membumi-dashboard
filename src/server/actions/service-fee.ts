@@ -15,6 +15,7 @@ export async function updateServiceFeeConfig(fd: FormData) {
     mart: str(fd, "mart"),
     hotel: str(fd, "hotel"),
     trip: str(fd, "trip"),
+    titip: str(fd, "titip"),
   });
   await apiPut("/admin/service-fee-config", d);
   revalidatePath("/biaya-layanan");

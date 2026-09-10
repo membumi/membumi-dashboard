@@ -5,14 +5,44 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Format a number as Indonesian Rupiah. */
+/**
+ * Format a number as Indonesian Rupiah.
+ *
+ * The symbol is prefixed by hand instead of using `style: "currency"`: that
+ * style puts a NON-BREAKING space after "Rp" on Node's ICU and a plain space
+ * (or none) on some browsers, so the very same call rendered different text on
+ * the server and on the client — which is a React hydration mismatch wherever
+ * this runs inside a Client Component. Grouping (`150.000`) is stable across
+ * ICU versions, so only the separator is ours.
+ */
 export function formatRupiah(value: number | null | undefined): string {
   if (value == null) return "-";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
+  return `Rp ${new Intl.NumberFormat("id-ID", {
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(value)}`;
+}
+
+/**
+ * Digits of a typed money value, without grouping or leading zeros.
+ *
+ * What a form must POST. `z.coerce.number()` reads the raw string, and
+ * `Number("25.000")` is **25** — so submitting the grouped text instead of this
+ * would quietly store a tariff a thousand times too small.
+ */
+export function digitsOnly(raw: string): string {
+  return raw.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+}
+
+/**
+ * `"25000"` → `"25.000"`, for showing grouped thousands *inside* an input while
+ * the user types. Grouping is stable across ICU versions (unlike the currency
+ * style), so it renders identically on the server and the client.
+ */
+export function formatThousands(digits: string): string {
+  if (digits === "") return "";
+  return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(
+    Number(digits),
+  );
 }
 
 /** Format a date as a readable Indonesian date, pinned to WIB (Asia/Jakarta). */

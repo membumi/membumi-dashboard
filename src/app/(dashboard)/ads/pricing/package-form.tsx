@@ -5,6 +5,7 @@ import type { AdPackage, AdPlacement } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { MoneyInput } from "@/components/ui/money-input";
 import { SubmitButton } from "@/components/forms/form-controls";
 
 /** Create/edit an ads package. Entitlements are dynamic rows of (placement, slots). */
@@ -40,7 +41,7 @@ export function PackageForm({
           </div>
           <div>
             <Label>Harga (Rp)</Label>
-            <Input name="price" type="number" min={0} required defaultValue={pkg?.price ?? 0} />
+            <MoneyInput name="price" min={0} required defaultValue={pkg?.price ?? 0} />
           </div>
           <div>
             <Label>Durasi (hari)</Label>

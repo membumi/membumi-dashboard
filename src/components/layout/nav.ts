@@ -23,6 +23,8 @@ import {
   Tags,
   LayoutGrid,
   ImageIcon,
+  Scale,
+  ShoppingBag,
 } from "lucide-react";
 
 export type NavItem = {
@@ -44,6 +46,8 @@ export const NAV: NavItem[] = [
   { label: "Konfigurasi & Monitoring", href: "/ride", icon: Settings, group: "Transportasi" },
   { label: "Daftar Driver", href: "/ride/drivers", icon: Users, group: "Transportasi" },
   { label: "Kirim Barang", href: "/kirim-barang", icon: PackageOpen, group: "Konten" },
+  { label: "MiTitip", href: "/titip", icon: ShoppingBag, group: "Konten" },
+  { label: "Sengketa MiTitip", href: "/titip/sengketa", icon: Scale, group: "Monitoring" },
   { label: "Promo", href: "/promos", icon: Ticket, group: "Konten" },
   { label: "Campaign", href: "/ads", icon: Megaphone, group: "Ads & Campaign" },
   { label: "Paket & Harga", href: "/ads/pricing", icon: Tags, group: "Ads & Campaign" },
