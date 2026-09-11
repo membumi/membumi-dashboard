@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { getActiveHref } from "./nav";
 import { NavList } from "./nav-list";
 
-export function Sidebar() {
+export function Sidebar({ role }: { role?: string }) {
   const activeHref = getActiveHref(usePathname());
 
   return (
@@ -16,7 +16,7 @@ export function Sidebar() {
         <span className="font-semibold text-slate-900">SuperApp Admin</span>
       </div>
       <nav className="flex-1 space-y-5 overflow-y-auto p-3">
-        <NavList activeHref={activeHref} />
+        <NavList activeHref={activeHref} role={role} />
       </nav>
     </aside>
   );

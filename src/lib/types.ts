@@ -1269,3 +1269,194 @@ export interface ReportSummary {
 
   trend: { date: string; gmv: number; orders: number }[];
 }
+
+// ── Hapus transaksi end-to-end (pembersihan data testing) ──────────────────
+
+export type DeletableOrderKind = "ride" | "food" | "mart" | "delivery" | "titip";
+
+export interface CleanupUserMatch {
+  id: string;
+  name: string;
+  phone: string | null;
+}
+
+export interface OrderCleanupCandidate {
+  kind: DeletableOrderKind;
+  id: string;
+  status: string;
+  total: number;
+  createdAt: string;
+}
+
+/** Satu dompet yang akan berubah, lengkap dengan saldo sebelum & sesudah. */
+export interface WalletReversal {
+  userId: string;
+  name: string;
+  role: "customer" | "driver" | "merchant" | "lainnya";
+  walletType: "USER" | "DRIVER" | "MERCHANT";
+  currentBalance: number;
+  delta: number;
+  resultingBalance: number;
+  /** Seberapa jauh saldo akan minus (0 bila muat). */
+  shortfall: number;
+}
+
+export interface OrderCleanupTransaction {
+  id: string;
+  referenceType: string;
+  walletType: "USER" | "DRIVER" | "MERCHANT";
+  method: string;
+  status: string;
+  amount: number;
+  description: string;
+  /** Efek baris ini ke saldo saat dibuat; pembalikan memakai kebalikannya. */
+  walletEffect: number;
+  createdAt: string;
+}
+
+export interface OrderCleanupPreview {
+  kind: DeletableOrderKind;
+  orderId: string;
+  status: string;
+  createdAt: string;
+  total: number;
+  paymentMethod: string;
+  customer: { userId: string; name: string; phone: string | null } | null;
+  driver: { driverId: string; userId: string; name: string } | null;
+  merchant: { merchantId: string; userId: string | null; name: string } | null;
+  transactions: OrderCleanupTransaction[];
+  walletReversals: WalletReversal[];
+  promoUsages: {
+    id: string;
+    promoId: string;
+    code: string | null;
+    discountAmount: number;
+    /** RESERVED menahan budget, USED sudah memakainya, REVERSED sudah dikembalikan. */
+    status: string;
+  }[];
+  linkedDeliveryId: string | null;
+  titipItems: number;
+  titipRevisions: number;
+  driverTripsAfter: number | null;
+  blockers: string[];
+  warnings: string[];
+}
+
+export interface OrderDeletionLog {
+  id: string;
+  orderKind: DeletableOrderKind;
+  orderId: string;
+  customerUserId: string | null;
+  actorEmail: string | null;
+  reason: string;
+  orderTotal: number;
+  transactionsDeleted: number;
+  forced: boolean;
+  createdAt: string;
+}
+
+/** Satu baris dalam sapu-bersih per akun. */
+export interface UserCleanupOrderLine {
+  kind: DeletableOrderKind;
+  id: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  transactionCount: number;
+  settled: boolean;
+  blockers: string[];
+}
+
+export interface WalletImpact {
+  userId: string;
+  name: string;
+  role: "customer" | "driver" | "merchant" | "lainnya";
+  walletType: "USER" | "DRIVER" | "MERCHANT";
+  delta: number;
+}
+
+export interface UserCleanupPreview {
+  userId: string;
+  customerName: string | null;
+  totalOrders: number;
+  byKind: Record<string, number>;
+  /** Pesanan yang statusnya benar-benar terhitung sebagai penghasilan. */
+  settledOrders: number;
+  /** Nilai yang hilang dari Laporan & Keuangan — pesanan selesai saja. */
+  settledValue: number;
+  totalTransactions: number;
+  walletImpact: WalletImpact[];
+  blockedOrders: number;
+  orders: UserCleanupOrderLine[];
+}
+
+export interface UserCleanupResult {
+  userId: string;
+  deleted: { kind: DeletableOrderKind; id: string }[];
+  failed: { kind: DeletableOrderKind; id: string; reason: string }[];
+  clampedWallets: string[];
+}
+
+// ── Hapus campaign Ads end-to-end ─────────────────────────────────────────
+
+export interface CampaignCandidate {
+  id: string;
+  name: string;
+  status: string;
+  totalPrice: number;
+  createdAt: string;
+}
+
+export interface CampaignCleanupPreview {
+  campaignId: string;
+  name: string;
+  status: string;
+  type: string;
+  adsPrice: number;
+  promoBudgetFunded: number;
+  totalPrice: number;
+  createdAt: string;
+  merchant: { merchantId: string; userId: string | null; name: string } | null;
+  transactions: {
+    id: string;
+    referenceType: string;
+    method: string;
+    status: string;
+    amount: number;
+    description: string;
+    walletEffect: number;
+    createdAt: string;
+  }[];
+  walletReversal: {
+    userId: string;
+    name: string;
+    currentBalance: number;
+    delta: number;
+    resultingBalance: number;
+    shortfall: number;
+  } | null;
+  promoCreditReversal: {
+    merchantId: string;
+    currentBalance: number;
+    delta: number;
+    resultingBalance: number;
+    shortfall: number;
+  } | null;
+  counts: {
+    ledgerEntries: number;
+    auditLogs: number;
+    bookings: number;
+    creatives: number;
+    statsRows: number;
+    budgetTopups: number;
+  };
+  promo: {
+    id: string;
+    code: string;
+    budget: number | null;
+    budgetUsed: number;
+    liveUsages: number;
+  } | null;
+  blockers: string[];
+  warnings: string[];
+}

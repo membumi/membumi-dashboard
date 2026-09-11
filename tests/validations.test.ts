@@ -20,6 +20,10 @@ import {
   pushUnsubscribeSchema,
   walletTransferSchema,
   serviceFeeConfigSchema,
+  orderCleanupDeleteSchema,
+  orderCleanupLookupSchema,
+  orderCleanupUserSchema,
+  campaignCleanupDeleteSchema,
 } from "@/lib/validations";
 
 describe("Penginapan — hotelSchema (UC-01)", () => {
@@ -381,5 +385,100 @@ describe("Biaya Layanan — serviceFeeConfigSchema", () => {
 
   it("menolak nilai bukan angka", () => {
     expect(serviceFeeConfigSchema.safeParse({ ...base, titip: "gratis" }).success).toBe(false);
+  });
+});
+
+describe("orderCleanupLookupSchema", () => {
+  it("accepts a search by order id", () => {
+    expect(orderCleanupLookupSchema.safeParse({ orderId: "abc-123" }).success).toBe(true);
+  });
+
+  it("accepts a search by user id", () => {
+    expect(orderCleanupLookupSchema.safeParse({ userId: "user-1" }).success).toBe(true);
+  });
+
+  /** An empty search would otherwise mean "every order", which is not a search. */
+  it("rejects an empty search", () => {
+    expect(orderCleanupLookupSchema.safeParse({}).success).toBe(false);
+  });
+
+  it("rejects blank strings the same way", () => {
+    expect(orderCleanupLookupSchema.safeParse({ orderId: "   " }).success).toBe(false);
+  });
+});
+
+describe("orderCleanupDeleteSchema", () => {
+  const base = { kind: "food", id: "o-1", reason: "Data testing QA, bukan transaksi nyata" };
+
+  it("accepts a complete deletion request", () => {
+    const parsed = orderCleanupDeleteSchema.safeParse(base);
+    expect(parsed.success).toBe(true);
+    // Unticked checkbox must not read as a forced deletion.
+    if (parsed.success) expect(parsed.data.force).toBe(false);
+  });
+
+  it("accepts an explicit force", () => {
+    const parsed = orderCleanupDeleteSchema.safeParse({ ...base, force: true });
+    expect(parsed.success && parsed.data.force).toBe(true);
+  });
+
+  /**
+   * The reason is the only thing that makes the audit log readable later, so a
+   * placeholder like "test" must not get through.
+   */
+  it("rejects a reason shorter than 10 characters", () => {
+    expect(orderCleanupDeleteSchema.safeParse({ ...base, reason: "test" }).success).toBe(false);
+  });
+
+  it("rejects an order kind the cleanup cannot handle", () => {
+    expect(orderCleanupDeleteSchema.safeParse({ ...base, kind: "hotel" }).success).toBe(false);
+  });
+
+  it("rejects a missing order id", () => {
+    expect(orderCleanupDeleteSchema.safeParse({ ...base, id: "" }).success).toBe(false);
+  });
+});
+
+describe("orderCleanupUserSchema", () => {
+  const base = {
+    userId: "u-1",
+    confirmUserId: "u-1",
+    reason: "Bersihkan akun testing QA",
+  };
+
+  it("accepts a matching confirmation", () => {
+    expect(orderCleanupUserSchema.safeParse(base).success).toBe(true);
+  });
+
+  /** A bulk delete on the wrong account has no undo, so the id is retyped. */
+  it("rejects a confirmation that does not match", () => {
+    const parsed = orderCleanupUserSchema.safeParse({ ...base, confirmUserId: "u-2" });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects a blank confirmation", () => {
+    expect(orderCleanupUserSchema.safeParse({ ...base, confirmUserId: "" }).success).toBe(false);
+  });
+
+  it("rejects a too-short reason", () => {
+    expect(orderCleanupUserSchema.safeParse({ ...base, reason: "uji" }).success).toBe(false);
+  });
+});
+
+describe("campaignCleanupDeleteSchema", () => {
+  const base = { id: "c-1", reason: "Campaign testing QA, bukan campaign nyata" };
+
+  it("accepts a complete request and defaults force off", () => {
+    const parsed = campaignCleanupDeleteSchema.safeParse(base);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.force).toBe(false);
+  });
+
+  it("rejects a placeholder reason", () => {
+    expect(campaignCleanupDeleteSchema.safeParse({ ...base, reason: "test" }).success).toBe(false);
+  });
+
+  it("rejects a missing campaign id", () => {
+    expect(campaignCleanupDeleteSchema.safeParse({ ...base, id: "" }).success).toBe(false);
   });
 });

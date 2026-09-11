@@ -468,3 +468,58 @@ export const rejectCampaignSchema = z.object({
 export const bookingPrioritySchema = z.object({
   priority: z.coerce.number().int().min(0).max(1000),
 });
+
+// ── Hapus transaksi end-to-end ────────────────────────────────────────────
+
+export const ORDER_CLEANUP_KINDS = ["ride", "food", "mart", "delivery", "titip"] as const;
+
+/** Cari pesanan: salah satu dari ID pesanan atau ID pengguna wajib diisi. */
+export const orderCleanupLookupSchema = z
+  .object({
+    orderId: z.string().trim().max(100).optional(),
+    userId: z.string().trim().max(100).optional(),
+  })
+  .refine((v) => Boolean(v.orderId) || Boolean(v.userId), {
+    path: ["orderId"],
+    message: "Isi ID transaksi atau ID pengguna",
+  });
+
+/**
+ * Penghapusan wajib beralasan dan alasannya masuk audit log permanen — itu satu-
+ * satunya hal yang membuat baris log berguna sebulan kemudian. `force` sengaja
+ * terpisah: artinya saldo sudah terlanjur ditarik dan selisihnya ditanggung platform.
+ */
+export const orderCleanupDeleteSchema = z.object({
+  kind: z.enum(ORDER_CLEANUP_KINDS),
+  id: z.string().trim().min(1, "ID pesanan wajib diisi"),
+  reason: z.string().trim().min(10, "Alasan penghapusan minimal 10 karakter").max(300),
+  force: z.boolean().default(false),
+});
+
+/**
+ * Sapu bersih semua pesanan satu akun. `confirmUserId` harus sama persis dengan
+ * `userId` — satu klik memisahkan ini dari mengosongkan akun yang salah, jadi
+ * ID-nya harus diketik ulang, bukan sekadar tercentang.
+ */
+export const orderCleanupUserSchema = z
+  .object({
+    userId: z.string().trim().min(1, "ID pengguna wajib diisi"),
+    confirmUserId: z.string().trim().min(1, "Ketik ulang ID pengguna sebagai konfirmasi"),
+    reason: z.string().trim().min(10, "Alasan penghapusan minimal 10 karakter").max(300),
+    force: z.boolean().default(false),
+  })
+  .refine((v) => v.userId === v.confirmUserId, {
+    path: ["confirmUserId"],
+    message: "Konfirmasi ID pengguna tidak cocok",
+  });
+
+/** Hapus campaign Ads end-to-end. Aturan alasan & force sama dengan pesanan. */
+export const campaignCleanupDeleteSchema = z.object({
+  id: z.string().trim().min(1, "ID campaign wajib diisi"),
+  reason: z.string().trim().min(10, "Alasan penghapusan minimal 10 karakter").max(300),
+  force: z.boolean().default(false),
+});
+
+export const campaignSearchSchema = z.object({
+  q: z.string().trim().min(1, "Isi nama atau ID campaign").max(100),
+});

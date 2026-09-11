@@ -1,20 +1,26 @@
 import Link from "next/link";
-import { NAV, type NavItem } from "./nav";
+import { visibleNav, type NavItem } from "./nav";
 import { cn } from "@/lib/utils";
 
 /**
  * The grouped nav links, shared by the desktop sidebar and the mobile drawer so
  * the two can't drift. The caller resolves `activeHref` (both know the pathname
  * already) and passes `onNavigate` when a tap should also close a container.
+ *
+ * `role` only hides links the admin cannot use; the pages behind them guard
+ * themselves server-side.
  */
 export function NavList({
   activeHref,
+  role,
   onNavigate,
 }: {
   activeHref: string | null;
+  role?: string;
   onNavigate?: () => void;
 }) {
-  const groups = Array.from(new Set(NAV.map((n) => n.group)));
+  const nav = visibleNav(role);
+  const groups = Array.from(new Set(nav.map((n) => n.group)));
 
   return (
     <>
@@ -24,7 +30,7 @@ export function NavList({
             {group}
           </p>
           <div className="space-y-0.5">
-            {NAV.filter((n) => n.group === group).map((item) => (
+            {nav.filter((n) => n.group === group).map((item) => (
               <NavEntry
                 key={item.href}
                 item={item}
