@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { hasRole, type AdminRole } from "@/lib/constants";
 import {
   LayoutDashboard,
   Bell,
@@ -25,6 +26,7 @@ import {
   ImageIcon,
   Scale,
   ShoppingBag,
+  Trash2,
 } from "lucide-react";
 
 export type NavItem = {
@@ -32,6 +34,8 @@ export type NavItem = {
   href: string;
   icon: LucideIcon;
   group: string;
+  /** Hide the link below this role. The page still guards itself server-side. */
+  minRole?: AdminRole;
 };
 
 export const NAV: NavItem[] = [
@@ -63,7 +67,22 @@ export const NAV: NavItem[] = [
   { label: "Biaya Layanan", href: "/biaya-layanan", icon: Settings, group: "Monitoring" },
   { label: "Pengguna", href: "/users", icon: Users, group: "Pengelolaan" },
   { label: "Notifikasi", href: "/pengaturan/notifikasi", icon: Bell, group: "Pengelolaan" },
+  {
+    label: "Hapus Transaksi",
+    href: "/pengaturan/hapus-transaksi",
+    icon: Trash2,
+    group: "Pengelolaan",
+    minRole: "SUPER_ADMIN",
+  },
 ];
+
+/**
+ * The links this admin may see. Cosmetic only — every gated page re-checks the
+ * role on the server, because hiding a link is not access control.
+ */
+export function visibleNav(role: string | undefined, nav: readonly NavItem[] = NAV): NavItem[] {
+  return nav.filter((item) => !item.minRole || hasRole(role, item.minRole));
+}
 
 /**
  * Longest-prefix match: only the most specific nav href is "active" so that

@@ -23,7 +23,7 @@ export default async function DashboardLayout({
     // h-dvh, not h-screen: mobile browser chrome makes 100vh taller than the
     // visible viewport, which clips the shell.
     <div className="flex h-dvh overflow-hidden bg-slate-50">
-      <Sidebar />
+      <Sidebar role={admin.role} />
       {/* min-w-0 lets wide tables scroll inside <main> instead of stretching
           this column — flex items default to min-width:auto. */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">

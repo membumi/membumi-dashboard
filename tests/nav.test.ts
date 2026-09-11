@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NAV, getActiveHref } from "@/components/layout/nav";
+import { NAV, getActiveHref, visibleNav } from "@/components/layout/nav";
 
 describe("getActiveHref", () => {
   it("matches the dashboard root only on an exact path", () => {
@@ -56,5 +56,25 @@ describe("NAV", () => {
       expect(item.label.length, item.href).toBeGreaterThan(0);
       expect(item.href.startsWith("/"), item.href).toBe(true);
     }
+  });
+});
+
+describe("visibleNav", () => {
+  const href = (role: string | undefined) => visibleNav(role).map((n) => n.href);
+
+  it("shows the end-to-end delete tool only to a super admin", () => {
+    expect(href("SUPER_ADMIN")).toContain("/pengaturan/hapus-transaksi");
+    expect(href("ADMIN")).not.toContain("/pengaturan/hapus-transaksi");
+    expect(href("OPERATOR")).not.toContain("/pengaturan/hapus-transaksi");
+    expect(href(undefined)).not.toContain("/pengaturan/hapus-transaksi");
+  });
+
+  it("leaves every ungated link visible to the lowest role", () => {
+    const ungated = NAV.filter((n) => !n.minRole).map((n) => n.href);
+    expect(href("OPERATOR")).toEqual(ungated);
+  });
+
+  it("hides nothing from a super admin", () => {
+    expect(visibleNav("SUPER_ADMIN")).toHaveLength(NAV.length);
   });
 });

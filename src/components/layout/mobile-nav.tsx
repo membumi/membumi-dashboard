@@ -21,7 +21,7 @@ const FOCUSABLE = 'a[href], button:not([disabled])';
  * animation in both directions and removes it from the tab order and the
  * accessibility tree without a hand-rolled hidden state.
  */
-export function MobileNav() {
+export function MobileNav({ role }: { role?: string }) {
   const pathname = usePathname();
   // Storing the route the drawer was opened on (rather than a plain boolean)
   // makes any navigation — link tap, browser back — close it during render,
@@ -125,7 +125,7 @@ export function MobileNav() {
           </button>
         </div>
         <nav className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-3">
-          <NavList activeHref={activeHref} onNavigate={() => setOpen(false)} />
+          <NavList activeHref={activeHref} role={role} onNavigate={() => setOpen(false)} />
         </nav>
       </div>
     </>

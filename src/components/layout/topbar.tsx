@@ -16,7 +16,7 @@ export function Topbar({
 }) {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white pl-2 pr-3 pt-safe sm:px-5 lg:px-6">
-      <MobileNav />
+      <MobileNav role={role} />
       <span className="truncate font-semibold text-slate-900 md:hidden">SuperApp Admin</span>
       <div className="ml-auto flex items-center gap-1 sm:gap-3">
         <PushEnableButton vapidKey={vapidKey ?? null} variant="icon" />
