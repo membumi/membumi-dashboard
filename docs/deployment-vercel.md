@@ -16,8 +16,8 @@ terdekat ke Indonesia — lihat [`vercel.json`](../vercel.json)).
 
 | Variable              | Contoh nilai prod                | Catatan |
 |-----------------------|----------------------------------|---------|
-| `API_URL`             | `https://api.superapp.id/v1`     | Server-to-server (RSC / Server Actions). |
-| `NEXT_PUBLIC_API_URL` | `https://api.superapp.id/v1`     | Terlihat browser (Socket.IO + client fetch). **Di-inline saat build** — harus ada saat build, bukan hanya runtime. |
+| `API_URL`             | `https://api.getmona.tech/v1`     | Server-to-server (RSC / Server Actions). |
+| `NEXT_PUBLIC_API_URL` | `https://api.getmona.tech/v1`     | Terlihat browser (Socket.IO + client fetch). **Di-inline saat build** — harus ada saat build, bukan hanya runtime. |
 | `AUTH_SECRET`         | hasil `openssl rand -base64 32`  | **Generate baru** untuk prod. Jangan pakai nilai dev/`change-me`. |
 | `AUTH_TRUST_HOST`     | `true`                           | Vercel menaruh app di belakang proxy HTTPS. |
 
