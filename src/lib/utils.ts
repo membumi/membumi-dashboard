@@ -23,6 +23,20 @@ export function formatRupiah(value: number | null | undefined): string {
 }
 
 /**
+ * Saldo untuk satu sel tabel.
+ *
+ * Membedakan "tidak diketahui" dari "nol": backend lama tidak mengirim field
+ * saldo sama sekali, dan merchant tanpa pemilik memang belum punya dompet —
+ * menampilkan `Rp 0` di kedua kasus itu berarti mengklaim angka yang tidak
+ * pernah dikirim. Em dash-nya juga menyamakan tampilan dengan sel kosong lain
+ * di tabel (`formatRupiah` memakai hyphen).
+ */
+export function saldoLabel(balance: number | null | undefined): string {
+  if (balance == null) return "—";
+  return formatRupiah(balance);
+}
+
+/**
  * Digits of a typed money value, without grouping or leading zeros.
  *
  * What a form must POST. `z.coerce.number()` reads the raw string, and

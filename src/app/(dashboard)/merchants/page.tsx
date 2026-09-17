@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { apiGetPaged } from "@/lib/api-client";
 import type { Merchant } from "@/lib/types";
-import { formatDate, waUrl } from "@/lib/utils";
+import { formatDate, formatRupiah, waUrl } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
 import { Badge, StatusBadge } from "@/components/ui/badge";
@@ -78,7 +78,7 @@ export default async function MerchantsPage({
           />
         </div>
       </div>
-      <Table layout="scroll" stickyFirstColumn minWidth="76rem">
+      <Table layout="scroll" stickyFirstColumn minWidth="82rem">
         <THead>
           <TR>
             <TH>Usaha</TH>
@@ -86,6 +86,7 @@ export default async function MerchantsPage({
             <TH>No. Telepon</TH>
             <TH>Alamat Pickup</TH>
             <TH>Komisi</TH>
+            <TH>Saldo</TH>
             <TH>Konten</TH>
             <TH>Status</TH>
             <TH>Follow-up</TH>
@@ -94,7 +95,7 @@ export default async function MerchantsPage({
           </TR>
         </THead>
         <TBody>
-          {merchants.length === 0 && <EmptyRow colSpan={10} />}
+          {merchants.length === 0 && <EmptyRow colSpan={11} />}
           {merchants.map((m) => {
             const total = contentTotal(m);
             const chase = needsFollowUp(m, now);
@@ -115,6 +116,14 @@ export default async function MerchantsPage({
                 </TD>
                 <TD data-label="Alamat Pickup">{m.address ?? <span className="text-slate-400">—</span>}</TD>
                 <TD data-label="Komisi">{m.commissionRate != null ? `${m.commissionRate}%` : <span className="text-slate-400">Global</span>}</TD>
+                <TD data-label="Saldo" className="font-medium">
+                  {m.balance == null ? (
+                    // Tanpa pemilik (atau backend lama) = saldo tak diketahui, bukan Rp 0.
+                    <span className="font-normal text-slate-400">—</span>
+                  ) : (
+                    formatRupiah(m.balance)
+                  )}
+                </TD>
                 <TD data-label="Konten">
                   <div className="flex flex-wrap items-center gap-1">
                     {total === null ? (

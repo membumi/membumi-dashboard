@@ -12,7 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { apiGet } from "@/lib/api-client";
-import type { ReportServiceKey, ReportSummary } from "@/lib/types";
+import type { ReportServiceKey, ReportSummary, ReportWallets } from "@/lib/types";
 import { getCurrentAdmin } from "@/lib/session";
 import { hasRole } from "@/lib/constants";
 import { cn, formatRupiah } from "@/lib/utils";
@@ -48,6 +48,7 @@ const SERVICES = Object.keys(SERVICE_LABELS) as ReportServiceKey[];
 
 const EMPTY_PARTY = { total: 0, created: 0, prevCreated: 0 };
 const EMPTY_PARTNER = { ...EMPTY_PARTY, verified: 0, pending: 0 };
+const EMPTY_WALLETS: ReportWallets = { user: 0, driver: 0, merchant: 0, total: 0 };
 const EMPTY_SERVICES: Record<ReportServiceKey, number> = {
   ride: 0,
   food: 0,
@@ -83,6 +84,7 @@ const EMPTY: ReportSummary = {
     prevNet: 0,
   },
   support: { total: 0, byStatus: {}, byCategory: [], unassigned: 0 },
+  wallets: EMPTY_WALLETS,
   trend: [],
 };
 
@@ -103,6 +105,10 @@ export default async function LaporanPage({
     dateFrom: range.dateFrom,
     dateTo: range.dateTo,
   }).catch(() => EMPTY);
+
+  // Backend yang belum mengirim `wallets` menjawab SUKSES, jadi `.catch` di atas tidak
+  // menangkapnya — kartu saldo tampil Rp 0, bukan meledakkan seluruh halaman.
+  const wallets = report.wallets ?? EMPTY_WALLETS;
 
   // Preset dan tanggal manual saling meniadakan, jadi href-nya tidak saling membawa.
   const presetHref = (preset?: string) => buildListHref("/laporan", { preset });
@@ -300,6 +306,35 @@ export default async function LaporanPage({
             prev={report.finance.prevNet}
             sub={`Biaya layanan ${formatRupiah(report.finance.serviceFeeTotal)} (sudah termasuk pemasukan)`}
             tone={report.finance.net < 0 ? "text-red-600" : "text-slate-900"}
+          />
+        </div>
+      </Section>
+
+      {/* Saldo tersimpan — section sendiri, BUKAN bagian "Arus Dana": semua angka di
+          sana mengikuti rentang tanggal, sedangkan saldo adalah angka titik-waktu. */}
+      <Section title="Saldo Tersimpan">
+        <p className="text-xs text-slate-400">
+          Saldo per saat ini — tidak mengikuti rentang tanggal, jadi tidak ada pembanding periode.
+        </p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <MoneyCard
+            label="Total Saldo Pengguna"
+            icon={Users}
+            value={wallets.user}
+            sub={`Seluruh dompet ${formatRupiah(wallets.total)}`}
+            tone="text-slate-900"
+          />
+          <MoneyCard
+            label="Total Saldo Merchant"
+            icon={Store}
+            value={wallets.merchant}
+            tone="text-slate-900"
+          />
+          <MoneyCard
+            label="Total Saldo Driver"
+            icon={Bike}
+            value={wallets.driver}
+            tone="text-slate-900"
           />
         </div>
       </Section>

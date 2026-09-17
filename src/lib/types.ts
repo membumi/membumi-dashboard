@@ -33,6 +33,8 @@ export interface AppUser {
   isVerified: boolean;
   role: string;
   createdAt: string;
+  /** Saldo dompet USER. Optional: backend lama tidak mengirimnya → tampil "—", bukan Rp 0. */
+  balance?: number;
 }
 
 // ── Merchants ──────────────────────────────────────────────────────────────
@@ -68,6 +70,12 @@ export interface Merchant {
   createdAt: string;
   contentCounts?: MerchantContentCounts; // backend gap 2 (optional)
   content?: MerchantContent; // backend gap 2 (optional)
+  /**
+   * Saldo dompet MERCHANT pemiliknya (hanya pada response list).
+   * `null` = merchant belum punya pemilik, jadi belum punya dompet — bukan saldo nol.
+   * `undefined` = backend lama belum mengirim field ini.
+   */
+  balance?: number | null;
   /** Kapan admin terakhir follow-up via WhatsApp; null = belum pernah. */
   followedUpAt?: string | null;
   followedUpBy?: string | null;
@@ -1227,6 +1235,18 @@ export interface ReportPartner extends ReportParty {
   pending: number;
 }
 
+/**
+ * Saldo tersimpan per dompet POV. Angka TITIK-WAKTU: tabel wallets di backend hanya
+ * menyimpan saldo sekarang, jadi ini tidak mengikuti rentang tanggal laporan dan
+ * tidak punya pembanding periode.
+ */
+export interface ReportWallets {
+  user: number;
+  driver: number;
+  merchant: number;
+  total: number;
+}
+
 export interface ReportSummary {
   range: { dateFrom: string | null; dateTo: string | null; days: number };
   previous: { dateFrom: string; dateTo: string } | null;
@@ -1266,6 +1286,11 @@ export interface ReportSummary {
     byCategory: { category: string; count: number }[];
     unassigned: number;
   };
+  /**
+   * Optional: backend yang belum di-update mengirim response SUKSES tanpa field ini,
+   * dan `.catch(() => EMPTY)` di halaman hanya menangkap request yang GAGAL.
+   */
+  wallets?: ReportWallets;
 
   trend: { date: string; gmv: number; orders: number }[];
 }
