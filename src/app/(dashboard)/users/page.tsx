@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { apiGetPaged } from "@/lib/api-client";
 import type { AppUser } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, saldoLabel } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants, Button } from "@/components/ui/button";
 import { Table, THead, TBody, TR, TH, TD, EmptyRow } from "@/components/ui/table";
@@ -29,24 +29,26 @@ export default async function UsersPage({
           Kelola Admin
         </Link>
       </div>
-      <Table>
+      <Table minWidth="56rem">
         <THead>
           <TR>
             <TH>Nama</TH>
             <TH>No. Telepon</TH>
             <TH>Email</TH>
+            <TH>Saldo</TH>
             <TH>Verifikasi</TH>
             <TH>Bergabung</TH>
             <TH></TH>
           </TR>
         </THead>
         <TBody>
-          {users.length === 0 && <EmptyRow colSpan={6} />}
+          {users.length === 0 && <EmptyRow colSpan={7} />}
           {users.map((u) => (
             <TR key={u.id}>
               <TD data-label="Nama" className="font-medium">{u.name}</TD>
               <TD data-label="No. Telepon">{u.phone}</TD>
               <TD data-label="Email" className="text-slate-500">{u.email ?? "—"}</TD>
+              <TD data-label="Saldo" className="font-medium">{saldoLabel(u.balance)}</TD>
               <TD data-label="Verifikasi">{u.isVerified ? <Badge tone="green">Terverifikasi</Badge> : <Badge tone="yellow">Belum</Badge>}</TD>
               <TD data-label="Bergabung" className="text-slate-500">{formatDate(u.createdAt)}</TD>
               <TD className="text-right">

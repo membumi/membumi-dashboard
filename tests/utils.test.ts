@@ -3,6 +3,7 @@ import {
   digitsOnly,
   formatThousands,
   formatRupiah,
+  saldoLabel,
   discountPercent,
   mapsUrl,
   mapsDirectionsUrl,
@@ -57,6 +58,27 @@ describe("utils — formatRupiah", () => {
   it("renders dash for null/undefined", () => {
     expect(formatRupiah(null)).toBe("-");
     expect(formatRupiah(undefined)).toBe("-");
+  });
+});
+
+describe("utils — saldoLabel (kolom Saldo /users & /merchants)", () => {
+  it("memformat saldo yang diketahui sebagai Rupiah", () => {
+    expect(saldoLabel(150000)).toBe("Rp 150.000");
+    expect(saldoLabel(150000)).not.toContain("\u00a0");
+  });
+
+  it("membedakan saldo nol dari saldo yang tidak diketahui", () => {
+    // Rp 0 adalah fakta (punya dompet, isinya nol) — jangan disamakan dengan "—".
+    expect(saldoLabel(0)).toBe("Rp 0");
+    // null = merchant tanpa pemilik; undefined = backend lama tidak mengirim field.
+    // Menampilkan Rp 0 di sini berarti mengklaim angka yang tidak pernah dikirim.
+    expect(saldoLabel(null)).toBe("—");
+    expect(saldoLabel(undefined)).toBe("—");
+  });
+
+  it("memakai em dash, bukan hyphen milik formatRupiah", () => {
+    // Sel kosong lain di tabel memakai "—"; formatRupiah(null) memberi "-".
+    expect(saldoLabel(null)).not.toBe(formatRupiah(null));
   });
 });
 

@@ -91,6 +91,10 @@ tests/
 | | Topik monitoring `mititip` lengkap di `COUNTER_TOPICS`/label/href/ikon dan bisa dikirimi push admin | `monitoring` + `push-actions` |
 | **MiTitip — uang** | Backend: tiga contoh hitungan (176rb/9,5rb/16,5rb · 166rb + refund 25rb · 216rb `raiseMaxTo`), tangga toleransi kasir, baris ledger A–E idempoten, `titip_reimbursement` di luar agregat penghasilan | unit test backend (`src/modules/titip/**/*.spec.ts`) |
 | | App: `previewBreakdown()` hanya tampilan dan cocok dengan angka backend | unit test app (`test/features/mititip/titip_pricing_preview_test.dart`) |
+| **Saldo tersimpan** | `saldoLabel`: Rp 0 (punya dompet, isinya nol) tidak disamakan dengan `—` (tak diketahui); em dash, bukan hyphen `formatRupiah` | `utils` |
+| | Backend: agregat saldo per POV satu query GROUP BY, POV tanpa baris → 0, dan **mengabaikan rentang tanggal** | unit test backend (`admin-report.service.spec.ts`) |
+| | Backend: saldo dibaca massal satu query per halaman (bukan N), id tanpa dompet absen dari map, list id kosong tidak menyentuh DB | unit test backend (`users.service.spec.ts`, `wallet.service.spec.ts`, `admin-users.controller.spec.ts`) |
+| | Backend: merchant tanpa pemilik → `balance: null` (belum punya dompet), pemilik dgn saldo nol → `0` | unit test backend (`merchants.service.spec.ts`) |
 | **Driver Activity** | Filter log aktivitas: tipe/tanggal asing dibuang, page jatuh ke 1 | `driver-activity` parseActivityFilters |
 | | Label layanan lengkap untuk semua tipe (ride/delivery/mart/food) | `driver-activity` DRIVER_ACTIVITY_TYPE_LABEL |
 | | Challenge: persen progres dijepit 0–100 (reward flat) | `driver-activity` challengeProgress |
