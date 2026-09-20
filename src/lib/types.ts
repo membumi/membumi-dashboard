@@ -1485,3 +1485,220 @@ export interface CampaignCleanupPreview {
   blockers: string[];
   warnings: string[];
 }
+
+// ── MoNebeng (tumpangan antar-siswa) ────────────────────────────────────────
+// Bentuk ini mengikuti DTO backend di `src/modules/nebeng/dto/` apa adanya.
+
+/** Cukup untuk mengenali seorang siswa di satu baris antrean. */
+export interface NebengStudentRef {
+  id: string;
+  name: string;
+  schoolName?: string | null;
+  classLevel?: string | null;
+  phone?: string | null;
+}
+
+export interface NebengSchool {
+  id: string;
+  name: string;
+  npsn?: string | null;
+  level: string;
+  address: string;
+  lat: number;
+  lng: number;
+  city: string;
+  province?: string | null;
+  radiusM: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface NebengConsent {
+  id: string;
+  student?: NebengStudentRef | null;
+  parentName: string;
+  relation: string;
+  status: string;
+  rejectionReason?: string | null;
+  /** Signed, short-lived. Never store it — it expires. */
+  letterUrl?: string | null;
+  parentWa?: string | null;
+}
+
+export interface NebengVehicle {
+  id: string;
+  type: string;
+  brand: string;
+  model: string;
+  year: number;
+  plateNumber: string;
+  status: string;
+  rejectionReason?: string | null;
+  stnkPhotoUrl?: string | null;
+  vehiclePhotoUrl?: string | null;
+}
+
+export interface NebengStudent {
+  id: string;
+  fullName: string;
+  phone: string;
+  photoUrl?: string | null;
+  studentCardUrl?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
+  school?: { id: string; name: string; level: string; address: string; city: string } | null;
+  classLevel?: string | null;
+  entryYear?: number | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelation?: string | null;
+  /** Siklus dokumen mentah — 7 nilai. */
+  verificationStatus: string;
+  /** Dokumen digabung penangguhan — 4 nilai. Ini yang difilter & ditampilkan. */
+  effectiveStatus: string;
+  /** Kode alasan, dirender sebagai bullet list persis seperti di aplikasi siswa. */
+  rejectionReasons: string[];
+  rejectionNote?: string | null;
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
+  suspendedUntil?: string | null;
+  suspensionReason?: string | null;
+  friendCode: string;
+  isRideMate: boolean;
+  rating: number;
+  tripsAsMate: number;
+  tripsAsMona: number;
+  consent?: NebengConsent | null;
+  vehicles?: NebengVehicle[];
+}
+
+export interface NebengParticipant {
+  profileId: string;
+  name: string;
+  photoUrl?: string | null;
+  schoolName?: string | null;
+  classLevel?: string | null;
+  rating?: number | null;
+  phone?: string | null;
+  vehicle?: string | null;
+  plateNumber?: string | null;
+}
+
+/** Sengaja meniru `Ride` supaya MapsLinkButton/CancellationDetails dipakai apa adanya. */
+export interface NebengOrder {
+  id: string;
+  status: string;
+  direction: string;
+  pickup: { lat: number; lng: number; address: string; name?: string | null };
+  destination: { lat: number; lng: number; address: string; name?: string | null };
+  distanceM: number;
+  durationMin: number;
+  /** Dibayar Mona Mate. */
+  fare: number;
+  /** Diterima Ride Mate — didanai platform, BUKAN potongan tarif. Jangan dijumlahkan. */
+  incentive: number;
+  serviceFee: number;
+  paymentMethod: string;
+  passenger?: NebengParticipant | null;
+  rideMate?: NebengParticipant | null;
+  timeline: { status: string; at: string }[];
+  rating?: number | null;
+  review?: string | null;
+  cancelledBy?: string | null;
+  cancelReason?: string | null;
+  shareToken?: string | null;
+  createdAt: string;
+}
+
+/** Detail admin menambah alasan pencocokan dan jejak penyelesaian. */
+export interface NebengOrderDetail extends NebengOrder {
+  matchSnapshot?: {
+    routeId: string;
+    score: number;
+    breakdown: { sameSchool: number; trusted: number; nearRoute: number; sameDest: number };
+    trustReason: string;
+    detourM: number;
+    pickupOffRouteM: number;
+  } | null;
+  /** Kenapa tidak ada yang cocok, tahap demi tahap. */
+  matchDiagnosis?: {
+    activeRoutes: number;
+    afterBbox: number;
+    afterTrust: number;
+    afterDirection: number;
+    afterDetour: number;
+    rejections: Record<string, number>;
+    at: string;
+  } | null;
+  platformMargin?: number;
+  settlementError?: string | null;
+}
+
+export interface NebengReport {
+  id: string;
+  orderId?: string | null;
+  category: string;
+  description: string;
+  evidenceUrls?: string[] | null;
+  status: string;
+  resolution?: string | null;
+  resolutionNote?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+  reporter?: NebengStudentRef | null;
+  reported?: NebengStudentRef | null;
+}
+
+export interface NebengEmergency {
+  id: string;
+  orderId?: string | null;
+  actorRole: string;
+  type: string;
+  lat?: number | null;
+  lng?: number | null;
+  note?: string | null;
+  handledAt?: string | null;
+  handlingNote?: string | null;
+  createdAt: string;
+  actor?: NebengStudentRef | null;
+}
+
+export interface NebengConfig {
+  operationalStartMinute: number;
+  operationalEndMinute: number;
+  maxOrdersPerDay: number;
+  minGapMinutes: number;
+  searchRadiusM: number;
+  maxPickupToRouteM: number;
+  nearRouteBonusM: number;
+  maxDestOffRouteM: number;
+  sameDestRadiusM: number;
+  minForwardProgressM: number;
+  schoolRadiusM: number;
+  maxDetourM: number;
+  maxDetourPercent: number;
+  detourCheckLimit: number;
+  maxCandidates: number;
+  offerTtlSeconds: number;
+  matchTimeoutMinutes: number;
+  scoreSameSchool: number;
+  scoreTrusted: number;
+  scoreNearRoute: number;
+  scoreSameDest: number;
+  allowCrossSchool: boolean;
+}
+
+export interface NebengFareConfig {
+  vehicle: string;
+  baseFare: number;
+  perKm: number;
+  minFare: number;
+  maxFare: number;
+  avgSpeedKmh: number;
+  incentiveMode: string;
+  incentiveBase: number;
+  incentivePerKm: number;
+  incentiveMin: number;
+  incentiveMax: number;
+  incentivePercentOfFare: number;
+}

@@ -12,6 +12,7 @@ import {
   TICKET_STATUS_ACTIONS,
   VERIFICATION_STATUSES,
   TITIP_STATUSES,
+  NEBENG_RESOLUTIONS,
 } from "@/lib/constants";
 
 // Form field shapes for Server Actions. Field names match the dashboard forms;
@@ -523,3 +524,120 @@ export const campaignCleanupDeleteSchema = z.object({
 export const campaignSearchSchema = z.object({
   q: z.string().trim().min(1, "Isi nama atau ID campaign").max(100),
 });
+
+// ── MoNebeng ────────────────────────────────────────────────────────────────
+
+/**
+ * Satu skema verifikasi untuk tiga antrean: bentuk keputusannya sama —
+ * setujui, atau tolak dengan daftar alasan.
+ *
+ * `reasons` (atau `note`) WAJIB ada saat menolak. Penolakan tanpa alasan
+ * membuat siswa mengirim ulang berkas yang persis sama, membuang satu siklus
+ * review di kedua sisi.
+ */
+export const nebengVerifySchema = z
+  .object({
+    id,
+    status: z.enum(["VERIFIED", "REJECTED"]),
+    reasons: z.array(z.string().min(1)).default([]),
+    note: z.string().trim().max(500).optional(),
+  })
+  .refine((v) => v.status !== "REJECTED" || v.reasons.length > 0 || !!v.note, {
+    message: "Pilih minimal satu alasan penolakan.",
+    path: ["reasons"],
+  });
+
+/** Izin orang tua memakai APPROVED (bukan VERIFIED) dan satu alasan bebas. */
+export const nebengConsentVerifySchema = z
+  .object({
+    id,
+    status: z.enum(["APPROVED", "REJECTED"]),
+    reasons: z.array(z.string().min(1)).default([]),
+    note: z.string().trim().max(500).optional(),
+  })
+  .refine((v) => v.status !== "REJECTED" || v.reasons.length > 0 || !!v.note, {
+    message: "Pilih minimal satu alasan penolakan.",
+    path: ["reasons"],
+  });
+
+export const nebengSuspendSchema = z.object({
+  id,
+  reason: z.string().trim().min(3, "Alasan penangguhan wajib diisi.").max(500),
+  /** Kosong = permanen. */
+  until: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .or(z.literal("")),
+});
+
+export const nebengResolveReportSchema = z
+  .object({
+    id,
+    resolution: z.enum(NEBENG_RESOLUTIONS),
+    note: z.string().trim().min(3, "Catatan keputusan wajib diisi.").max(1000),
+    suspendUntil: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional()
+      .or(z.literal("")),
+  })
+  .refine((v) => v.resolution !== "temp_suspend" || !!v.suspendUntil, {
+    message: "Suspend sementara wajib punya tanggal berakhir.",
+    path: ["suspendUntil"],
+  });
+
+export const nebengHandleEmergencySchema = z.object({
+  id,
+  note: z.string().trim().max(1000).optional(),
+});
+
+export const nebengSchoolSchema = z.object({
+  name: z.string().trim().min(3, "Nama sekolah terlalu pendek."),
+  npsn: z.string().trim().optional(),
+  level: z.enum(["SD", "SMP", "SMA", "SMK", "MA", "lainnya"]),
+  address: z.string().trim().min(3),
+  city: z.string().trim().min(2),
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  province: z.string().trim().optional(),
+  radiusM: z.coerce.number().int().min(50).max(20000).optional(),
+  isActive: z.coerce.boolean().optional(),
+});
+
+export const nebengConfigSchema = z
+  .object({
+    operationalStartMinute: z.coerce.number().int().min(0).max(1439),
+    operationalEndMinute: z.coerce.number().int().min(1).max(1440),
+    maxOrdersPerDay: z.coerce.number().int().min(1).max(20),
+    minGapMinutes: z.coerce.number().int().min(0).max(720),
+    schoolRadiusM: z.coerce.number().int().min(100).max(20000),
+    maxPickupToRouteM: z.coerce.number().int().min(50).max(5000),
+    maxDetourM: z.coerce.number().int().min(0).max(20000),
+    maxDetourPercent: z.coerce.number().int().min(0).max(200),
+  })
+  .refine((v) => v.operationalEndMinute > v.operationalStartMinute, {
+    message: "Jam tutup harus setelah jam buka.",
+    path: ["operationalEndMinute"],
+  });
+
+export const nebengFareConfigSchema = z
+  .object({
+    vehicle: z.enum(["motor", "mobil"]),
+    baseFare: money,
+    perKm: money,
+    minFare: money,
+    maxFare: money,
+    incentiveBase: money,
+    incentivePerKm: money,
+    incentiveMin: money,
+    incentiveMax: money,
+  })
+  .refine((v) => v.maxFare === 0 || v.maxFare >= v.minFare, {
+    message: "Tarif maksimum harus ≥ tarif minimum (atau 0 untuk tanpa plafon).",
+    path: ["maxFare"],
+  })
+  .refine((v) => v.incentiveMax >= v.incentiveMin, {
+    message: "Insentif maksimum harus ≥ insentif minimum.",
+    path: ["incentiveMax"],
+  });

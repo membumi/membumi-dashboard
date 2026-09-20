@@ -75,6 +75,25 @@ const STATUS_TONE: Record<string, keyof typeof TONE> = {
   RESERVED: "yellow",
   RELEASED: "default",
   BUDGET_EXHAUSTED: "red",
+  // MoNebeng — siklus perjalanan, status akun, dan antrean keselamatan.
+  // Tanpa SUSPENDED, akun yang ditangguhkan akan tampil abu-abu "default" dan
+  // kehilangan seluruh urgensinya di antrean.
+  SUSPENDED: "red",
+  REQUESTED: "yellow",
+  ACCEPTED: "blue",
+  ON_TRIP: "blue",
+  OPEN: "yellow",
+  UNDER_REVIEW: "purple",
+  RESOLVED: "green",
+  DISMISSED: "default",
+  WARNING: "yellow",
+  TEMP_SUSPEND: "yellow",
+  PERMANENT_SUSPEND: "red",
+  NO_ACTION: "default",
+  RESUBMIT: "yellow",
+  DOCUMENT_SUBMITTED: "yellow",
+  NOT_REGISTERED: "default",
+  REGISTRATION: "default",
   // Mode driver — toggle ON/OFF di aplikasi driver
   ON: "green",
   OFF: "default",

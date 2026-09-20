@@ -78,3 +78,49 @@ describe("visibleNav", () => {
     expect(visibleNav("SUPER_ADMIN")).toHaveLength(NAV.length);
   });
 });
+
+describe("MoNebeng", () => {
+  /**
+   * `/nebeng` dan `/nebeng/verifikasi` berbagi awalan. Regresi yang sama pernah
+   * terjadi pada `/ride` vs `/ride/drivers`, jadi dipatok di sini.
+   */
+  it("memilih entri terpanjang yang cocok", () => {
+    expect(getActiveHref("/nebeng")).toBe("/nebeng");
+    expect(getActiveHref("/nebeng/verifikasi")).toBe("/nebeng/verifikasi");
+    expect(getActiveHref("/nebeng/verifikasi/pelajar/abc-123")).toBe("/nebeng/verifikasi");
+    expect(getActiveHref("/nebeng/verifikasi/ortu/abc-123")).toBe("/nebeng/verifikasi");
+    expect(getActiveHref("/nebeng/perjalanan/xyz")).toBe("/nebeng/perjalanan");
+    expect(getActiveHref("/nebeng/laporan/xyz")).toBe("/nebeng/laporan");
+    expect(getActiveHref("/nebeng/darurat")).toBe("/nebeng/darurat");
+    expect(getActiveHref("/nebeng/sekolah/new")).toBe("/nebeng/sekolah");
+  });
+
+  /**
+   * OPERATOR boleh MEMBACA antrean — setiap aksi yang mengubah tetap dijaga
+   * `requireRole("ADMIN")` di server — tetapi aturan dan data referensi
+   * disembunyikan, sesuai gate `redirect("/")` di halamannya.
+   */
+  it("menyembunyikan konfigurasi & sekolah dari OPERATOR, bukan antreannya", () => {
+    const hrefs = visibleNav("OPERATOR").map((n) => n.href);
+    expect(hrefs).toContain("/nebeng/verifikasi");
+    expect(hrefs).toContain("/nebeng/perjalanan");
+    expect(hrefs).toContain("/nebeng/laporan");
+    expect(hrefs).toContain("/nebeng/darurat");
+    expect(hrefs).not.toContain("/nebeng");
+    expect(hrefs).not.toContain("/nebeng/sekolah");
+  });
+
+  it("menampilkan semuanya untuk ADMIN", () => {
+    const hrefs = visibleNav("ADMIN").map((n) => n.href);
+    for (const href of [
+      "/nebeng",
+      "/nebeng/verifikasi",
+      "/nebeng/perjalanan",
+      "/nebeng/laporan",
+      "/nebeng/darurat",
+      "/nebeng/sekolah",
+    ]) {
+      expect(hrefs).toContain(href);
+    }
+  });
+});
