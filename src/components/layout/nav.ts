@@ -27,6 +27,11 @@ import {
   Scale,
   ShoppingBag,
   Trash2,
+  GraduationCap,
+  Route,
+  ShieldAlert,
+  School,
+  Siren,
 } from "lucide-react";
 
 export type NavItem = {
@@ -49,6 +54,15 @@ export const NAV: NavItem[] = [
   { label: "Tarif Food", href: "/food/settings", icon: Settings, group: "Konten" },
   { label: "Konfigurasi & Monitoring", href: "/ride", icon: Settings, group: "Transportasi" },
   { label: "Daftar Driver", href: "/ride/drivers", icon: Users, group: "Transportasi" },
+  // MoNebeng. Memakai ulang grup "Transportasi" — grup baru akan memaksa
+  // `tests/nav.test.ts` (yang mengassert set grup persis) ikut berubah tanpa
+  // manfaat bagi admin.
+  { label: "Verifikasi MoNebeng", href: "/nebeng/verifikasi", icon: ClipboardCheck, group: "Transportasi" },
+  { label: "Perjalanan MoNebeng", href: "/nebeng/perjalanan", icon: Route, group: "Transportasi" },
+  { label: "Laporan MoNebeng", href: "/nebeng/laporan", icon: ShieldAlert, group: "Transportasi" },
+  { label: "Darurat MoNebeng", href: "/nebeng/darurat", icon: Siren, group: "Transportasi" },
+  { label: "Aturan MoNebeng", href: "/nebeng", icon: GraduationCap, group: "Transportasi", minRole: "ADMIN" },
+  { label: "Sekolah", href: "/nebeng/sekolah", icon: School, group: "Transportasi", minRole: "ADMIN" },
   { label: "Kirim Barang", href: "/kirim-barang", icon: PackageOpen, group: "Konten" },
   { label: "MiTitip", href: "/titip", icon: ShoppingBag, group: "Konten" },
   { label: "Sengketa MiTitip", href: "/titip/sengketa", icon: Scale, group: "Monitoring" },

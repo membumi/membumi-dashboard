@@ -326,3 +326,215 @@ export const DRIVER_ACTIVITY_TYPE_LABEL: Record<DriverActivityType, string> = {
   mart: "Mart",
   food: "Food",
 };
+
+// ── MoNebeng (tumpangan antar-siswa) ────────────────────────────────────────
+// Kontrak bersama ojol-super-app-backend `src/modules/nebeng/interfaces/nebeng.types.ts`.
+// Dua konvensi casing hidup berdampingan, keduanya diwarisi bukan diciptakan:
+// status PERJALANAN lowercase snake (seperti rides/titip), status VERIFIKASI
+// UPPER_SNAKE (seperti drivers.verification_status).
+
+export const NEBENG_ROLES = ["MONA_MATE", "RIDE_MATE"] as const;
+export type NebengRole = (typeof NEBENG_ROLES)[number];
+export const NEBENG_ROLE_LABEL: Record<NebengRole, string> = {
+  MONA_MATE: "Mona Mate",
+  RIDE_MATE: "Ride Mate",
+};
+
+/**
+ * Status efektif: siklus dokumen digabung dengan penangguhan.
+ *
+ * Backend mengirim `verificationStatus` (mentah, 7 nilai) DAN `effectiveStatus`.
+ * Dashboard memfilter dan menampilkan yang ini — admin mentriase empat keadaan,
+ * bukan tujuh.
+ */
+export const NEBENG_EFFECTIVE_STATUSES = ["PENDING", "VERIFIED", "REJECTED", "SUSPENDED"] as const;
+export type NebengEffectiveStatus = (typeof NEBENG_EFFECTIVE_STATUSES)[number];
+export const NEBENG_EFFECTIVE_STATUS_LABEL: Record<NebengEffectiveStatus, string> = {
+  PENDING: "Menunggu Verifikasi",
+  VERIFIED: "Terverifikasi",
+  REJECTED: "Ditolak",
+  SUSPENDED: "Ditangguhkan",
+};
+
+/** Siklus dokumen mentah — ditampilkan di halaman detail, tidak difilter. */
+export const NEBENG_VERIFICATION_STATUS_LABEL: Record<string, string> = {
+  NOT_REGISTERED: "Belum Mendaftar",
+  REGISTRATION: "Sedang Mengisi",
+  DOCUMENT_SUBMITTED: "Dokumen Terkirim",
+  UNDER_REVIEW: "Sedang Diperiksa",
+  VERIFIED: "Terverifikasi",
+  REJECTED: "Ditolak",
+  RESUBMIT: "Dikirim Ulang",
+};
+
+/** Izin orang tua. Catat: APPROVED, bukan VERIFIED — mengikuti backend. */
+export const NEBENG_CONSENT_STATUSES = ["PENDING", "APPROVED", "REJECTED", "EXPIRED"] as const;
+export type NebengConsentStatus = (typeof NEBENG_CONSENT_STATUSES)[number];
+export const NEBENG_CONSENT_STATUS_LABEL: Record<NebengConsentStatus, string> = {
+  PENDING: "Menunggu Verifikasi",
+  APPROVED: "Disetujui",
+  REJECTED: "Ditolak",
+  EXPIRED: "Kedaluwarsa",
+};
+
+export const NEBENG_VEHICLE_STATUSES = ["PENDING", "VERIFIED", "REJECTED"] as const;
+export type NebengVehicleStatus = (typeof NEBENG_VEHICLE_STATUSES)[number];
+export const NEBENG_VEHICLE_STATUS_LABEL: Record<NebengVehicleStatus, string> = {
+  PENDING: "Menunggu Verifikasi",
+  VERIFIED: "Terverifikasi",
+  REJECTED: "Ditolak",
+};
+
+export const NEBENG_RELATIONS = ["ayah", "ibu", "wali"] as const;
+export type NebengRelation = (typeof NEBENG_RELATIONS)[number];
+export const NEBENG_RELATION_LABEL: Record<NebengRelation, string> = {
+  ayah: "Ayah",
+  ibu: "Ibu",
+  wali: "Wali",
+};
+
+export const NEBENG_VEHICLE_TYPES = ["motor", "mobil"] as const;
+export type NebengVehicleType = (typeof NEBENG_VEHICLE_TYPES)[number];
+export const NEBENG_VEHICLE_TYPE_LABEL: Record<NebengVehicleType, string> = {
+  motor: "Motor",
+  mobil: "Mobil",
+};
+
+/** Siklus hidup perjalanan (PRD §16). lowercase snake, seperti rides/titip. */
+export const NEBENG_STATUSES = [
+  "searching",
+  "requested",
+  "accepted",
+  "driver_arriving",
+  "picked_up",
+  "on_trip",
+  "completed",
+  "rejected",
+  "cancelled",
+  "expired",
+] as const;
+export type NebengStatus = (typeof NEBENG_STATUSES)[number];
+export const NEBENG_STATUS_LABEL: Record<NebengStatus, string> = {
+  searching: "Mencari Ride Mate",
+  requested: "Menunggu Konfirmasi",
+  accepted: "Diterima Ride Mate",
+  driver_arriving: "Menuju Titik Jemput",
+  picked_up: "Penumpang Dijemput",
+  on_trip: "Dalam Perjalanan",
+  completed: "Selesai",
+  rejected: "Ditolak Ride Mate",
+  cancelled: "Dibatalkan",
+  expired: "Tidak Ada Ride Mate",
+};
+
+/**
+ * Jalur normal, dasar lini masa. `rejected`/`cancelled`/`expired` bukan langkah
+ * melainkan ujung — lihat `nebengTimeline`.
+ */
+export const NEBENG_STATUS_FLOW = [
+  "searching",
+  "requested",
+  "accepted",
+  "driver_arriving",
+  "picked_up",
+  "on_trip",
+  "completed",
+] as const satisfies readonly NebengStatus[];
+
+export const NEBENG_REPORT_CATEGORIES = [
+  "unsafe_driving",
+  "identity_mismatch",
+  "different_vehicle",
+  "uncomfortable_behavior",
+  "suspicious",
+  "payment_issue",
+  "other",
+] as const;
+export type NebengReportCategory = (typeof NEBENG_REPORT_CATEGORIES)[number];
+export const NEBENG_REPORT_CATEGORY_LABEL: Record<NebengReportCategory, string> = {
+  unsafe_driving: "Mengemudi tidak aman",
+  identity_mismatch: "Identitas tidak sesuai",
+  different_vehicle: "Kendaraan berbeda",
+  uncomfortable_behavior: "Perilaku tidak nyaman",
+  suspicious: "Mencurigakan",
+  payment_issue: "Masalah pembayaran",
+  other: "Lainnya",
+};
+
+export const NEBENG_REPORT_STATUSES = ["open", "under_review", "resolved", "dismissed"] as const;
+export type NebengReportStatus = (typeof NEBENG_REPORT_STATUSES)[number];
+export const NEBENG_REPORT_STATUS_LABEL: Record<NebengReportStatus, string> = {
+  open: "Baru",
+  under_review: "Ditinjau",
+  resolved: "Selesai",
+  dismissed: "Tidak Terbukti",
+};
+
+/** Sanksi yang diterapkan dalam panggilan yang sama saat laporan ditutup. */
+export const NEBENG_RESOLUTIONS = [
+  "warning",
+  "temp_suspend",
+  "permanent_suspend",
+  "no_action",
+] as const;
+export type NebengResolution = (typeof NEBENG_RESOLUTIONS)[number];
+export const NEBENG_RESOLUTION_LABEL: Record<NebengResolution, string> = {
+  warning: "Peringatan",
+  temp_suspend: "Suspend Sementara",
+  permanent_suspend: "Suspend Permanen",
+  no_action: "Tidak Terbukti (tutup tanpa sanksi)",
+};
+
+export const NEBENG_EMERGENCY_KINDS = ["emergency_contact", "parent", "mona_support"] as const;
+export type NebengEmergencyKind = (typeof NEBENG_EMERGENCY_KINDS)[number];
+export const NEBENG_EMERGENCY_KIND_LABEL: Record<NebengEmergencyKind, string> = {
+  emergency_contact: "Hubungi Kontak Darurat",
+  parent: "Hubungi Orang Tua",
+  mona_support: "Hubungi Bantuan Mona",
+};
+
+export const NEBENG_DIRECTIONS = ["to_school", "from_school"] as const;
+export type NebengDirection = (typeof NEBENG_DIRECTIONS)[number];
+export const NEBENG_DIRECTION_LABEL: Record<NebengDirection, string> = {
+  to_school: "Ke Sekolah",
+  from_school: "Pulang",
+};
+
+/**
+ * Alasan penolakan terkurasi, per antrean.
+ *
+ * Kode dikirim ke backend dan disimpan sebagai array; aplikasi siswa
+ * menampilkannya sebagai bullet list, jadi setiap teks harus berdiri sendiri
+ * ("Foto STNK kurang jelas", bukan "kurang jelas"). Dipilih daripada teks bebas
+ * karena (a) daftar bullet menyiratkan field multi-nilai yang tidak bisa dipecah
+ * dari satu string, dan (b) dua operator tidak boleh menulis "STNK burem" dan
+ * "Foto STNK tidak jelas" untuk cacat yang sama.
+ *
+ * Kode yang tidak dikenal DITAMPILKAN APA ADANYA, bukan disembunyikan — dua repo
+ * boleh melenceng satu deploy tanpa membuat siswa melihat alasan kosong.
+ */
+export const NEBENG_REJECTION_REASONS = {
+  student: [
+    { code: "STUDENT_CARD_BLURRY", label: "Foto kartu pelajar kurang jelas" },
+    { code: "STUDENT_CARD_EXPIRED", label: "Kartu pelajar sudah tidak berlaku" },
+    { code: "NAME_MISMATCH", label: "Nama tidak sesuai kartu pelajar" },
+    { code: "PHOTO_NOT_SELF", label: "Foto profil bukan wajah pemilik akun" },
+    { code: "SCHOOL_NOT_LISTED", label: "Sekolah tidak terdaftar di MoNebeng" },
+    { code: "EMERGENCY_CONTACT_INVALID", label: "Kontak darurat tidak dapat dihubungi" },
+  ],
+  consent: [
+    { code: "CONSENT_UNREADABLE", label: "Surat izin tidak terbaca" },
+    { code: "CONSENT_NO_SIGNATURE", label: "Surat izin belum ditandatangani" },
+    { code: "PARENT_UNREACHABLE", label: "Nomor WhatsApp orang tua tidak aktif" },
+    { code: "PARENT_DATA_MISMATCH", label: "Data orang tua tidak sesuai" },
+    { code: "CONSENT_WRONG_FORM", label: "Format surat izin tidak sesuai" },
+  ],
+  vehicle: [
+    { code: "STNK_BLURRY", label: "Foto STNK kurang jelas" },
+    { code: "PLATE_MISMATCH", label: "Data nomor polisi tidak sesuai" },
+    { code: "STNK_NOT_OWNER", label: "STNK bukan atas nama pemilik/keluarga" },
+    { code: "STNK_EXPIRED", label: "STNK sudah tidak berlaku" },
+    { code: "VEHICLE_PHOTO_UNCLEAR", label: "Foto kendaraan kurang jelas" },
+  ],
+} as const;
+export type NebengQueueKind = keyof typeof NEBENG_REJECTION_REASONS;
